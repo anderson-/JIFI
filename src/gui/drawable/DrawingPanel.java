@@ -57,7 +57,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private final Point mouse;
     private Clock clock;
     private Thread repaintThread;
-    private ListenerThread listenerThread;
     private BufferedImage buffer;
     private boolean repaint = false;
     private int width;
@@ -155,12 +154,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             };
             repaintThread.start();
         }
-
-        if (listenerThread == null) {
-            listenerThread = new ListenerThread();
-            listenerThread.start();
-        }
-
 
         repaint = true;
     }
@@ -532,53 +525,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         public Point getMouse() {
             synchronized (mouse) {
                 return new Point(mouse);//mudar para posição relativa?
-            }
-        }
-    }
-
-    private class ListenerThread extends Thread {
-
-        private boolean run = true;
-        private Point mouseCpy = new Point();
-        private ArrayList<Integer> keysCpy = new ArrayList<>();
-
-        public ListenerThread() {
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (true) {
-                    if (run) {
-                        synchronized (mouse) {
-                            mouseCpy.setLocation(mouse);
-                        }
-                        keysCpy.clear();
-                        synchronized (keys) {
-                            keysCpy.addAll(keys);
-                        }
-
-                        SwingContainer.GeneralListener gl;
-                        synchronized (objects) {
-                            for (Drawable d : objects) {
-                                if (d instanceof SwingContainer.GeneralListener) {
-                                    gl = (SwingContainer.GeneralListener) d;
-                                    //TODO: listeners
-                                }
-                            }
-                        }
-
-                        if (!keys.isEmpty()) {
-//                            keys(keys);
-                        }
-
-                        Thread.sleep(PAINT_DELAY);
-                    } else {
-                        Thread.sleep(NO_PAINT_DELAY);
-                    }
-                }
-            } catch (InterruptedException ex) {
-                listenerThread = null;
             }
         }
     }

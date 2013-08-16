@@ -30,31 +30,6 @@ import util.Clock;
  */
 public abstract class SwingContainer implements Drawable, Iterable<DynamicJComponent> {
 
-    public interface GeneralListener {
-
-        public void mouseClicked(int button);
-
-        public void mousePressed(int button);
-
-        public void mouseReleased(int button);
-
-        public void mouseEntered();
-
-        public void mouseExited();
-
-        public void mouseDragged(int button);
-
-        public void mouseMoved();
-
-        public void mouseWheelMoved(int value);
-
-        public void DrawingAreaResized(int width, int height);
-
-        public void DrawingAreaMoved();
-
-        public void DrawingAreaZoomed();
-    }
-
     public class DynamicJComponent {
 
         private JComponent component;
