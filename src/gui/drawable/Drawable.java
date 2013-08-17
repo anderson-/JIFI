@@ -37,11 +37,7 @@ public interface Drawable {
 
     public void setBounds(int x, int y, int width, int height);
 
-    public void setBounds(Rectangle bounds);
-
     public Shape getShape();
-
-    public Command getCommand();
 
     public boolean isVisible();
 

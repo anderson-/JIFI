@@ -74,18 +74,8 @@ public class DrawableTest extends SwingContainer {
         }
 
         @Override
-        public void setBounds(Rectangle bounds) {
-            bounds.setBounds(bounds);
-        }
-
-        @Override
         public Shape getShape() {
             return bounds;
-        }
-
-        @Override
-        public Command getCommand() {
-            return null;
         }
 
         @Override
@@ -109,7 +99,6 @@ public class DrawableTest extends SwingContainer {
         public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
             
         }
-        
     }
     
     private ColorChanger cc = new ColorChanger(Color.CYAN, 0.5f);

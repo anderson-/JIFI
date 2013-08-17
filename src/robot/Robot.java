@@ -4,7 +4,17 @@
  */
 package robot;
 
+import algorithm.Command;
+import gui.drawable.Drawable;
+import gui.drawable.DrawingPanel;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.io.UnsupportedEncodingException;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,12 +24,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import observable.Observer;
 import simulation.Interpreter;
+import static simulation.SimulationPanel.paintPoints;
 
 /**
  *
  * @author antunes
  */
-public class Robot implements Observer<ByteBuffer, Connection> {
+public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
+
+    private double size = 25;
+    private double x, y;
+    private double theta;
+    private double rightWheelSpeed, leftWheelSpeed;
 
     public class InternalClock extends Device {
 
@@ -36,7 +52,6 @@ public class Robot implements Observer<ByteBuffer, Connection> {
             return "" + stepTime;
         }
     }
-    
     private Interpreter interpreter;
     private ArrayList<Device> devices;
     private ArrayList<Connection> connections;
@@ -57,6 +72,13 @@ public class Robot implements Observer<ByteBuffer, Connection> {
         devices = new ArrayList<>();
         connections = new ArrayList<>();
         add(new InternalClock());
+
+        x = 0;
+        y = 0;
+        theta = 0;
+        rightWheelSpeed = 0;
+        leftWheelSpeed = 0;
+
     }
 
     public final int getFreeRam() {
@@ -65,18 +87,18 @@ public class Robot implements Observer<ByteBuffer, Connection> {
 
     public final void add(Device d) {
         devices.add(d);
-        d.setID(devices.size()-1);
+        d.setID(devices.size() - 1);
     }
 
     public final void add(Connection c) {
         c.attach(this);
         connections.add(c);
     }
-    
+
     public final <T> T getDevice(Class<? extends Device> c) {
         for (Device d : devices) {
             if (c.isInstance(d)) {
-                return (T)d;
+                return (T) d;
             }
         }
         return null;
@@ -91,7 +113,7 @@ public class Robot implements Observer<ByteBuffer, Connection> {
         return null;
     }
 
-    public final  Device getDevice(int index) {
+    public final Device getDevice(int index) {
         if (index < 0 || index >= devices.size()) {
             return null;
         }
@@ -104,8 +126,8 @@ public class Robot implements Observer<ByteBuffer, Connection> {
         }
         return connections.get(index);
     }
-    
-    public final Connection getMainConnection(){
+
+    public final Connection getMainConnection() {
         return getConnection(0);
     }
 
@@ -233,5 +255,151 @@ public class Robot implements Observer<ByteBuffer, Connection> {
                     }
             }
         }
+    }
+
+    public double getTheta() {
+        return theta;
+    }
+
+    public void setTheta(double theta) {
+        this.theta = theta;
+    }
+
+    public double getRightWheelSpeed() {
+        return rightWheelSpeed;
+    }
+
+    public void setRightWheelSpeed(double rightWheelSpeed) {
+        this.rightWheelSpeed = rightWheelSpeed;
+    }
+
+    public double getLeftWheelSpeed() {
+        return leftWheelSpeed;
+    }
+
+    public void setLeftWheelSpeed(double leftWheelSpeed) {
+        this.leftWheelSpeed = leftWheelSpeed;
+    }
+    
+    private void move(double dt) {
+        double pf = rightWheelSpeed + leftWheelSpeed;
+        double mf = leftWheelSpeed - rightWheelSpeed;
+        double hf = pf / 2;
+        double a = size / 2 * pf / mf;
+        double b = theta + mf * dt / size;
+        double sin_theta = sin(theta);
+        double cos_theta = cos(theta);
+
+        if (leftWheelSpeed != rightWheelSpeed) {
+            theta = b;
+            x = x + a * (sin(b) - sin_theta);
+            y = y - a * (cos(b) - cos_theta);
+        } else {
+            x += hf * cos(theta) * dt;
+            y += hf * sin(theta) * dt;
+        }
+    }
+
+    @Override
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public int getX() {
+        return (int) x;
+    }
+
+    @Override
+    public int getY() {
+        return (int) y;
+    }
+
+    @Override
+    public int getWidth() {
+        return (int) size;
+    }
+
+    @Override
+    public int getHeight() {
+        return (int) size;
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        return new Rectangle((int) x, (int) y, (int) size, (int) size);
+    }
+
+    @Override
+    public void setLocation(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public void setSize(int width, int height) {
+        if (width == height){
+            size = width;
+        }
+    }
+
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        if (width == height){
+            size = width;
+        }
+    }
+
+    @Override
+    public Shape getShape() {
+        return getBounds();
+    }
+
+    @Override
+    public boolean isVisible() {
+        return true;
+    }
+
+    @Override
+    public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
+    }
+
+    @Override
+    public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
+        AffineTransform o = g.getTransform();
+        AffineTransform t = new AffineTransform(o);
+//        t.translate(x, y);
+        t.rotate(theta);
+        g.setTransform(t);
+        g.setColor(Color.gray);
+        int iSize = (int)size;
+        //body
+        g.drawOval(-5, -5, 10, 10);
+        g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);
+        //frente
+        g.fillRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
+        g.setColor(Color.black);
+        g.drawRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
+        //rodas
+        int ww = (int)(0.5*size);
+        int wh = (int)(0.2*size);
+        g.fillRect(-ww/2, -iSize / 2, ww, wh);
+        g.fillRect(-ww/2, +iSize / 2 - 10, ww, wh);
+        g.setTransform(o);
+        move(ga.getClock().getDt());
+    }
+
+    @Override
+    public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
     }
 }

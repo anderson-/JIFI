@@ -484,11 +484,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     @Override
-    public Command getCommand() {
-        return null;
-    }
-
-    @Override
     public boolean isVisible() {
         return false;
     }
