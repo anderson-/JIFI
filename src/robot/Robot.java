@@ -4,27 +4,22 @@
  */
 package robot;
 
-import algorithm.Command;
 import gui.drawable.Drawable;
 import gui.drawable.DrawingPanel;
 import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-import java.io.UnsupportedEncodingException;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import observable.Observer;
 import simulation.Interpreter;
-import static simulation.SimulationPanel.paintPoints;
 
 /**
  *
@@ -32,7 +27,8 @@ import static simulation.SimulationPanel.paintPoints;
  */
 public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
 
-    private double size = 25;
+    public static final double SIZE_CM = 20;
+    private double size = 60;
     private double x, y;
     private double theta;
     private double rightWheelSpeed, leftWheelSpeed;
@@ -242,6 +238,17 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
                     byte length = message.get();
                     byte[] args = new byte[length];
                     message.get(args);
+                    switch (cmdDone) {
+                        case CMD_SET: {
+                            Device d = getDevice(id);
+                            if (d != null) {
+                                //define que o valor do dispositivo é novo
+                                //e ainda não foi lido
+                                d.markUnread();
+                            }
+                            break;
+                        }
+                    }
                     //TODO: confirmação do comando enviado
                     break;
                 }
@@ -280,7 +287,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
     public void setLeftWheelSpeed(double leftWheelSpeed) {
         this.leftWheelSpeed = leftWheelSpeed;
     }
-    
+
     private void move(double dt) {
         double pf = rightWheelSpeed + leftWheelSpeed;
         double mf = leftWheelSpeed - rightWheelSpeed;
@@ -343,7 +350,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
 
     @Override
     public void setSize(int width, int height) {
-        if (width == height){
+        if (width == height) {
             size = width;
         }
     }
@@ -352,7 +359,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
     public void setBounds(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
-        if (width == height){
+        if (width == height) {
             size = width;
         }
     }
@@ -369,37 +376,39 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
 
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
     }
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
+
         AffineTransform o = g.getTransform();
         AffineTransform t = new AffineTransform(o);
-//        t.translate(x, y);
+        t.translate(-getX(), -getY());
+        t.translate(x, y);
         t.rotate(theta);
         g.setTransform(t);
         g.setColor(Color.gray);
-        int iSize = (int)size;
+        int iSize = (int) size;
         //body
         g.drawOval(-5, -5, 10, 10);
         g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);
         //frente
         g.fillRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
-        g.setColor(Color.black);
+//        g.setColor(Color.black);
         g.drawRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
         //rodas
-        int ww = (int)(0.5*size);
-        int wh = (int)(0.2*size);
-        g.fillRect(-ww/2, -iSize / 2, ww, wh);
-        g.fillRect(-ww/2, +iSize / 2 - 10, ww, wh);
+        int ww = (int) (0.4 * size);
+        int wh = (int) (0.2 * size);
+        int wp = (int) (size / 2 - wh) + 1;
+
+        g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
+        g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
         g.setTransform(o);
+
         move(ga.getClock().getDt());
     }
 
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
     }
 }

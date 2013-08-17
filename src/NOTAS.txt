@@ -1,0 +1,23 @@
+
+(Anderson) ----------- 17/08 -----------
+- *Novo mecanismo para verificar se a mensagem enviada foi recebida*
+(Luiz, Diego e Fernando) Dica: Para criar um Command que utilize um Device 
+use o seguinte exemplo:
+    //função que inicializa o comando (envia a mensagem)
+    public void begin(Robot robot, Clock clock) throws ExecutionException {
+        //envia a mensagem para o dispositivo
+        device.setWaiting(); //marca o dispositivo como 
+    }
+
+    função que se repete enquanto ela retornar false (ver Interpreter.step())
+    public boolean perform(Robot r, Clock clock) throws ExecutionException {
+        try {
+            if (device.isValidRead()){
+                return true; //o comando foi recebido pelo robô
+            } else {
+                return false; //executa novamente está função (ver Interpreter.step())
+            }
+        } catch (TimeoutException e){ //tempo acabou e a mensagem não foi confirmada
+            //envia novamente a mensagem
+        }
+    }

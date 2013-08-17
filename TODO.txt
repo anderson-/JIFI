@@ -1,6 +1,6 @@
 TODO:
 
-- Melhorar o relacionamento entre Device e as variaveis
+- Melhorar o relacionamento entre Device e as variaveis (pronto)
 - Implementar comandos/funções de alto nivel
 - Desenhar comandos usando as novas classes
 - Desenhar devices usando Drawable

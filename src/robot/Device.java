@@ -18,9 +18,35 @@ public abstract class Device {
      * HBridge.
      */
     
+    public class TimeoutException extends Exception {
+        
+    }
+    
+    public static final long TIMEOUT = 1000;
     private byte id;
     private static Connection connection;
-
+    private boolean received;
+    private long startReadingTime;
+    
+    @Deprecated
+    public final void markUnread(){ //só usado por Robot.update(...)
+        received = true;
+    }
+    
+    public final void setWaiting(){
+        startReadingTime = System.currentTimeMillis();
+        received = false;
+    }
+    
+    public final boolean isValidRead() throws TimeoutException{
+        if (received){
+            return true;
+        } else if (System.currentTimeMillis() - startReadingTime >= TIMEOUT ){
+            throw new TimeoutException();
+        } else {
+            return false;
+        }
+    }
 
     public static void setConnection(Connection connection) {
         Device.connection = connection;

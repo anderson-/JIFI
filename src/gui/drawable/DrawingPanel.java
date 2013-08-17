@@ -42,6 +42,7 @@ import gui.drawable.Drawable;
 import gui.drawable.DrawableTest.Circle;
 import gui.drawable.SwingContainer.DynamicJComponent;
 import java.awt.Shape;
+import java.util.List;
 import util.trafficsimulator.Clock;
 
 /**

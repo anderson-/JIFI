@@ -5,6 +5,7 @@
 package simulation;
 
 import gui.QuickFrame;
+import gui.drawable.Drawable;
 import gui.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -12,6 +13,8 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
+import robot.Connection;
+import robot.Device;
 import util.trafficsimulator.Timer;
 import robot.Robot;
 
@@ -28,8 +31,8 @@ public class SimulationPanel extends DrawingPanel {
     public SimulationPanel() {
         robot = new Robot();
         add(robot);
-        robot.setRightWheelSpeed(40);
-        robot.setLeftWheelSpeed(30);
+        robot.setRightWheelSpeed(50);
+        robot.setLeftWheelSpeed(50);
         //mapeia a posição a cada x ms
         Timer timer = new Timer(100) {
             @Override
@@ -39,14 +42,26 @@ public class SimulationPanel extends DrawingPanel {
                     rpos.remove(0);
                 }
                 if (this.getCount() % 20 == 0) {
-                    robot.setRightWheelSpeed(Math.random() * 40);
-                    robot.setLeftWheelSpeed(Math.random() * 40);
+                    robot.setRightWheelSpeed(Math.random() * 80);
+                    robot.setLeftWheelSpeed(Math.random() * 80);
                 }
             }
         };
         timer.setDisposable(false);
         clock.addTimer(timer);
         clock.setPaused(false);
+    }
+
+    public void add(Robot r) {
+        add((Drawable)r);
+        for (Device d : r.getDevices()){
+            if (d instanceof Drawable){
+                add((Drawable)d);
+            }
+        }
+        for (Connection c : r.getConnections()){
+            add((Drawable)c);
+        }
     }
 
     public static void paintPoints(Graphics2D g, List<Point> points, int size) {
@@ -72,7 +87,7 @@ public class SimulationPanel extends DrawingPanel {
         t.translate(getWidth()/2,getHeight()/2);
         g.setTransform(t);
         g.setColor(Color.gray);
-        drawGrade(g, 1, 100f, getBounds());
+        drawGrade(g, 4, (float) ((robot.getHeight()*100f)/Robot.SIZE_CM), getBounds());
         g.setTransform(o);
     }
 
