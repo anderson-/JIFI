@@ -21,3 +21,4 @@ use o seguinte exemplo:
             //envia novamente a mensagem
         }
     }
+ - agora sim, tudo deve estar funcionando bem, só falta implementas as coisas
