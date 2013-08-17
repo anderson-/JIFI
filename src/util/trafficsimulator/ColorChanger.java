@@ -21,7 +21,7 @@
  * along with TrafficSimulator. If not, see http://www.gnu.org/licenses/.
  */
 
-package util;
+package util.trafficsimulator;
 
 import java.awt.Color;
 

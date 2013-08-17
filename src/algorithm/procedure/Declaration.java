@@ -8,7 +8,7 @@ import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
 import robot.Robot;
 import simulation.ExecutionException;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *

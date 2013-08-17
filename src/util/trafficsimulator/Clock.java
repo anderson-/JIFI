@@ -19,7 +19,7 @@
  * TrafficSimulator. If not, see http://www.gnu.org/licenses/.
  */
 
-package util;
+package util.trafficsimulator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,8 +51,8 @@ public class Clock extends Thread {
         this.ms = ms;
         this.ratio = ratio;
         ems = 0;
-        timers = new ArrayList<Timer>();
-        listeners = new ArrayList<ClockListener>();
+        timers = new ArrayList<>();
+        listeners = new ArrayList<>();
         sleep = 100;
     }
 

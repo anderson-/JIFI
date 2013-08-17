@@ -281,56 +281,56 @@ public class Serial implements Connection, SerialPortEventListener {
         System.out.println("}");
     }
 
-    public static void main(String[] args) {
-        Serial s = new Serial(9600);
-
-        Robot r = new Robot();
-        r.add(new HBridge(1));
-        r.add(new Compass());
-        s.attach(r);
-
-        ArrayList<byte[]> testMessages = new ArrayList<>();
-
-//        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
-//        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
-//        testMessages.add(new byte[]{4, 0, 0});//get clock
-//        testMessages.add(new byte[]{4, 1, 0});//get hbridge
-        testMessages.add(new byte[]{4, 2, 0});//get compass
-//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-//        testMessages.add(new byte[]{5, 1, 2, 0, 90, 5, 1, 2, 1, -90}); //rotaciona
-//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-//        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
-//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-//        byte [] msg = new byte[]{'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', 0};
-//        byte j = 0;
-//        testMessages.add(msg);
-        //testMessages.add(new byte [] {});
-
-        if (s.establishConnection()) {
-            System.out.println("connected");
-            long timestamp = System.currentTimeMillis();
-            for (int i = 0; i < 1000; i++) {
-                for (byte[] message : testMessages) {
-//                    msg[8] = j++;
-                    s.send(message);
-                    System.out.print("Sended:   ");
-                    System.out.print("[" + message.length + "]{");
-                    for (byte b : message) {
-                        System.out.print("," + b);
-                    }
-                    System.out.print("}");
-                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ex) {
-                    }
-
-                }
-            }
-        } else {
-            System.out.println("fail");
-        }
-
-        System.out.println("Fim");
-    }
+//    public static void main(String[] args) {
+//        Serial s = new Serial(9600);
+//
+//        Robot r = new Robot();
+//        r.add(new HBridge(1));
+//        r.add(new Compass());
+//        s.attach(r);
+//
+//        ArrayList<byte[]> testMessages = new ArrayList<>();
+//
+////        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
+////        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
+////        testMessages.add(new byte[]{4, 0, 0});//get clock
+////        testMessages.add(new byte[]{4, 1, 0});//get hbridge
+//        testMessages.add(new byte[]{4, 2, 0});//get compass
+////        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+////        testMessages.add(new byte[]{5, 1, 2, 0, 90, 5, 1, 2, 1, -90}); //rotaciona
+////        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+////        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
+////        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+////        byte [] msg = new byte[]{'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', 0};
+////        byte j = 0;
+////        testMessages.add(msg);
+//        //testMessages.add(new byte [] {});
+//
+//        if (s.establishConnection()) {
+//            System.out.println("connected");
+//            long timestamp = System.currentTimeMillis();
+//            for (int i = 0; i < 1000; i++) {
+//                for (byte[] message : testMessages) {
+////                    msg[8] = j++;
+//                    s.send(message);
+//                    System.out.print("Sended:   ");
+//                    System.out.print("[" + message.length + "]{");
+//                    for (byte b : message) {
+//                        System.out.print("," + b);
+//                    }
+//                    System.out.print("}");
+//                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
+//                    try {
+//                        Thread.sleep(500);
+//                    } catch (InterruptedException ex) {
+//                    }
+//
+//                }
+//            }
+//        } else {
+//            System.out.println("fail");
+//        }
+//
+//        System.out.println("Fim");
+//    }
 }

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.nfunk.jep.Variable;
 import robot.Robot;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *

@@ -8,7 +8,7 @@ import algorithm.Command;
 import robot.Connection;
 import robot.Robot;
 import robot.impl.HBridge;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *
@@ -27,8 +27,7 @@ public class Move extends Command{
     @Override
     public boolean perform(Robot robot, Clock clock) {
         HBridge hb = robot.getDevice(HBridge.class);
-        Connection c = robot.getMainConnection();
-        hb.setState(m1,m2,c);
+        hb.setFullState(m1,m2);
         return true;
     }
 }

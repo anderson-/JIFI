@@ -9,8 +9,8 @@ import robot.Connection;
 import robot.Robot;
 import robot.impl.HBridge;
 import simulation.ExecutionException;
-import util.Clock;
-import util.Timer;
+import util.trafficsimulator.Clock;
+import util.trafficsimulator.Timer;
 
 /**
  *

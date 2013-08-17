@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import gui.drawable.DRobot;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *

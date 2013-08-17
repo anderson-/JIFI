@@ -7,7 +7,7 @@ package algorithm;
 import algorithm.procedure.Block;
 import robot.Robot;
 import simulation.ExecutionException;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *

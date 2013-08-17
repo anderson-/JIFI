@@ -7,70 +7,47 @@ package robot.impl;
 import java.nio.ByteBuffer;
 import robot.Connection;
 import robot.Device;
+import robot.Robot;
 
 /**
  *
  * @author antunes
  */
-public class HBridge implements Device {
+public class HBridge extends Device {
 
     private byte[] msg;
-    private int id;
 
     public HBridge(int id) {
-        this.id = id;
-        msg = new byte[]{5, 1, 2, 0, 0};
-    }
-
-    public int getID() {
-        return id;
-    }
-
-    public void setID(int id) {
-        this.id = id;
+        msg = new byte[5];
     }
 
     @Override
-    public void stop() {
+    public void setState(ByteBuffer data) {
     }
 
-    @Override
-    public void reset() {
+    public void setMotorState(int motor, byte speed) {
+        msg[0] = Robot.CMD_SET; //comando get
+        msg[1] = getID(); //id
+        msg[2] = 2; //tamanho da mensagem (2 bytes)
+        msg[3] = (byte) motor; //byte 1 - motor
+        msg[4] = speed; //byte 2 - velocidade
+        send(msg); //envia mensagem
     }
 
-    @Override
-    public ByteBuffer get(ByteBuffer buffer) {
-
-        return buffer;
-    }
-
-    @Override
-    public void set(ByteBuffer data) {
-        
-    }
-
-    public void setMotorState(int motor, byte speed, Connection c) {
-        msg[3] = (byte) motor;
-        msg[4] = speed;
-        c.send(msg);
-    }
-
-    public void setState(byte speedM1, byte speedM2, Connection c) {
+    public void setFullState(byte speedM1, byte speedM2) {
+        msg[0] = Robot.CMD_SET; //comando get
+        msg[1] = getID(); //id
+        // ... 
         msg[3] = 0;
         msg[4] = speedM1;
-        c.send(msg);
+        send(msg);
         msg[3] = 1;
         msg[4] = speedM2;
-        c.send(msg);
+        send(msg);
     }
 
     @Override
-    public String getState() {
+    public String stateToString() {
         return "";
-    }
-
-    @Override
-    public byte[] request() {
-        return new byte[]{4, 1, 0};
     }
 }

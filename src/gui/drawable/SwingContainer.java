@@ -8,21 +8,12 @@ import algorithm.Command;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JComponent;
 import gui.drawable.DrawingPanel.GraphicAttributes;
 import gui.drawable.DrawingPanel.InputState;
 import gui.drawable.SwingContainer.DynamicJComponent;
-import util.Clock;
 
 /**
  *
@@ -200,7 +191,7 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
     }
 
-    public void hasTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+    public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
     }
 
     @Override

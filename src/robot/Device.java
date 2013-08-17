@@ -5,28 +5,64 @@
 package robot;
 
 import java.nio.ByteBuffer;
-import gui.drawable.DRobot;
-import observable.Observable;
-import observable.Observer;
 
 /**
  *
  * @author antunes
  */
-public interface Device {
+public abstract class Device {
+    
+    /*
+     * Cada dispositivo deve implementar suas proprias funções para
+     * enviar comandos para o robô. Veja as funções implementadas em 
+     * HBridge.
+     */
+    
+    private byte id;
+    private static Connection connection;
 
-    public void stop();
-    
-    public void reset();
-    
-//    public void update (Connection c);
 
-    public ByteBuffer get(ByteBuffer buffer);
+    public static void setConnection(Connection connection) {
+        Device.connection = connection;
+    }
+    
+    public void setID(int id){
+        this.id = (byte) id;
+    }
+    
+    public byte getID(){
+        return id;
+    }
 
-    public void set(ByteBuffer data);
+    public abstract void setState(ByteBuffer data);
     
-    public String getState ();
+    public abstract String stateToString ();
     
-    public byte [] request();
+    /**
+     * Define a mensagem padrão a ser enviada para o comando GET.
+     * 
+     * @param msg Mensagem a ser enviada
+     */
+    public byte[] defaultGetMessage(){
+        return new byte []{};
+    }
+    
+    /**
+     * Envia uma mensagem pela interface de comunicação padrão do robô.
+     * 
+     * @param msg Mensagem a ser enviada
+     */
+    protected final void send (ByteBuffer msg){
+        connection.send(msg);
+    }
+    
+    /**
+     * Envia uma mensagem pela interface de comunicação padrão do robô.
+     * 
+     * @param msg Mensagem a ser enviada
+     */
+    protected final void send (byte [] msg){
+        connection.send(msg);
+    }
     
 }

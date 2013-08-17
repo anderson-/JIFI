@@ -7,7 +7,7 @@ package plugins.cmdpack.serial;
 import algorithm.Command;
 import robot.Robot;
 import simulation.ExecutionException;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *

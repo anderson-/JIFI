@@ -19,7 +19,7 @@
  * TrafficSimulator. If not, see http://www.gnu.org/licenses/.
  */
 
-package util;
+package util.trafficsimulator;
 
 /**
  * Cronometro de uso geral.
@@ -34,6 +34,7 @@ public class Timer {
     private long lastCount;
     private boolean paused = false;
     private boolean consumed = false;
+    private boolean disposable = true;
 
     public Timer(long milis) {
         if (milis <= 0) {
@@ -45,6 +46,10 @@ public class Timer {
     public Timer(long milis, boolean paused) {
         this(milis);
         this.paused = paused;
+    }
+    
+    public synchronized void setDisposable (boolean disposable){
+        this.disposable = disposable;
     }
 
     public synchronized void reset() {
@@ -81,7 +86,9 @@ public class Timer {
             lastCount = count;
             count = timeElapsed / tick;
             if (lastCount != count) {
-                consumed = true;
+                if (disposable){
+                    consumed = true;
+                }
 //                System.out.println(timeElapsed);
                 run();
             }

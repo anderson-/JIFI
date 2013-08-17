@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.ParseException;
 import plugins.cmdpack.begginer.Move;
-import plugins.cmdpack.begginer.ReadSensor;
+import plugins.cmdpack.begginer.ReadDevice;
 import plugins.cmdpack.begginer.Wait;
 import plugins.cmdpack.serial.Start;
 import plugins.cmdpack.serial.Stop;
@@ -25,7 +25,7 @@ import robot.Robot;
 import robot.impl.Compass;
 import robot.impl.HBridge;
 import robot.impl.Serial;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 /**
  *
@@ -221,11 +221,11 @@ public class Interpreter extends Thread {
         ifCompass.addFalse(new Move(-55,55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
         loopCompass.add(ifCompass);
-        loopCompass.add(new ReadSensor(Compass.class));
+        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
         loopCompass.add(new PrintString("Angulo atual: %v","alpha"));
         func.add(loopCompass);
         func.add(new Move(0,0));
-        func.add(new ReadSensor(Compass.class));
+        func.add(new ReadDevice(Compass.class, "alpha"));
         func.add(new PrintString("Angulo final: %v","alpha"));
         func.add(new PrintString("fim"));
         i.setMainFunction(func);

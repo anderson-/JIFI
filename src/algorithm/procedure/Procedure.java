@@ -11,7 +11,7 @@ import org.nfunk.jep.Variable;
 import robot.Robot;
 import simulation.ExecutionException;
 import simulation.Expression;
-import util.Clock;
+import util.trafficsimulator.Clock;
 
 //classe mais 
 public class Procedure extends Command implements Expression/*, Observer*/ {

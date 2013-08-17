@@ -43,16 +43,12 @@ public interface Drawable {
 
     public Command getCommand();
 
-    public boolean hasBackground();
-
     public boolean isVisible();
-
-    public boolean hasTopLayer();
 
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in);
 
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in);
 
-    public void hasTopLayer(Graphics2D g, GraphicAttributes ga, InputState in);
+    public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in);
 
 }

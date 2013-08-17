@@ -4,6 +4,7 @@
  */
 package gui.drawable;
 
+import algorithm.Command;
 import gui.QuickFrame;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,22 +41,23 @@ import javax.swing.UnsupportedLookAndFeelException;
 import gui.drawable.Drawable;
 import gui.drawable.DrawableTest.Circle;
 import gui.drawable.SwingContainer.DynamicJComponent;
-import util.Clock;
+import java.awt.Shape;
+import util.trafficsimulator.Clock;
 
 /**
  *
  * @author antunes
  */
-public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener {
+public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, Drawable {
 
     public final double MIN_ZOOM = 0.1;
     public final double MAX_ZOOM = 10.0;
     protected final long PAINT_DELAY = 2;
     protected final long NO_PAINT_DELAY = 100;
+    protected final Clock clock;
     private final ArrayList<Drawable> objects;
     private final ArrayList<Integer> keys;
     private final Point mouse;
-    private Clock clock;
     private Thread repaintThread;
     private BufferedImage buffer;
     private boolean repaint = false;
@@ -83,9 +85,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         this.setFocusable(true);
         //componentes Swing em toda parte
         this.setLayout(null);
-        //adiciona listeners
-        addListeners();
-
+        
         mouse = new Point();
         clock = c;
         objects = new ArrayList<>();
@@ -97,10 +97,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         currentBounds = new Rectangle();
         
         //teste
-        add(new DrawableTest().appendTo(this));
-        Circle cw = new Circle();
-        cw.setBounds(10, 10, 30, 30);
-        add(cw);
+//        add(new DrawableTest().appendTo(this));
+//        Circle cw = new Circle();
+//        cw.setBounds(10, 10, 30, 30);
+//        add(cw);
+        
+        //adiciona listeners
+        addListeners();
         //inicia a thread de desenho
         play();
     }
@@ -110,6 +113,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         this.addMouseMotionListener(this);
         this.addMouseWheelListener(this);
         this.addKeyListener(this);
+        this.add((Drawable)this);
     }
 
     public DrawingPanel(Clock c, boolean autoFullSize) {
@@ -196,13 +200,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         synchronized (objects) {
             for (Drawable d : objects) {
                 currentObject = d;
-                if (d.hasBackground()) {
+                if (d.isVisible()) {
                     currentTransform.setToIdentity();
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
                     currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
-                    g2.setClip(currentBounds);
+//                    g2.setClip(currentBounds);
                     currentTransform.translate(d.getX(), d.getY());
                     g2.setTransform(currentTransform);
                     d.drawBackground(g2, currentGraphicAtributes, currentInputState);
@@ -221,7 +225,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
                     currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
-                    g2.setClip(currentBounds);
+//                    g2.setClip(currentBounds);
                     currentTransform.translate(d.getX(), d.getY());
                     g2.setTransform(currentTransform);
                     d.draw(g2, currentGraphicAtributes, currentInputState);
@@ -230,20 +234,20 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        //desenha primeiro plano
+        //desenha primeiro plano (sem posição e zoom)
         synchronized (objects) {
             for (Drawable d : objects) {
                 currentObject = d;
-                if (d.hasTopLayer()) {
+                if (d.isVisible()) {
                     currentTransform.setToIdentity();
                     g2.setTransform(currentTransform);
-                    currentTransform.translate(globalX, globalY);
-                    currentTransform.scale(zoom, zoom);
+                    //currentTransform.translate(globalX, globalY);
+                    //currentTransform.scale(zoom, zoom);
                     currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
-                    g2.setClip(currentBounds);
+//                    g2.setClip(currentBounds);
                     currentTransform.translate(d.getX(), d.getY());
                     g2.setTransform(currentTransform);
-                    d.hasTopLayer(g2, currentGraphicAtributes, currentInputState);
+                    d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
                 }
                 currentObject = null;
             }
@@ -462,6 +466,46 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         g.setColor(Color.white);
         g.drawString(str, px, py);
 
+    }
+
+    @Override
+    public void setX(int x) {
+        
+    }
+
+    @Override
+    public void setY(int y) {
+        
+    }
+
+    @Override
+    public Shape getShape() {
+        return new Rectangle(0,0,width,height);
+    }
+
+    @Override
+    public Command getCommand() {
+        return null;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return false;
+    }
+
+    @Override
+    public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
+        
+    }
+
+    @Override
+    public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+        
+    }
+
+    @Override
+    public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+        
     }
 
     public class GraphicAttributes {

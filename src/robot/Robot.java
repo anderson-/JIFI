@@ -21,73 +21,41 @@ import simulation.Interpreter;
  */
 public class Robot implements Observer<ByteBuffer, Connection> {
 
-    public class InternalClock implements Device {
+    public class InternalClock extends Device {
 
         private float stepTime = 0;
 
         @Override
-        public void stop() {
-        }
-
-        @Override
-        public void reset() {
-        }
-
-        @Override
-        public ByteBuffer get(ByteBuffer buffer) {
-            //<lê valores>
-            
-            //<\lê valores>
-            //reseta o buffer
-            buffer.clear();
-            //<escreve valores>
-            
-            //<\escreve valores>
-            //define o limite do buffer e o retorna ao inicio
-            buffer.flip();
-            //retorna o buffer
-            return buffer;
-        }
-
-        @Override
-        public void set(ByteBuffer data) {
+        public void setState(ByteBuffer data) {
             stepTime = data.getFloat();
             System.out.println("Tempo do ciclo: " + stepTime);
         }
 
         @Override
-        public String getState() {
-            return "";
-        }
-
-        @Override
-        public byte[] request() {
-            return new byte [] {4, 0, 0};
+        public String stateToString() {
+            return "" + stepTime;
         }
     }
+    
     private Interpreter interpreter;
     private ArrayList<Device> devices;
     private ArrayList<Connection> connections;
-    private ByteBuffer mainBuffer;
-    private ByteBuffer buffer;
     private int freeRam = 0;
-    public final byte CMD_STOP = 1;
-    public final byte CMD_ECHO = 2;
-    public final byte CMD_PRINT = 3;
-    public final byte CMD_GET = 4;
-    public final byte CMD_SET = 5;
-    public final byte CMD_ADD = 6;
-    public final byte CMD_RESET = 7;
-    public final byte CMD_DONE = 8;
-    public final byte CMD_NO_OP = 9;
-    public final byte XTRA_ALL = (byte) 222;
-    public final byte XTRA_FREE_RAM = (byte) 223;
+    public static final byte CMD_STOP = 1;
+    public static final byte CMD_ECHO = 2;
+    public static final byte CMD_PRINT = 3;
+    public static final byte CMD_GET = 4;
+    public static final byte CMD_SET = 5;
+    public static final byte CMD_ADD = 6;
+    public static final byte CMD_RESET = 7;
+    public static final byte CMD_DONE = 8;
+    public static final byte CMD_NO_OP = 9;
+    public static final byte XTRA_ALL = (byte) 222;
+    public static final byte XTRA_FREE_RAM = (byte) 223;
 
     public Robot() {
         devices = new ArrayList<>();
         connections = new ArrayList<>();
-        mainBuffer = ByteBuffer.allocate(254);
-        buffer = ByteBuffer.allocate(254);
         add(new InternalClock());
     }
 
@@ -97,21 +65,13 @@ public class Robot implements Observer<ByteBuffer, Connection> {
 
     public final void add(Device d) {
         devices.add(d);
+        d.setID(devices.size()-1);
     }
 
     public final void add(Connection c) {
         c.attach(this);
         connections.add(c);
     }
-
-//    public final Device getDevice(Class<? extends Device> c) {
-//        for (Device d : devices) {
-//            if (c.isInstance(d)) {
-//                return d;
-//            }
-//        }
-//        return null;
-//    }
     
     public final <T> T getDevice(Class<? extends Device> c) {
         for (Device d : devices) {
@@ -176,19 +136,8 @@ public class Robot implements Observer<ByteBuffer, Connection> {
             byte cmd = message.get();
             switch (cmd) {
                 case CMD_STOP: {
-                    byte id = message.get();
-                    if (id == XTRA_ALL) {
-                        for (Device d : getDevices()) {
-                            if (d != null) {
-                                d.stop();
-                            }
-                        }
-                    } else {
-                        Device d = getDevice(id);
-                        if (d != null) {
-                            d.stop();
-                        }
-                    }
+                    //skip bytes
+                    message.get();
                     break;
                 }
 
@@ -222,60 +171,11 @@ public class Robot implements Observer<ByteBuffer, Connection> {
                 }
 
                 case CMD_GET: {
-                    byte id = message.get();
+                    //skip bytes
+                    message.get();
                     byte length = message.get();
                     byte[] args = new byte[length];
                     message.get(args);
-                    //"limpa" o buffer secundario de marcações
-                    buffer.clear();
-                    //coloca os argumentos no buffer
-                    buffer.put(args);
-                    //define o limite do buffer e retorna ao inicio
-                    buffer.flip();
-                    ByteBuffer slice;
-                    if (id == XTRA_ALL) {
-                        Device d;
-                        for (int i = 0; i < getDeviceListSize(); i++) {
-                            d = getDevice(i);
-                            if (d != null) {
-                                //passa os argumentos no buffer que guardará
-                                //a resposta de Device.get()
-                                //IMPORTANTE: coletar os dados pertinentes na 
-                                //função get e chamar clear antes de inserir
-                                //novos dados!
-                                //IMPORTANTE: Não esquecer de chamar flip antes
-                                //de retornar a função get! Caso contrario a 
-                                //mensagem será enviada incompleta ou vazia.
-                                slice = d.get(buffer.slice());
-                                //"limpa" o buffer principal de marcações
-                                mainBuffer.clear();
-                                //header do comando set
-                                mainBuffer.put(CMD_SET);
-                                //id
-                                mainBuffer.put((byte) i);
-                                //tamanho da resposta
-                                mainBuffer.put((byte) slice.remaining());
-                                //resposta
-                                mainBuffer.put(slice);
-                                //flip antes de enviar
-                                mainBuffer.flip();
-                                connection.send(mainBuffer);
-                            }
-                        }
-                    } else {
-                        Device d = getDevice(id);
-                        if (d != null) {
-                            //ver comentarios a cima
-                            slice = d.get(buffer.slice());
-                            mainBuffer.clear();
-                            mainBuffer.put(CMD_SET);
-                            mainBuffer.put(id);
-                            mainBuffer.put((byte) slice.remaining());
-                            mainBuffer.put(slice);
-                            mainBuffer.flip();
-                            connection.send(mainBuffer);
-                        }
-                    }
                     break;
                 }
 
@@ -293,35 +193,24 @@ public class Robot implements Observer<ByteBuffer, Connection> {
                         if (d != null) {
                             ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
                             tmp.order(ByteOrder.LITTLE_ENDIAN);
-                            d.set(tmp);
+                            d.setState(tmp);
                         }
                     }
                     break;
                 }
 
                 case CMD_ADD: {
-                    byte id = message.get();
+                    //skip bytes
+                    message.get();
                     byte length = message.get();
                     byte[] args = new byte[length];
                     message.get(args);
-                    //TODO
                     break;
                 }
 
                 case CMD_RESET: {
-                    byte id = message.get();
-                    if (id == XTRA_ALL) {
-                        for (Device d : getDevices()) {
-                            if (d != null) {
-                                d.reset();
-                            }
-                        }
-                    } else {
-                        Device d = getDevice(id);
-                        if (d != null) {
-                            d.reset();
-                        }
-                    }
+                    //skip bytes
+                    message.get();
                     break;
                 }
 
@@ -331,7 +220,7 @@ public class Robot implements Observer<ByteBuffer, Connection> {
                     byte length = message.get();
                     byte[] args = new byte[length];
                     message.get(args);
-                    //TODO
+                    //TODO: confirmação do comando enviado
                     break;
                 }
 

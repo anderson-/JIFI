@@ -11,7 +11,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import javax.swing.JButton;
-import util.ColorChanger;
+import util.trafficsimulator.ColorChanger;
 
 /**
  *
@@ -89,18 +89,8 @@ public class DrawableTest extends SwingContainer {
         }
 
         @Override
-        public boolean hasBackground() {
-            return false;
-        }
-
-        @Override
         public boolean isVisible() {
             return true;
-        }
-
-        @Override
-        public boolean hasTopLayer() {
-            return false;
         }
 
         @Override
@@ -116,7 +106,7 @@ public class DrawableTest extends SwingContainer {
         }
 
         @Override
-        public void hasTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
             
         }
         
@@ -190,7 +180,7 @@ public class DrawableTest extends SwingContainer {
     }
 
     @Override
-    public void hasTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+    public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
     
 }
