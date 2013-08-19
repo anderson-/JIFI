@@ -4,12 +4,11 @@
  */
 package gui.drawable;
 
-import algorithm.Command;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JButton;
 import util.trafficsimulator.ColorChanger;
 
@@ -20,120 +19,66 @@ import util.trafficsimulator.ColorChanger;
 public class DrawableTest extends SwingContainer {
 
     public static class Circle implements Drawable {
-        
-        Rectangle bounds = new Rectangle();
-        
+
+        Rectangle2D.Double bounds = new Rectangle2D.Double();
+
         @Override
-        public void setX(int x) {
-            bounds.x = x;
+        public Shape getObjectShape() {
+            return bounds;
         }
 
         @Override
-        public void setY(int y) {
+        public Rectangle2D.Double getObjectBouds() {
+            return bounds;
+        }
+
+        @Override
+        public void setObjectLocation(double x, double y) {
+            bounds.x = x;
             bounds.y = y;
         }
 
         @Override
-        public int getX() {
-            return bounds.x;
+        public void setObjectBounds(double x, double y, double width, double height) {
+            bounds.x = x;
+            bounds.y = y;
+            bounds.width = width;
+            bounds.height = height;
         }
 
         @Override
-        public int getY() {
-            return bounds.y;
-        }
-
-        @Override
-        public int getWidth() {
-            return bounds.width;
-        }
-
-        @Override
-        public int getHeight() {
-            return bounds.height;
-        }
-
-        @Override
-        public Rectangle getBounds() {
-            return bounds;
-        }
-
-        @Override
-        public void setLocation(int x, int y) {
-            bounds.setLocation(x, y);
-        }
-
-        @Override
-        public void setSize(int width, int height) {
-            bounds.setSize(width, height);
-        }
-
-        @Override
-        public void setBounds(int x, int y, int width, int height) {
-            bounds.setBounds(x, y, width, height);
-        }
-
-        @Override
-        public Shape getShape() {
-            return bounds;
-        }
-
-        @Override
-        public boolean isVisible() {
-            return true;
+        public int getDrawableLayer() {
+            return DrawingPanel.DEFAULT_LAYER;
         }
 
         @Override
         public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-            
         }
 
         @Override
         public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-            g.fillRect(-10, -10, 100, 100);
+            //desenha uma bolinha
             g.setColor(Color.gray);
             g.fillOval(0, 0, 30, 30);
         }
 
         @Override
         public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-            
         }
     }
-    
     private ColorChanger cc = new ColorChanger(Color.CYAN, 0.5f);
-    
+
     public DrawableTest() {
-        setBounds(100, 100, 300, 300);
-        JButton b = new JButton("HelloWorld");
-        addJComponent(b, 50,0, 200,100);
-        b = new JButton("HelloWorld2");
-        addJComponent(b, 50,200, 200,100);
+        setObjectBounds(100, 100, 300, 300);
+        JButton b = new JButton("Botão1");
+        addJComponent(b, 50, 0, 200, 100);
+        b = new JButton("Botão2");
+        addJComponent(b, 50, 200, 200, 100);
     }
 
     @Override
-    public Shape getShape() {
-        return getBounds();
-    }
-
-    @Override
-    public Command getCommand() {
-        return null;
-    }
-
-    @Override
-    public boolean hasBackground() {
-        return false;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return true;
-    }
-
-    @Override
-    public boolean hasTopLayer() {
-        return false;
+    public int getDrawableLayer() {
+        return DrawingPanel.DEFAULT_LAYER;
     }
 
     @Override
@@ -142,13 +87,13 @@ public class DrawableTest extends SwingContainer {
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        if (in.isMouseOver()){
+        if (in.isMouseOver()) {
             g.setColor(Color.RED);
         } else {
-            if (in.isKeyPressed(KeyEvent.VK_4)){
+            if (in.isKeyPressed(KeyEvent.VK_4)) {
                 g.setColor(Color.YELLOW);
             } else {
-                switch (in.getSingleKey()){
+                switch (in.getSingleKey()) {
                     case KeyEvent.VK_1:
                         g.setColor(Color.ORANGE);
                         break;
@@ -159,17 +104,23 @@ public class DrawableTest extends SwingContainer {
                         g.setColor(Color.BLUE);
                         break;
                     default:
-                        
+
                         g.setColor(cc.getColor());
                 }
             }
         }
-        g.fillRect(0, 0, 1300, 1300);
-        DrawingPanel.drawBallOrbitingCenter(g, 300, 300);
+        g.fillRect(0, 0, (int)getObjectBouds().width, (int)getObjectBouds().height);
+        g.setColor(Color.white);
+        drawBallOrbitingCenter(g, 300, 300);
     }
+    
+    public static void drawBallOrbitingCenter(Graphics2D g, int width, int height) {
+        double time = 2 * Math.PI * (System.currentTimeMillis() % 10000) / 10000.;
+        g.fillOval((int) (Math.sin(time) * width / 3 + width / 2 - 20), (int) (Math.cos(time) * height / 3 + height / 2) - 20, 40, 40);
+    }
+
 
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
-    
 }

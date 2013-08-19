@@ -22,6 +22,7 @@ import util.trafficsimulator.Clock;
  *
  * @author Anderson
  */
+@Deprecated //versão antiga!!
 public class SimulationArea extends JPanel implements Runnable, KeyListener, MouseWheelListener, java.io.Serializable{
 
     private Clock clock;

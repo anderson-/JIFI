@@ -5,21 +5,16 @@
 package simulation;
 
 import algorithm.Command;
-import algorithm.procedure.Block;
 import algorithm.procedure.Declaration;
 import algorithm.procedure.Function;
 import algorithm.procedure.If;
 import algorithm.procedure.While;
 import algorithm.procedure.Procedure;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.ParseException;
 import plugins.cmdpack.begginer.Move;
 import plugins.cmdpack.begginer.ReadDevice;
 import plugins.cmdpack.begginer.Wait;
 import plugins.cmdpack.serial.Start;
-import plugins.cmdpack.serial.Stop;
 import plugins.cmdpack.util.PrintString;
 import robot.Robot;
 import robot.impl.Compass;
@@ -68,42 +63,12 @@ public class Interpreter extends Thread {
     }
 
     public boolean step() {
-//
-//        parser.initSymTab(); // clear the contents of the symbol table
-//        parser.addStandardConstants();
-//        parser.setAllowAssignment(true);
-//        parser.parseExpression("");
-
-//
-//        Object result;
-//        String errorInfo;
-//
-//        // Get the value
-//        result = parser.getValueAsObject();
-//
-//        // Is the result ok?
-//        if (result != null) {
-////            resultLaparserbel.setText(result.toString());
-//        } else {
-////            resultLabel.setText("");
-//        }
-//
-//        // Get the error information
-//        if ((errorInfo = parser.getErrorInfo()) != null) {
-////            errorTextArea.setText(errorInfo);
-//        } else {
-////            errorTextArea.setText("");
-//        }
-
-        /**
-         * **************
-         */
         
         if (currentCmd == null) {
             return false;
         }
         clock.setPaused(false);
-//        System.out.println(currentCmd);
+//        System.out.println(currentCmd); //exibe o comando atual
         try {
             if (currentCmd instanceof Procedure){
                 ((Procedure)currentCmd).setParser(parser);

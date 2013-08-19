@@ -14,6 +14,7 @@ import javax.swing.JComponent;
 import gui.drawable.DrawingPanel.GraphicAttributes;
 import gui.drawable.DrawingPanel.InputState;
 import gui.drawable.SwingContainer.DynamicJComponent;
+import java.awt.geom.Rectangle2D;
 
 /**
  *
@@ -38,7 +39,7 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
         public Rectangle getBounds() {
             return bounds;
         }
-        
+
         public int getX() {
             return bounds.x;
         }
@@ -71,65 +72,14 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
             component.setBounds(bounds);
         }
     }
-    
     private DrawingPanel parent;
     private ArrayList<DynamicJComponent> swingObjs;
-    private Rectangle bounds;
+    private Rectangle2D.Double bounds;
 
     public SwingContainer() {
         parent = null;
         swingObjs = new ArrayList<>();
-        bounds = new Rectangle();
-    }
-
-    public final void setX(int x) {
-        bounds.x = x;
-        updateSwing();
-    }
-
-    public final void setY(int y) {
-        bounds.y = y;
-        updateSwing();
-    }
-
-    public final int getX() {
-        return bounds.x;
-    }
-
-    public final int getY() {
-        return bounds.y;
-    }
-    
-    public final int getWidth() {
-        return bounds.width;
-    }
-
-    public final int getHeight() {
-        return bounds.height;
-    }
-
-    public final Rectangle getBounds() {
-        return bounds;
-    }
-
-    public final void setLocation(int x, int y) {
-        bounds.setLocation(x, y);
-        updateSwing();
-    }
-
-    public final void setSize(int width, int height) {
-        bounds.setSize(width, height);
-        updateSwing();
-    }
-
-    public final void setBounds(int x, int y, int width, int height) {
-        bounds.setBounds(x, y, width, height);
-        updateSwing();
-    }
-
-    public final void setBounds(Rectangle bounds) {
-        this.bounds.setBounds(bounds);
-        updateSwing();
+        bounds = new Rectangle2D.Double();
     }
 
     private void updateSwing() {
@@ -139,7 +89,7 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
             b.setBounds(new Rectangle(b.x, b.y, b.width, b.height));
         }
     }
-    
+
     public final void addJComponent(JComponent comp, int x, int y, int width, int height) {
         if (comp != null) {
             swingObjs.add(new DynamicJComponent(comp, new Rectangle(x, y, width, height)));
@@ -157,11 +107,11 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
             }
         }
     }
-    
+
     public final void addJComponent(JComponent comp, Rectangle bounds) {
         addJComponent(comp, bounds.x, bounds.y, bounds.width, bounds.height);
     }
-    
+
     public final void addJComponent(JComponent comp) {
         Rectangle b = comp.getBounds();
         addJComponent(comp, b.x, b.y, b.width, b.height);
@@ -175,22 +125,39 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
         return this;
     }
 
-    public abstract Shape getShape();
+    @Override
+    public Shape getObjectShape() {
+        return bounds;
+    }
 
-    public abstract Command getCommand();
+    @Override
+    public final Rectangle2D.Double getObjectBouds() {
+        return bounds;
+    }
 
-    public abstract boolean hasBackground();
+    @Override
+    public void setObjectLocation(double x, double y) {
+        bounds.x = x;
+        bounds.y = y;
+    }
 
-    public abstract boolean isVisible();
+    @Override
+    public void setObjectBounds(double x, double y, double width, double height) {
+        bounds.x = x;
+        bounds.y = y;
+        bounds.width = width;
+        bounds.height = height;
+    }
 
-    public abstract boolean hasTopLayer();
-
+    @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
     }
 
+    @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
     }
 
+    @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
     }
 

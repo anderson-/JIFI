@@ -9,6 +9,11 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.UIManager;
 import gui.drawable.DRobot;
+import gui.drawable.DrawingPanel;
+import simulation.SimulationArea;
+import simulation.SimulationPanel;
+import util.trafficsimulator.Clock;
+import util.trafficsimulator.Timer;
 
 /**
  *
@@ -27,7 +32,30 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true); 
+        
         addMouseWheelListener(simulationArea);
+        
+//        new Thread(){
+//
+//            @Override
+//            public void run() {
+//                while (true){
+//                    mainTabbedPane.repaint();
+//                    System.out.println("p");
+//                }
+//            }
+//        
+//        }.start();
+        
+        DrawingPanel j = new SimulationPanel();
+        mainTabbedPane.addTab("Hello", j);
+        
+        
+        
+        addComponentListener(j);
+        addMouseListener(j);
+        addMouseMotionListener(j);
+        addMouseWheelListener(j);
     }
 
     /**

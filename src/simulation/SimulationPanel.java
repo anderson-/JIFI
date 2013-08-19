@@ -37,7 +37,7 @@ public class SimulationPanel extends DrawingPanel {
         Timer timer = new Timer(100) {
             @Override
             public void run() {
-                rpos.add(new Point(robot.getX(), robot.getY()));
+                rpos.add(new Point((int)robot.getObjectBouds().x, (int)robot.getObjectBouds().y));
                 while (rpos.size() > MAX_ARRAY) {
                     rpos.remove(0);
                 }
@@ -52,7 +52,7 @@ public class SimulationPanel extends DrawingPanel {
         clock.setPaused(false);
     }
 
-    public void add(Robot r) {
+    public final void add(Robot r) {
         add((Drawable)r);
         for (Device d : r.getDevices()){
             if (d instanceof Drawable){
@@ -75,20 +75,14 @@ public class SimulationPanel extends DrawingPanel {
     }
 
     @Override
-    public boolean isVisible() {
-        return true;
+    public int getDrawableLayer() {
+        return DrawingPanel.BACKGROUND_LAYER | DrawingPanel.DEFAULT_LAYER | DrawingPanel.TOP_LAYER;
     }
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        AffineTransform o = g.getTransform();
-        AffineTransform t = new AffineTransform(o);
-        ga.removeGlobalPosition(t);
-        t.translate(getWidth()/2,getHeight()/2);
-        g.setTransform(t);
         g.setColor(Color.gray);
-        drawGrade(g, 4, (float) ((robot.getHeight()*100f)/Robot.SIZE_CM), getBounds());
-        g.setTransform(o);
+        drawGrade(g, 4, (float) ((robot.getObjectBouds().height*100)/Robot.SIZE_CM), getBounds());
     }
 
     @Override
@@ -97,23 +91,6 @@ public class SimulationPanel extends DrawingPanel {
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-//        AffineTransform o = g.getTransform();
-//        AffineTransform t = new AffineTransform(o);
-//        t.translate(robot.x, robot.y);
-//        t.rotate(robot.theta);
-//        g.setTransform(t);
-//        g.setColor(Color.gray);
-////        g.fillRect(-10, -10, 20, 20);
-//        int bodyR = (int)robot.size;
-//        g.drawOval(-5, -5, 10, 10);
-//        g.drawOval(-bodyR / 2, -bodyR / 2, bodyR, bodyR);
-//        g.fillRect(bodyR / 2 - 5, -bodyR / 2 + 10, 5, bodyR - 20);
-//        g.setColor(Color.black);
-//        g.drawRect(bodyR / 2 - 5, -bodyR / 2 + 10, 5, bodyR - 20);
-//        g.fillRect(-10, -bodyR / 2, 20, 10);
-//        g.fillRect(-10, +bodyR / 2 - 9, 20, 10);
-//        
-//        g.setTransform(o);
         g.setColor(Color.red);
         paintPoints(g, rpos, 5);
     }

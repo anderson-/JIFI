@@ -42,6 +42,7 @@ import gui.drawable.Drawable;
 import gui.drawable.DrawableTest.Circle;
 import gui.drawable.SwingContainer.DynamicJComponent;
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import util.trafficsimulator.Clock;
 
@@ -67,6 +68,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private int globalX = 0, globalY = 0;
     private double zoom = 1.0;
     private boolean autoFullSize = false;
+    private Rectangle2D.Double bounds;
     //********** componente atual
     private AffineTransform currentTransform;
     private Rectangle currentBounds;
@@ -86,23 +88,24 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         this.setFocusable(true);
         //componentes Swing em toda parte
         this.setLayout(null);
-        
+
         mouse = new Point();
         clock = c;
         objects = new ArrayList<>();
         keys = new ArrayList<>();
         repaintThread = null;
+        bounds = new Rectangle2D.Double();
         currentGraphicAtributes = new GraphicAttributes();
         currentInputState = new InputState();
         currentTransform = new AffineTransform();
         currentBounds = new Rectangle();
-        
-        //teste
-//        add(new DrawableTest().appendTo(this));
-//        Circle cw = new Circle();
-//        cw.setBounds(10, 10, 30, 30);
-//        add(cw);
-        
+
+        //testes, descomente e veja o que acontece
+        add(new DrawableTest().appendTo(this));
+        Circle cw = new Circle();
+        cw.setObjectBounds(10, 10, 30, 30);
+        add(cw);
+
         //adiciona listeners
         addListeners();
         //inicia a thread de desenho
@@ -114,7 +117,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         this.addMouseMotionListener(this);
         this.addMouseWheelListener(this);
         this.addKeyListener(this);
-        this.add((Drawable)this);
+        this.add((Drawable) this);
     }
 
     public DrawingPanel(Clock c, boolean autoFullSize) {
@@ -139,8 +142,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public final void play() {
         clock.setPaused(false);
         //cria thread para pintar a tela
+
         if (repaintThread == null) {
-            repaintThread = new Thread("Repaint Thread " + Thread.activeCount()) {
+
+            repaintThread = new Thread("Repaint Thread- " + Thread.activeCount()) {
                 @Override
                 public void run() {
                     try {
@@ -168,13 +173,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public final void add(Drawable d) {
-        objects.add(d);
+        synchronized (objects) {
+            objects.add(d);
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
 //        super.paintComponent(g); //não usar
-
+        
         //ignora chamadas antes do buffer ser construido
         if (buffer == null) {
             return;
@@ -201,14 +208,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         synchronized (objects) {
             for (Drawable d : objects) {
                 currentObject = d;
-                if (d.isVisible()) {
+                if ((d.getDrawableLayer() & BACKGROUND_LAYER) != 0) {
                     currentTransform.setToIdentity();
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
-                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
+                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getObjectBouds()).getBounds());
 //                    g2.setClip(currentBounds);
-                    currentTransform.translate(d.getX(), d.getY());
+                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
                     g2.setTransform(currentTransform);
                     d.drawBackground(g2, currentGraphicAtributes, currentInputState);
                 }
@@ -220,14 +227,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         synchronized (objects) {
             for (Drawable d : objects) {
                 currentObject = d;
-                if (d.isVisible()) {
+                if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
                     currentTransform.setToIdentity();
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
-                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
+                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getObjectBouds()).getBounds());
 //                    g2.setClip(currentBounds);
-                    currentTransform.translate(d.getX(), d.getY());
+                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
                     g2.setTransform(currentTransform);
                     d.draw(g2, currentGraphicAtributes, currentInputState);
                 }
@@ -239,14 +246,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         synchronized (objects) {
             for (Drawable d : objects) {
                 currentObject = d;
-                if (d.isVisible()) {
+                if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
                     currentTransform.setToIdentity();
                     g2.setTransform(currentTransform);
                     //currentTransform.translate(globalX, globalY);
                     //currentTransform.scale(zoom, zoom);
-                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getBounds()).getBounds());
+                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getObjectBouds()).getBounds());
 //                    g2.setClip(currentBounds);
-                    currentTransform.translate(d.getX(), d.getY());
+                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
                     g2.setTransform(currentTransform);
                     d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
                 }
@@ -268,7 +275,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                         currentTransform.setToIdentity();
                         currentTransform.translate(globalX, globalY);
                         currentTransform.scale(zoom, zoom);
-                        currentTransform.translate(d.getX(), d.getY());
+                        currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
 
                         //define o tamanho do componente swing atual como
                         //o tamanho original do mesmo transformado pelo
@@ -278,12 +285,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 }
             }
         }
-    }
-
-    public static void drawBallOrbitingCenter(Graphics2D g, int width, int height) {
-        double time = 2 * Math.PI * (System.currentTimeMillis() % 10000) / 10000.;
-        g.setColor(Color.RED);
-        g.fillOval((int) (Math.sin(time) * width / 3 + width / 2 - 20), (int) (Math.cos(time) * height / 3 + height / 2) - 20, 40, 40);
     }
 
     @Override
@@ -315,7 +316,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseClicked(final MouseEvent e) {
-        new Pew(e.getX(), e.getY()).start();
+        
     }
 
     @Override
@@ -470,38 +471,46 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     @Override
-    public void setX(int x) {
-        
-    }
-
-    @Override
-    public void setY(int y) {
-        
-    }
-
-    @Override
-    public Shape getShape() {
-        return new Rectangle(0,0,width,height);
-    }
-
-    @Override
-    public boolean isVisible() {
-        return false;
+    public int getDrawableLayer() {
+        return 0;
     }
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        
     }
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-        
     }
 
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
-        
+    }
+
+    @Override
+    public Shape getObjectShape() {
+        return getObjectBouds();
+    }
+
+    @Override
+    public Rectangle2D.Double getObjectBouds() {
+        bounds.width = width;
+        bounds.height = height;
+        return bounds;
+    }
+
+    @Override
+    public void setObjectLocation(double x, double y) {
+        bounds.x = x;
+        bounds.y = y;
+    }
+
+    @Override
+    public void setObjectBounds(double x, double y, double width, double height) {
+        bounds.x = x;
+        bounds.y = y;
+        bounds.width = width;
+        bounds.height = height;
     }
 
     public class GraphicAttributes {
@@ -578,70 +587,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         } catch (UnsupportedLookAndFeelException ex) {
         }
 
-        final DrawingPanel p = new DrawingPanel();
-        final JFrame f = QuickFrame.create(p, "Teste");
-        f.addComponentListener(p);
-
-//        final JPanel panel = new JPanel();
-        final JPanel panel = new JPanel() {
-            @Override
-            public void repaint() {
-                JRootPane rootPane = SwingUtilities.getRootPane(this);
-                if (rootPane != null) {
-                    JPanel contentPane = (JPanel) rootPane.getContentPane();
-                    contentPane.repaint();
-                }
-            }
-        };
-        panel.setBackground(Color.magenta);
-        JButton jb = new JButton("test");
-//        jb.setEnabled(false);
-        //jb.setBounds(300, 300, 20, 20);
-
-
-//        p.addSwing(jb, new Rectangle(300, 300, 80, 40));
-        panel.setPreferredSize(new Dimension(100, 100));
-
-
-
-        DrawingPanel pInner = new DrawingPanel();
-        pInner.setBounds(0, 100, 200, 200);
-        pInner.setSize(200, 200);
-//        pInner.test = true;
-//        f.getContentPane().addKeyListener(p);
-//        f.addKeyListener(p);
-        f.addComponentListener(pInner);
-//        pInner.createBuffers();
-//        p.add(pInner);
-
-        panel.setBounds(20, 150, 200, 200);
-        panel.setSize(200, 200);
-//        p.add(panel);
-
-//        p.createBuffers();
-    }
-
-    public class Pew extends Thread {
-
-        JTextField field = new JTextField("pew!");
-        double x, y;
-
-        public Pew(int x, int y) {
-            this.x = x;
-            this.y = y;
-            add(field);
-        }
-
-        public void run() {
-            while (true) {
-                field.setBounds(new Rectangle((int) x, (int) y, 100, 20));
-                x += Math.random() - 0.5;
-                y += Math.random() - 0.5;
-                try {
-                    Thread.sleep(10);
-                } catch (Exception e) {
-                }
-            }
-        }
+        DrawingPanel p = new DrawingPanel();
+        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
+        System.err.println("Não se esqueça de alterar getDrawableLayer() se for desenhar algo nesse painel!!");
     }
 }

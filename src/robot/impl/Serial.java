@@ -287,17 +287,21 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
 //        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-        
-        
-        /** Teste: Adiciona dois leds a um robo generico **/
+
+
+        /**
+         * Teste: Adiciona dois leds a um robo generico *
+         */
         testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-        for (byte b = 0; b < 5; b++){ //adiciona 5 leds nos pinos 9->13
-            testMessages.add(new byte[]{6, 1, 1, (byte)(b+9)}); //o array de led começa no pino 9
+        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
+            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
             testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-            testMessages.add(new byte[]{4, (byte)(b+1), 0}); //get status LED b+1 (0 = clock)
-            testMessages.add(new byte[]{5, (byte)(b+1), 1, (byte)255}); //set LED b+1 ON
-            testMessages.add(new byte[]{4, (byte)(b+1), 0}); //get status LED b+1 (0 = clock)
-            testMessages.add(new byte[]{5, (byte)(b+1), 1, 0}); //set LED b+1 OFF
+            for (int i = 0; i < 2; i++) {
+                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+                testMessages.add(new byte[]{5, (byte) (b + 1), 1, (byte) 255}); //set LED b+1 ON
+                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+                testMessages.add(new byte[]{5, (byte) (b + 1), 1, 0}); //set LED b+1 OFF
+            }
         }
         testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
         /*
@@ -311,7 +315,7 @@ public class Serial implements Connection, SerialPortEventListener {
          *   FreeRam: 1272 - +1 led
          *   FreeRam: 1243 - +1 led
          */
-        
+
         if (s.establishConnection()) {
             System.out.println("connected");
 //            long timestamp = System.currentTimeMillis();
@@ -326,7 +330,7 @@ public class Serial implements Connection, SerialPortEventListener {
 //                    System.out.print("}");
 //                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(100);
                     } catch (InterruptedException ex) {
                     }
 

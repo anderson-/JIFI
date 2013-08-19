@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import gui.drawable.DrawingPanel.GraphicAttributes;
 import gui.drawable.DrawingPanel.InputState;
+import java.awt.geom.Rectangle2D;
 
 /**
  *
@@ -17,34 +18,23 @@ import gui.drawable.DrawingPanel.InputState;
  */
 public interface Drawable {
 
-    public void setX(int x);
+    public static final int BACKGROUND_LAYER = 1;
+    public static final int DEFAULT_LAYER = 2;
+    public static final int TOP_LAYER = 4;
 
-    public void setY(int y);
+    public Shape getObjectShape();
 
-    public int getX();
+    public Rectangle2D.Double getObjectBouds();
 
-    public int getY();
+    public void setObjectBounds(double x, double y, double width, double height);
     
-    public int getWidth();
+    public void setObjectLocation(double x, double y);
 
-    public int getHeight();
-
-    public Rectangle getBounds();
-
-    public void setLocation(int x, int y);
-
-    public void setSize(int width, int height);
-
-    public void setBounds(int x, int y, int width, int height);
-
-    public Shape getShape();
-
-    public boolean isVisible();
+    public int getDrawableLayer();
 
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in);
 
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in);
 
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in);
-
 }

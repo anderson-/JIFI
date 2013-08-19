@@ -7,11 +7,11 @@ package robot;
 import gui.drawable.Drawable;
 import gui.drawable.DrawingPanel;
 import java.awt.Color;
-import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.nio.ByteBuffer;
@@ -32,6 +32,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
     private double x, y;
     private double theta;
     private double rightWheelSpeed, leftWheelSpeed;
+    private Rectangle2D.Double bounds = new Rectangle.Double();
 
     public class InternalClock extends Device {
 
@@ -235,7 +236,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
                     byte cmdDone = message.get();
                     byte id = message.get();
                     message.get(); //tamanho da mensagem rebida pelo robô e não
-                                   //o tamanho da mensagem a ser lida agora.
+                    //o tamanho da mensagem a ser lida agora.
                     switch (cmdDone) {
                         case CMD_SET: {
                             Device d = getDevice(id);
@@ -306,70 +307,37 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
     }
 
     @Override
-    public void setX(int x) {
-        this.x = x;
+    public final Rectangle2D.Double getObjectBouds() {
+        bounds.x = x;
+        bounds.y = y;
+        bounds.width = bounds.height = size;
+        return bounds;
+    }
+    
+    @Override
+    public Shape getObjectShape() {
+        return getObjectBouds();
     }
 
     @Override
-    public void setY(int y) {
-        this.y = y;
+    public void setObjectLocation(double x, double y) {
+        bounds.x = x;
+        bounds.y = y;
     }
 
     @Override
-    public int getX() {
-        return (int) x;
-    }
-
-    @Override
-    public int getY() {
-        return (int) y;
-    }
-
-    @Override
-    public int getWidth() {
-        return (int) size;
-    }
-
-    @Override
-    public int getHeight() {
-        return (int) size;
-    }
-
-    @Override
-    public Rectangle getBounds() {
-        return new Rectangle((int) x, (int) y, (int) size, (int) size);
-    }
-
-    @Override
-    public void setLocation(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    @Override
-    public void setSize(int width, int height) {
+    public void setObjectBounds(double x, double y, double width, double height) {
         if (width == height) {
-            size = width;
+            bounds.x = x;
+            bounds.y = y;
+            bounds.width = width;
+            bounds.height = height;
         }
     }
 
     @Override
-    public void setBounds(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        if (width == height) {
-            size = width;
-        }
-    }
-
-    @Override
-    public Shape getShape() {
-        return getBounds();
-    }
-
-    @Override
-    public boolean isVisible() {
-        return true;
+    public int getDrawableLayer() {
+        return DrawingPanel.DEFAULT_LAYER;
     }
 
     @Override
@@ -381,8 +349,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
 
         AffineTransform o = g.getTransform();
         AffineTransform t = new AffineTransform(o);
-        t.translate(-getX(), -getY());
-        t.translate(x, y);
+        //t.translate(x, y); DrawingPanel se encarrega de definir a posiçãos
         t.rotate(theta);
         g.setTransform(t);
         g.setColor(Color.gray);
@@ -392,7 +359,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
         g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);
         //frente
         g.fillRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
-//        g.setColor(Color.black);
+        //contorno
+        //g.setColor(Color.black);
         g.drawRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
         //rodas
         int ww = (int) (0.4 * size);
