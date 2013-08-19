@@ -202,15 +202,14 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
                     byte length = message.get();
                     byte[] args = new byte[length];
                     message.get(args);
-
+                    ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
+                    tmp.order(ByteOrder.LITTLE_ENDIAN);
                     if (id == XTRA_FREE_RAM) {
-                        freeRam = ByteBuffer.wrap(args).getChar();
+                        freeRam = tmp.getChar();
                         System.out.println("FreeRam: " + freeRam);
                     } else {
                         Device d = getDevice(id);
                         if (d != null) {
-                            ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
-                            tmp.order(ByteOrder.LITTLE_ENDIAN);
                             d.setState(tmp);
                         }
                     }
@@ -235,9 +234,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
                 case CMD_DONE: {
                     byte cmdDone = message.get();
                     byte id = message.get();
-                    byte length = message.get();
-                    byte[] args = new byte[length];
-                    message.get(args);
+                    message.get(); //tamanho da mensagem rebida pelo robô e não
+                                   //o tamanho da mensagem a ser lida agora.
                     switch (cmdDone) {
                         case CMD_SET: {
                             Device d = getDevice(id);

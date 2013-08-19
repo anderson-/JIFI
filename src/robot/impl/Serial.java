@@ -9,32 +9,18 @@ import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
-import gnu.io.UnsupportedCommOperationException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
-import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.TooManyListenersException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import observable.Observer;
 import robot.Connection;
 import robot.Robot;
-import gui.drawable.DRobot;
 
 /**
  *
@@ -281,56 +267,76 @@ public class Serial implements Connection, SerialPortEventListener {
         System.out.println("}");
     }
 
-//    public static void main(String[] args) {
-//        Serial s = new Serial(9600);
-//
-//        Robot r = new Robot();
+    public static void main(String[] args) {
+        Serial s = new Serial(9600);
+
+        Robot r = new Robot();
 //        r.add(new HBridge(1));
 //        r.add(new Compass());
-//        s.attach(r);
-//
-//        ArrayList<byte[]> testMessages = new ArrayList<>();
-//
-////        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
-////        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
-////        testMessages.add(new byte[]{4, 0, 0});//get clock
-////        testMessages.add(new byte[]{4, 1, 0});//get hbridge
+        s.attach(r);
+
+        ArrayList<byte[]> testMessages = new ArrayList<>();
+
+//        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
+//        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
+//        testMessages.add(new byte[]{4, 0, 0});//get clock
+//        testMessages.add(new byte[]{4, 1, 0});//get hbridge
 //        testMessages.add(new byte[]{4, 2, 0});//get compass
-////        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-////        testMessages.add(new byte[]{5, 1, 2, 0, 90, 5, 1, 2, 1, -90}); //rotaciona
-////        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-////        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
-////        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-////        byte [] msg = new byte[]{'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', 0};
-////        byte j = 0;
-////        testMessages.add(msg);
-//        //testMessages.add(new byte [] {});
-//
-//        if (s.establishConnection()) {
-//            System.out.println("connected");
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{5, 1, 2, 0, 90, 5, 1, 2, 1, -90}); //rotaciona
+//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+//        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
+//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+        
+        
+        /** Teste: Adiciona dois leds a um robo generico **/
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        for (byte b = 0; b < 5; b++){ //adiciona 5 leds nos pinos 9->13
+            testMessages.add(new byte[]{6, 1, 1, (byte)(b+9)}); //o array de led começa no pino 9
+            testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+            testMessages.add(new byte[]{4, (byte)(b+1), 0}); //get status LED b+1 (0 = clock)
+            testMessages.add(new byte[]{5, (byte)(b+1), 1, (byte)255}); //set LED b+1 ON
+            testMessages.add(new byte[]{4, (byte)(b+1), 0}); //get status LED b+1 (0 = clock)
+            testMessages.add(new byte[]{5, (byte)(b+1), 1, 0}); //set LED b+1 OFF
+        }
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        /*
+         * Resultados (bytes):
+         *  Arduino MEGA (8k):
+         *   FreeRam: 6977 - apenas arduino+lib+serial
+         *   FreeRam: 6954 - +1 led
+         *   FreeRam: 6929 - +1 led
+         *  Arduino 2009 (2k):
+         *   FreeRam: 1299 - apenas arduino+lib+serial
+         *   FreeRam: 1272 - +1 led
+         *   FreeRam: 1243 - +1 led
+         */
+        
+        if (s.establishConnection()) {
+            System.out.println("connected");
 //            long timestamp = System.currentTimeMillis();
-//            for (int i = 0; i < 1000; i++) {
-//                for (byte[] message : testMessages) {
-////                    msg[8] = j++;
-//                    s.send(message);
+            for (int i = 0; i < 1; i++) {
+                for (byte[] message : testMessages) {
+                    s.send(message);
 //                    System.out.print("Sended:   ");
 //                    System.out.print("[" + message.length + "]{");
-//                    for (byte b : message) {
+                    for (byte b : message) {
 //                        System.out.print("," + b);
-//                    }
+                    }
 //                    System.out.print("}");
 //                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
-//                    try {
-//                        Thread.sleep(500);
-//                    } catch (InterruptedException ex) {
-//                    }
-//
-//                }
-//            }
-//        } else {
-//            System.out.println("fail");
-//        }
-//
-//        System.out.println("Fim");
-//    }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ex) {
+                    }
+
+                }
+            }
+        } else {
+            System.out.println("fail");
+        }
+
+        System.out.println("Fim");
+        System.exit(0);
+    }
 }
