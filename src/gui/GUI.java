@@ -4,22 +4,20 @@
  */
 package gui;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.UIManager;
 import gui.drawable.DRobot;
-import gui.drawable.DrawingPanel;
-import simulation.SimulationArea;
+import java.awt.Component;
+import java.awt.event.ComponentListener;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 import simulation.SimulationPanel;
-import util.trafficsimulator.Clock;
-import util.trafficsimulator.Timer;
 
 /**
  *
  * @author antunes
  */
-public class GUI extends javax.swing.JFrame implements KeyListener {
+public class GUI extends javax.swing.JFrame {
 
     private ArrayList<DRobot> robots;
     
@@ -28,34 +26,14 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
         setLocationRelativeTo(null);
         secondarySplitPane.setDividerLocation(.5);
         
-        addKeyListener(simulationArea);
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true); 
         
-        addMouseWheelListener(simulationArea);
+        addMouseWheelListener(simulationPanel);
+        addKeyListener(simulationPanel);
+        addComponentListener(simulationPanel);
         
-//        new Thread(){
-//
-//            @Override
-//            public void run() {
-//                while (true){
-//                    mainTabbedPane.repaint();
-//                    System.out.println("p");
-//                }
-//            }
-//        
-//        }.start();
-        
-        DrawingPanel j = new SimulationPanel();
-        mainTabbedPane.addTab("Hello", j);
-        
-        
-        
-        addComponentListener(j);
-        addMouseListener(j);
-        addMouseMotionListener(j);
-        addMouseWheelListener(j);
     }
 
     /**
@@ -80,7 +58,7 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
         abortButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
-        simulationArea = new simulation.SimulationArea();
+        simulationPanel = new simulation.SimulationPanel();
         addNewCodePanel = new javax.swing.JPanel();
         secondarySplitPane = new javax.swing.JSplitPane();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
@@ -174,19 +152,7 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
                 mainTabbedPaneStateChanged(evt);
             }
         });
-
-        javax.swing.GroupLayout simulationAreaLayout = new javax.swing.GroupLayout(simulationArea);
-        simulationArea.setLayout(simulationAreaLayout);
-        simulationAreaLayout.setHorizontalGroup(
-            simulationAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 426, Short.MAX_VALUE)
-        );
-        simulationAreaLayout.setVerticalGroup(
-            simulationAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 341, Short.MAX_VALUE)
-        );
-
-        mainTabbedPane.addTab("Simulação", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/devices/input-gaming.png")), simulationArea); // NOI18N
+        mainTabbedPane.addTab("Simulação", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/devices/input-gaming.png")), simulationPanel); // NOI18N
 
         javax.swing.GroupLayout addNewCodePanelLayout = new javax.swing.GroupLayout(addNewCodePanel);
         addNewCodePanel.setLayout(addNewCodePanelLayout);
@@ -196,7 +162,7 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 341, Short.MAX_VALUE)
+            .addGap(0, 349, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -226,7 +192,7 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("Avisos", jPanel4);
@@ -267,7 +233,7 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -276,12 +242,26 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
-        System.out.println("tab: " + mainTabbedPane.getSelectedIndex());
-        if (mainTabbedPane.getSelectedComponent() == addNewCodePanel){
-            mainTabbedPane.setSelectedIndex(0);
-        }
+        Component c = mainTabbedPane.getSelectedComponent();
+        dynamicTabbedPane.removeAll();
+        if (c == addNewCodePanel) {
+            add(new SimulationPanel(), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+        } //else if (c instanceof TabController) {
+//            for (JPanel p : ((TabController) c).getTabs()) {
+//                dynamicTabbedPane.addTab(p.getName(), p);
+//            }
+//        }
     }//GEN-LAST:event_mainTabbedPaneStateChanged
-
+    
+    public void add(JPanel panel, ImageIcon icon) {
+        mainTabbedPane.remove(addNewCodePanel);
+        mainTabbedPane.addTab(panel.getName(), icon, panel);
+       if (panel instanceof ComponentListener){
+            addComponentListener((ComponentListener) panel);
+        }
+        mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+    }
     /**
      * @param args the command line arguments
      */
@@ -328,25 +308,11 @@ public class GUI extends javax.swing.JFrame implements KeyListener {
     private javax.swing.JButton runButton;
     private javax.swing.JButton saveButton;
     private javax.swing.JSplitPane secondarySplitPane;
-    private simulation.SimulationArea simulationArea;
+    private simulation.SimulationPanel simulationPanel;
     private javax.swing.JTabbedPane staticTabbedPane;
     private javax.swing.JButton stepButton;
     private javax.swing.JButton stopButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import robot.Connection;
@@ -22,7 +23,7 @@ import robot.Robot;
  *
  * @author antunes
  */
-public class SimulationPanel extends DrawingPanel {
+public class SimulationPanel extends DrawingPanel implements Serializable {
 
     private static final int MAX_ARRAY = 500;
     private ArrayList<Point> rpos = new ArrayList<>();

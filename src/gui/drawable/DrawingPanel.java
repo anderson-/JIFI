@@ -4,7 +4,6 @@
  */
 package gui.drawable;
 
-import algorithm.Command;
 import gui.QuickFrame;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -31,19 +30,13 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 import gui.drawable.Drawable;
 import gui.drawable.DrawableTest.Circle;
 import gui.drawable.SwingContainer.DynamicJComponent;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import util.trafficsimulator.Clock;
 
 /**
@@ -70,6 +63,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private boolean autoFullSize = false;
     private Rectangle2D.Double bounds;
     //********** componente atual
+    private AffineTransform originalTransform;
     private AffineTransform currentTransform;
     private Rectangle currentBounds;
     private Drawable currentObject;
@@ -101,10 +95,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         currentBounds = new Rectangle();
 
         //testes, descomente e veja o que acontece
-        add(new DrawableTest().appendTo(this));
-        Circle cw = new Circle();
-        cw.setObjectBounds(10, 10, 30, 30);
-        add(cw);
+//        add(new DrawableTest().appendTo(this));
+//        Circle cw = new Circle();
+//        cw.setObjectBounds(10, 10, 30, 30);
+//        add(cw);
 
         //adiciona listeners
         addListeners();
@@ -128,6 +122,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     protected final void createBuffers() {
         width = this.getWidth();
         height = this.getHeight();
+        System.out.println("Creating Buffers");
         //cria buffers no padrão do sistema (teoricamente mais eficiente)
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
@@ -138,7 +133,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public DrawingPanel() {
         this(new Clock());
     }
-
+    
     public final void play() {
         clock.setPaused(false);
         //cria thread para pintar a tela
@@ -184,6 +179,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         
         //ignora chamadas antes do buffer ser construido
         if (buffer == null) {
+            createBuffers();
             return;
         }
 
@@ -200,6 +196,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         //converte Graphics para Graphics2D
         Graphics2D g2 = (Graphics2D) g;
+        originalTransform = g2.getTransform();
 
         //deixa tudo lindo (antialiasing)
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -209,7 +206,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             for (Drawable d : objects) {
                 currentObject = d;
                 if ((d.getDrawableLayer() & BACKGROUND_LAYER) != 0) {
-                    currentTransform.setToIdentity();
+                    currentTransform.setTransform(originalTransform);
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
@@ -228,7 +225,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             for (Drawable d : objects) {
                 currentObject = d;
                 if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
-                    currentTransform.setToIdentity();
+                    currentTransform.setTransform(originalTransform);
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
@@ -247,7 +244,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             for (Drawable d : objects) {
                 currentObject = d;
                 if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
-                    currentTransform.setToIdentity();
+                    currentTransform.setTransform(originalTransform);
                     g2.setTransform(currentTransform);
                     //currentTransform.translate(globalX, globalY);
                     //currentTransform.scale(zoom, zoom);
@@ -262,8 +259,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
 
         //reseta o zoom e posição para desenhar os componentes swing
-        currentTransform.setToIdentity();
-        g2.setTransform(currentTransform);
+//        currentTransform.setTransform(originalTransform);
+        g2.setTransform(originalTransform);
         g2.setClip(0, 0, width, height);
 
         //redefine o tamanho e a posição dos componentes swing
