@@ -74,8 +74,17 @@ public abstract class SwingContainer implements Drawable, Iterable<DynamicJCompo
     }
     private DrawingPanel parent;
     private ArrayList<DynamicJComponent> swingObjs;
-    private Rectangle2D.Double bounds;
+    protected Rectangle2D.Double bounds;
+    protected boolean showSwing = false;
 
+    public boolean isShowingSwing() {
+        return showSwing;
+    }
+
+    public void showSwing(boolean showSwing) {
+        this.showSwing = showSwing;
+    }
+    
     public SwingContainer() {
         parent = null;
         swingObjs = new ArrayList<>();

@@ -20,7 +20,7 @@ public class DrawableTest extends SwingContainer {
 
     public static class Circle implements Drawable {
 
-        Rectangle2D.Double bounds = new Rectangle2D.Double();
+        Rectangle2D.Double bounds = new Rectangle2D.Double(0,0,30,30);
 
         @Override
         public Shape getObjectShape() {

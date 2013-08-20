@@ -24,4 +24,9 @@ public class Compass extends Device {
     public String stateToString() {
         return "" + alpha;
     }
+
+    @Override
+    public int getClassID() {
+        return 3;
+    }
 }

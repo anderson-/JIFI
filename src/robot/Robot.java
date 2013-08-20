@@ -48,6 +48,11 @@ public class Robot implements Observer<ByteBuffer, Connection>, Drawable {
         public String stateToString() {
             return "" + stepTime;
         }
+
+        @Override
+        public int getClassID() {
+            return 0;
+        }
     }
     private Interpreter interpreter;
     private ArrayList<Device> devices;

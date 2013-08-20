@@ -59,6 +59,7 @@ public class Block extends Procedure {
         if (c == null) {
             return false;
         }
+        c.setParent(this);
         //pega o elemento antes do ultimo
         Command it = end.getPrevious();
         //define a relação entre o novo elemento e o final ...<-c<->end

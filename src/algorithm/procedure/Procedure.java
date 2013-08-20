@@ -5,7 +5,7 @@
 package algorithm.procedure;
 
 import algorithm.Command;
-import algorithm.Command;
+import java.util.ArrayList;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robot.Robot;
@@ -18,10 +18,8 @@ public class Procedure extends Command implements Expression/*, Observer*/ {
 
     private static JEP parser;
     private String procedure;
-//    private ArrayList<Variable> variables; //futuro escopo de variaveis
 
     public Procedure() {
-//        variables = new ArrayList<>();
         parser = null;
         procedure = "0";
     }
@@ -37,7 +35,7 @@ public class Procedure extends Command implements Expression/*, Observer*/ {
 
     @Override
     public final void setParser(JEP parser) {
-        this.parser = parser;
+        Procedure.parser = parser;
     }
 
     public final String getProcedure() {
@@ -76,6 +74,22 @@ public class Procedure extends Command implements Expression/*, Observer*/ {
     
     protected final Variable newVariable (String name, Object value){
         return parser.getSymbolTable().makeVarIfNeeded(name, value);
+    }
+    
+    public ArrayList<String> getDeclaredVariables(){
+        ArrayList<String> vars = new ArrayList<>();
+        Command it = this;
+        while (it != null){
+            Command up = it.getPrevious();
+            while (up != null){
+                if (up instanceof Declaration){
+                    vars.add(((Declaration)up).getName());
+                }
+                up = up.getPrevious();
+            }
+            it = it.getParent();
+        }
+        return vars;
     }
     
 //    public List<Variable> getVariables(){

@@ -50,4 +50,9 @@ public class HBridge extends Device {
     public String stateToString() {
         return "";
     }
+
+    @Override
+    public int getClassID() {
+        return 2;
+    }
 }

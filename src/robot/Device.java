@@ -59,6 +59,8 @@ public abstract class Device {
     public byte getID(){
         return id;
     }
+    
+    public abstract int getClassID();
 
     public abstract void setState(ByteBuffer data);
     

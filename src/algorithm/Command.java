@@ -21,7 +21,7 @@ public abstract class Command {
     private final String name;
     private final int id;
     private static int classCounter = 0;
-
+    
     public Command() {
         id = classCounter++;
         name = this.getClass().getSimpleName() + "[" + id + "]";

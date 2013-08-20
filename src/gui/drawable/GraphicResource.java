@@ -2,16 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package simulation;
+package gui.drawable;
 
-import org.nfunk.jep.JEP;
+import gui.drawable.Drawable;
 
 /**
  *
  * @author antunes
  */
-public interface Expression {
+public interface GraphicResource {
     
-    public void setParser(JEP parser);
+    public Drawable getDrawer();
     
 }

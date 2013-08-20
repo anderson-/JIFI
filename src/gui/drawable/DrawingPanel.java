@@ -122,7 +122,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     protected final void createBuffers() {
         width = this.getWidth();
         height = this.getHeight();
-        System.out.println("Creating Buffers");
         //cria buffers no padrão do sistema (teoricamente mais eficiente)
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
@@ -269,14 +268,22 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (d instanceof SwingContainer) {
                     SwingContainer s = (SwingContainer) d;
                     for (DynamicJComponent c : s) {
+                        if (!s.isShowingSwing()){
+                            c.getComponent().setVisible(false);
+                            continue;
+                        }
+                        
+                        //ativando double buffer e fundo transparente
+                        c.getComponent().setVisible(true);
+                        c.getComponent().setDoubleBuffered(true);
+                        c.getComponent().setOpaque(false);
+                        c.getComponent().revalidate();
+                        
+                        //tamanho do componente swing
                         currentTransform.setToIdentity();
                         currentTransform.translate(globalX, globalY);
                         currentTransform.scale(zoom, zoom);
                         currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
-
-                        //define o tamanho do componente swing atual como
-                        //o tamanho original do mesmo transformado pelo
-                        //contexto atual
                         c.getComponent().setBounds(currentTransform.createTransformedShape(c.getBounds()).getBounds());
                     }
                 }
@@ -576,14 +583,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public static void main(String[] args) {
-        try {
-            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException ex) {
-        } catch (InstantiationException ex) {
-        } catch (IllegalAccessException ex) {
-        } catch (UnsupportedLookAndFeelException ex) {
-        }
-
         DrawingPanel p = new DrawingPanel();
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
         System.err.println("Não se esqueça de alterar getDrawableLayer() se for desenhar algo nesse painel!!");
