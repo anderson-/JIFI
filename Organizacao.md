@@ -1,6 +1,8 @@
 _Organização do Projeto_
 ================
 
+[Clique aqui para saber o que tem para fazer.](https://github.com/anderson-/RobotInterface/blob/master/TODO.md)
+
 pacote `robotinterface`: 
 
     ├── <algorithm> *criação de algoritmos*
