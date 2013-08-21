@@ -8,6 +8,8 @@ TODO
  - Se não quiser fazer um determinado item passe-o para outra pessoa e **avise**
 
  - Termine o quanto antes, e lembre que ainda tem os testes/correções, documentação, material escrito e o curso!
+ 
+ - **Não tenha medo de fazer críticas e propor mudanças**
 
 
 ####Grupo 1: Luís, Diego e Fernando
