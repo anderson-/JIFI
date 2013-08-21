@@ -1,9 +1,9 @@
 _Organização do Projeto_
 ================
 
-[Clique aqui para saber o que tem para fazer.](https://github.com/anderson-/RobotInterface/blob/master/TODO.md)
+####[Clique aqui para saber o que tem para fazer.](https://github.com/anderson-/RobotInterface/blob/master/TODO.md)
 
-pacote `robotinterface`: 
+Pacote `robotinterface`: 
 
     ├── <algorithm> *criação de algoritmos*
     │   ├── Command.java - comando genérico
