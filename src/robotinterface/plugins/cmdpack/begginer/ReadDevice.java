@@ -184,7 +184,7 @@ public class ReadDevice extends Procedure implements GraphicResource {
     }
 
     public static void main(String[] args) {
-//        QuickFrame.applyLookAndFeel();
+        QuickFrame.applyLookAndFeel();
         
         ArrayList<Class<? extends Device>> a = new ArrayList<>();
         a.add(HBridge.class);
