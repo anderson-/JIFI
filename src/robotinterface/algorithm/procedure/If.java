@@ -40,6 +40,14 @@ public class If extends Procedure {
         return blockFalse.add(c);
     }
 
+    public Block getBlockTrue() {
+        return blockTrue;
+    }
+
+    public Block getBlockFalse() {
+        return blockFalse;
+    }
+
     @Override
     public Command step() throws ExecutionException {
         //calcula o valor da expressão

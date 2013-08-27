@@ -15,12 +15,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.util.observable.Observer;
 import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
+import robotinterface.robot.device.Compass;
+import robotinterface.robot.device.HBridge;
+import robotinterface.robot.device.IRProximitySensor;
 
 /**
  *
@@ -75,6 +81,7 @@ public class Serial implements Connection, SerialPortEventListener {
 //                System.out.print("," + b);
 //            }
 //            System.out.println("}");
+            s++;
             output.write(data);
             output.flush();
         } catch (IOException ex) {
@@ -191,6 +198,9 @@ public class Serial implements Connection, SerialPortEventListener {
             serialPort.close();
         }
     }
+    
+    public int s = 0;
+    public int r = 0;
 
     @Override
     public boolean isConnected() {
@@ -212,7 +222,9 @@ public class Serial implements Connection, SerialPortEventListener {
                 while (true) {
                     //obtem uma string delimitada por '\n', '\t' ou "\t\n"
                     String str = bufferedReader.readLine();
-//                    printBytes(str);
+                    printBytes(str);
+                    r++;
+                    System.out.println("S:" + s + " x R:" + r);
                     //obtem os bytes codificados na string com o Charset personalizado
                     buffer.put(str.getBytes(charset));
                     if (bufferedReader.ready()) {
@@ -248,6 +260,7 @@ public class Serial implements Connection, SerialPortEventListener {
                     available = false;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.err.println(e.toString());
             }
         }
@@ -271,8 +284,9 @@ public class Serial implements Connection, SerialPortEventListener {
         Serial s = new Serial(9600);
 
         Robot r = new Robot();
-//        r.add(new HBridge(1));
-//        r.add(new Compass());
+        r.add(new HBridge(1));
+        r.add(new Compass());
+        r.add(new IRProximitySensor());
         s.attach(r);
 
         ArrayList<byte[]> testMessages = new ArrayList<>();
@@ -288,22 +302,22 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
 
-
+        
         /**
          * Teste: Adiciona dois leds a um robo generico *
          */
-        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
-            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
-            testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-            for (int i = 0; i < 2; i++) {
-                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
-                testMessages.add(new byte[]{5, (byte) (b + 1), 1, (byte) 255}); //set LED b+1 ON
-                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
-                testMessages.add(new byte[]{5, (byte) (b + 1), 1, 0}); //set LED b+1 OFF
-            }
-        }
-        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
+//            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
+//            testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//            for (int i = 0; i < 2; i++) {
+//                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+//                testMessages.add(new byte[]{5, (byte) (b + 1), 1, (byte) 255}); //set LED b+1 ON
+//                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+//                testMessages.add(new byte[]{5, (byte) (b + 1), 1, 0}); //set LED b+1 OFF
+//            }
+//        }
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
         /*
          * Resultados (bytes):
          *  Arduino MEGA (8k):
@@ -315,26 +329,65 @@ public class Serial implements Connection, SerialPortEventListener {
          *   FreeRam: 1272 - +1 led
          *   FreeRam: 1243 - +1 led
          */
+//        testMessages.add(new byte[]{7, (byte) 222});//reset all
+//
+//        testMessages.add(new byte[]{4, 0, 0});//get clock
+//
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//
+//        ByteBuffer bf = ByteBuffer.allocate(8);
+//        bf.putChar((char) 100);
+//        byte[] tmp = new byte[2];
+//        bf.flip();
+//        bf.order(ByteOrder.LITTLE_ENDIAN);
+//        bf.get(tmp);
+////
+        
+//        testMessages.add(new byte[]{4, 0, 0});//get clock
+////
+//        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});//Run action0 need2devices HbridgeId CompassId message3bytes int0byte int2byte
+////        
 
+        testMessages.add(new byte[]{6, 5, 1, 17});
+        testMessages.add(new byte[]{5, 1, 2, 0, 25, 5, 1, 2, 1, -25}); //rotaciona
+        for (int i = 0; i < 500; i++){
+            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0});//get compass & get dist
+        }
+//
+//        
+//
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+////        testMessages.add(new byte[]{7, (byte) 224});//reset system
+//        testMessages.add(new byte[]{7, (byte) 222});//reset all  
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+
+        SimulationPanel p = new SimulationPanel();
+        p.addRobot(r);
+        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+        
         if (s.establishConnection()) {
             System.out.println("connected");
-//            long timestamp = System.currentTimeMillis();
-            for (int i = 0; i < 1; i++) {
+            long timestamp = System.currentTimeMillis();
+            for (int i = 0; i < 1; i++) { //repetição
                 for (byte[] message : testMessages) {
                     s.send(message);
-//                    System.out.print("Sended:   ");
-//                    System.out.print("[" + message.length + "]{");
+                    System.out.print("Sended:   ");
+                    System.out.print("[" + message.length + "]{");
                     for (byte b : message) {
-//                        System.out.print("," + b);
+                        System.out.print("," + b);
                     }
-//                    System.out.print("}");
-//                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
+                    System.out.print("}");
+                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException ex) {
                     }
 
                 }
+                 try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                    }
             }
         } else {
             System.out.println("fail");

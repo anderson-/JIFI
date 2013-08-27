@@ -66,7 +66,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     //********** componente atual
     private AffineTransform originalTransform;
     private AffineTransform currentTransform;
-    private Rectangle currentBounds;
+    private Shape currentBounds;
+    private boolean beginDrawing = false;
+    private boolean mouseClick = false;
     private Drawable currentObject;
     private int objectX = 0;
     private int objectY = 0;
@@ -205,6 +207,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         //deixa tudo lindo (antialiasing)
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        beginDrawing = mouseClick;
+        
         //desenha fundo
         synchronized (objects) {
             for (Drawable d : objects) {
@@ -231,7 +235,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     g2.setTransform(currentTransform);
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
-                    currentBounds.setBounds(currentTransform.createTransformedShape(d.getObjectBouds()).getBounds());
+                    currentBounds = currentTransform.createTransformedShape(d.getObjectShape());
                     currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
                     //g2.setClip(currentBounds); usar limite de pintura
                     g2.setTransform(currentTransform);
@@ -286,6 +290,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 }
             }
         }
+        
+        if (beginDrawing){
+            beginDrawing = false;
+            mouseClick = false;
+        }
+        
     }
 
     @Override
@@ -317,6 +327,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseClicked(final MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1){
+            mouseClick = true;
+        }
     }
 
     @Override
@@ -568,6 +581,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         public boolean isMouseOver() {
             synchronized (mouse) {
                 return currentBounds.contains(mouse);
+            }
+        }
+        
+        public boolean mouseClicked(){
+            synchronized (mouse) {
+                if (mouseClick && beginDrawing && currentBounds.contains(mouse)){
+                    return true;
+                }
+                return false;
             }
         }
 

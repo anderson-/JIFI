@@ -13,12 +13,13 @@ import java.nio.ByteBuffer;
 public class Compass extends Device {
 
     int alpha = 0;
-    
+
     @Override
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
+        System.out.println("Angulo:" + alpha);
     }
-    
+
     @Override
     public String stateToString() {
         return "" + alpha;
@@ -27,5 +28,9 @@ public class Compass extends Device {
     @Override
     public int getClassID() {
         return 3;
+    }
+
+    public double getAlpha() {
+        return alpha;
     }
 }

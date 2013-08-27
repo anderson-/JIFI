@@ -15,6 +15,8 @@ import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.DWidgetContainer;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,7 +26,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JComboBox;
-import robotinterface.drawable.GraphicResource;
+import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.plugins.cmdpack.serial.Start;
 import robotinterface.plugins.cmdpack.util.PrintString;
 import robotinterface.robot.device.Device;
@@ -51,80 +54,126 @@ public class ReadDevice extends Procedure implements GraphicResource {
     public ReadDevice(ArrayList<Class<? extends Device>> devices) {
         final ArrayList<Class<? extends Device>> devs = devices;
         //criando uma classe anonima para cuidar do desenho do objeto
-        panel = new DWidgetContainer() {
-            private HashMap<String, Class<? extends Device>> deviceMap;
+//        panel = new DWidgetContainer() {
+//            private HashMap<String, Class<? extends Device>> deviceMap;
+//
+//            { //fake constructor
+//                deviceMap = new HashMap<>();
+//                JComboBox combobDevice = new JComboBox();
+//                for (Class<? extends Device> c : devs) {
+//                    deviceMap.put(c.getSimpleName(),c);
+//                    combobDevice.addItem(c.getSimpleName());
+//                }
+//                
+//                combobDevice.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        JComboBox cb = (JComboBox) e.getSource();
+//                        String devName = (String) cb.getSelectedItem();
+//                        type = deviceMap.get(devName);
+//                        System.out.println(type);
+//                    }
+//                });
+//                
+//                JComboBox combobVar = new JComboBox();
+//                combobVar.addItem(RELOAD_VARS_ITEM);
+//                
+//                combobVar.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        JComboBox cb = (JComboBox) e.getSource();
+//                        var = (String) cb.getSelectedItem();
+//                        if (var.equals(RELOAD_VARS_ITEM)){
+//                            cb.removeAllItems();
+//                            cb.addItem(RELOAD_VARS_ITEM);
+//                            for (String str : ReadDevice.super.getDeclaredVariables()) {
+//                                cb.addItem(str);
+//                            }
+//                        }
+//                    }
+//                });
+//                
+//                setObjectBounds(0, 0, 150, 60);
+//                addJComponent(combobDevice, 15, 8, 110, 20);
+//                addJComponent(combobVar, 15, 32, 110, 20);
+//            }
+//
+//            @Override
+//            public int getDrawableLayer() {
+//                return Drawable.DEFAULT_LAYER;
+//            }
+//
+//            private RoundRectangle2D.Double shape = new RoundRectangle2D.Double();
+//            
+//            @Override
+//            public Shape getObjectShape() {
+//                shape.setRoundRect(bounds.x,bounds.y,bounds.width,bounds.height,20,20);
+//                return shape;
+//            }
+//
+//            @Override
+//            public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+//                if (in.isMouseOver()){
+//                    widgetVisible = true;
+////                    bounds.x = (bounds.x < 200)? bounds.x+.1 : 0;
+////                    bounds.y = (bounds.y < 200)? bounds.y+.1 : 0;
+//                } else {
+//                    widgetVisible = false;
+//                }
+//                g.setColor(Color.getHSBColor(.5f, .3f, .7f));
+//                
+//                //nunca faça isso, a forma do objeto também contem as coordenadas do objeto
+//                //g.fill(getObjectShape());
+//                //tudo tem que ser desenhado a partir do ponto (0,0)
+//                g.fillRoundRect(0,0,(int)bounds.width,(int)bounds.height,20,20);
+//            }
+//        };
 
-            { //fake constructor
-                deviceMap = new HashMap<>();
-                JComboBox combobDevice = new JComboBox();
-                for (Class<? extends Device> c : devs) {
-                    deviceMap.put(c.getSimpleName(),c);
-                    combobDevice.addItem(c.getSimpleName());
-                }
-                
-                combobDevice.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JComboBox cb = (JComboBox) e.getSource();
-                        String devName = (String) cb.getSelectedItem();
-                        type = deviceMap.get(devName);
-                        System.out.println(type);
+
+        final HashMap<String, Class<? extends Device>> deviceMap = new HashMap<>();
+        JComboBox combobDevice = new JComboBox();
+        for (Class<? extends Device> c : devs) {
+            deviceMap.put(c.getSimpleName(), c);
+            combobDevice.addItem(c.getSimpleName());
+        }
+
+        combobDevice.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox cb = (JComboBox) e.getSource();
+                String devName = (String) cb.getSelectedItem();
+                type = deviceMap.get(devName);
+                System.out.println(type);
+            }
+        });
+
+        JComboBox combobVar = new JComboBox();
+        combobVar.addItem(RELOAD_VARS_ITEM);
+
+        combobVar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox cb = (JComboBox) e.getSource();
+                var = (String) cb.getSelectedItem();
+                if (var.equals(RELOAD_VARS_ITEM)) {
+                    cb.removeAllItems();
+                    cb.addItem(RELOAD_VARS_ITEM);
+                    for (String str : ReadDevice.super.getDeclaredVariables()) {
+                        cb.addItem(str);
                     }
-                });
-                
-                JComboBox combobVar = new JComboBox();
-                combobVar.addItem(RELOAD_VARS_ITEM);
-                
-                combobVar.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JComboBox cb = (JComboBox) e.getSource();
-                        var = (String) cb.getSelectedItem();
-                        if (var.equals(RELOAD_VARS_ITEM)){
-                            cb.removeAllItems();
-                            cb.addItem(RELOAD_VARS_ITEM);
-                            for (String str : ReadDevice.super.getDeclaredVariables()) {
-                                cb.addItem(str);
-                            }
-                        }
-                    }
-                });
-                
-                setObjectBounds(0, 0, 150, 60);
-                addJComponent(combobDevice, 15, 8, 110, 20);
-                addJComponent(combobVar, 15, 32, 110, 20);
-            }
-
-            @Override
-            public int getDrawableLayer() {
-                return Drawable.DEFAULT_LAYER;
-            }
-
-            private RoundRectangle2D.Double shape = new RoundRectangle2D.Double();
-            
-            @Override
-            public Shape getObjectShape() {
-                shape.setRoundRect(bounds.x,bounds.y,bounds.width,bounds.height,20,20);
-                return shape;
-            }
-
-            @Override
-            public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                if (in.isMouseOver()){
-                    widgetVisible = true;
-//                    bounds.x = (bounds.x < 200)? bounds.x+.1 : 0;
-//                    bounds.y = (bounds.y < 200)? bounds.y+.1 : 0;
-                } else {
-                    widgetVisible = false;
                 }
-                g.setColor(Color.getHSBColor(.5f, .3f, .7f));
-                
-                //nunca faça isso, a forma do objeto também contem as coordenadas do objeto
-                //g.fill(getObjectShape());
-                //tudo tem que ser desenhado a partir do ponto (0,0)
-                g.fillRoundRect(0,0,(int)bounds.width,(int)bounds.height,20,20);
             }
-        };
+        });
+        
+        Shape s = new RoundRectangle2D.Double(0, 0, 150, 60, 20, 20);
+        Color c = Color.getHSBColor(.5f, .3f, .7f);
+        
+        s = SimpleContainer.createPoli(new Rectangle(0,0,150,100));
+        
+        panel = new SimpleContainer(s, c);
+        panel.addJComponent(combobDevice, 15, 8, 110, 20);
+        panel.addJComponent(combobVar, 15, 32, 110, 20);
+
         //ainda dentro do contrutor =)
         timer = new Timer(200);
     }
@@ -185,13 +234,13 @@ public class ReadDevice extends Procedure implements GraphicResource {
 
     public static void main(String[] args) {
 //        QuickFrame.applyLookAndFeel();
-        
+
         ArrayList<Class<? extends Device>> a = new ArrayList<>();
         a.add(HBridge.class);
         a.add(Compass.class);
-        
+
         ReadDevice rd = new ReadDevice(a);
-        
+
         Function func = new Function("main", null);
         func.add(new Wait(1000));
         func.add(new PrintString("inicio"));
@@ -199,13 +248,13 @@ public class ReadDevice extends Procedure implements GraphicResource {
         func.add(new Declaration("i", 10));
         func.add(new PrintString("Girando %v vezes...", "i"));
         While loop = new While("i > 0");
-        loop.add(new Move(70,70)); //move
+        loop.add(new Move(70, 70)); //move
         loop.add(new Wait(500));
-        loop.add(new Move(-70,70)); //gira
+        loop.add(new Move(-70, 70)); //gira
         loop.add(new Wait(500));
-        loop.add(new Move(0,0)); //para
+        loop.add(new Move(0, 0)); //para
         loop.add(new Wait(500));
-        loop.add(new PrintString("Falta mais %v passo(s)...","i"));
+        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
         loop.add(new Procedure("i = i - 1"));
         func.add(loop);
         func.add(new PrintString("Procurando angulo 100"));
@@ -213,19 +262,19 @@ public class ReadDevice extends Procedure implements GraphicResource {
         func.add(new Declaration("alpha", 10));
         While loopCompass = new While("alpha != 100");// vai até 100
         If ifCompass = new If("alpha > 100");
-        ifCompass.addTrue(new Move(55,-55));
+        ifCompass.addTrue(new Move(55, -55));
         ifCompass.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass.addFalse(new Move(-55,55));
+        ifCompass.addFalse(new Move(-55, 55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
         loopCompass.add(ifCompass);
         loopCompass.add(rd);
-        loopCompass.add(new PrintString("Angulo atual: %v","alpha"));
+        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
         func.add(loopCompass);
-        func.add(new Move(0,0));
+        func.add(new Move(0, 0));
         func.add(new ReadDevice(Compass.class, "alpha"));
-        func.add(new PrintString("Angulo final: %v","alpha"));
+        func.add(new PrintString("Angulo final: %v", "alpha"));
         func.add(new PrintString("fim"));
-        
+
         QuickFrame.drawTest(rd.getDrawableResource());
     }
 }

@@ -22,7 +22,7 @@ import robotinterface.interpreter.ExecutionException;
 public class Block extends Procedure {
 
     // classe usada para definir o final de um loop
-    private class BlockEnd extends Command {
+    public class BlockEnd extends Command {
 
         private Command begin;
 

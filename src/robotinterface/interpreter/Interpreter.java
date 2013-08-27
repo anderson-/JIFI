@@ -12,6 +12,9 @@ import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.util.QuickFrame;
 import robotinterface.plugins.cmdpack.begginer.Move;
 import robotinterface.plugins.cmdpack.begginer.ReadDevice;
 import robotinterface.plugins.cmdpack.begginer.Wait;
@@ -142,23 +145,23 @@ public class Interpreter extends Thread {
 //        f.add(new Stop());
 //        i.setMainFunction(f);
 
-//        Function f = new Function("main", null);
-//        f.add(new PrintString("inicio"));
-//        f.add(new Declaration("i", 3));
+//        Function func = new Function("main", null);
+//        func.add(new PrintString("inicio"));
+//        func.add(new Declaration("i", 3));
+//        While l = new While("i > 0");
+//        l.add(new Declaration("j", 512));
 //        If ii = new If("i == 2");
 //        ii.addTrue(new PrintString("true"));
 //        ii.addFalse(new PrintString("false"));
-//        While l = new While("i > 0");
-//        l.add(new Declaration("j", 512));
 //        l.add(ii);
 //        l.add(new PrintString("valor de i = %v","i"));
 //        l.add(new Wait(501));
 //        l.add(new Procedure("i=i-1"));
 //        l.add(new PrintString("%v","j"));
-//        f.add(l);
-//        f.add(new PrintString("v = %v","j"));
-//        f.add(new PrintString("fim"));
-//        i.setMainFunction(f);
+//        func.add(l);
+//        func.add(new PrintString("v = %v","j"));
+//        func.add(new PrintString("fim"));
+//        i.setMainFunction(func);
         
         
         Function func = new Function("main", null);
@@ -196,12 +199,21 @@ public class Interpreter extends Thread {
         func.add(new PrintString("fim"));
         i.setMainFunction(func);
         
+        DrawingPanel p = new DrawingPanel();
+        p.add((Drawable)func);
+        Function.ident(func, 0,0,10,10,10);
+        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
+        
+        
         //executa
-        while (i.step()) {
-            
-        }
-
-        System.exit(0);
+//        while (i.step()) {
+////            try {
+////                    Thread.sleep(100);
+////                } catch (InterruptedException ex) {
+////                }
+//        }
+//
+//        System.exit(0);
 
     }
 }

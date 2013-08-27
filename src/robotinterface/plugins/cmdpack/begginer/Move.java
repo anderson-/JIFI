@@ -5,6 +5,7 @@
 package robotinterface.plugins.cmdpack.begginer;
 
 import robotinterface.algorithm.Command;
+import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.HBridge;
@@ -25,9 +26,11 @@ public class Move extends Command{
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) {
+    public void begin(Robot robot, Clock clock) throws ExecutionException {
         HBridge hb = robot.getDevice(HBridge.class);
         hb.setFullState(m1,m2);
-        return true;
+        hb.setWaiting();
     }
+    
+    
 }
