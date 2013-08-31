@@ -67,7 +67,7 @@ public class ReadDevice extends Procedure implements GraphicResource {
     private Device device;
     private Class<? extends Device> type;
     private String var;
-    private DWidgetContainer panel;
+    private DWidgetContainer sContainer;
 
     public ReadDevice(ArrayList<Class<? extends Device>> devices) {
         //Cria e inicializa os componentes Swing usados no componente
@@ -77,6 +77,9 @@ public class ReadDevice extends Procedure implements GraphicResource {
             deviceMap.put(c.getSimpleName(), c);
             combobDevice.addItem(c.getSimpleName());
         }
+
+        String devName = (String) combobDevice.getSelectedItem();
+        type = deviceMap.get(devName);
 
         combobDevice.addActionListener(new ActionListener() {
             @Override
@@ -106,22 +109,46 @@ public class ReadDevice extends Procedure implements GraphicResource {
             }
         });
 
+        /*
+         * se você estiver fazendo um comando simples, pode usar SimpleContainer para desenhar
+         * você só precisa sobrescrever os metodos (pessimamente nomeados):
+         *  - drawWJC (draw with jcomponents) - desenha quando os compoentes swing estão aparecendo
+         *  - drawWoJC (draw without jcomponents) - desenha quando os compoentes swing não estão aparecendo
+         * e passar uma forma geometrica (Shape) e uma cor.
+         * 
+         * para mostrar os componente deve-se selecionar com o mouse.
+         */
+        
         Shape s = new RoundRectangle2D.Double(0, 0, 150, 60, 20, 20);
+        //cria um Losango (usar em IF)
+        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
         Color c = Color.getHSBColor(.5f, .3f, .7f);
 
-        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100)); //cria um Losango (usar em IF)
-
-        panel = new SimpleContainer(s, c) {
+        sContainer = new SimpleContainer(s, c) {
+            //re
             @Override
-            protected void draw2(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+            protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                //escreve coisas quando os jcomponets estão visiveis
                 g.setColor(Color.BLACK);
-                g.drawString("Anderson", 10, 10);
+                g.drawString("use o combobox:", 10, 10);
+            }
+
+            @Override
+            protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                //escreve coisas quando os jcomponets não estão visiveis
+                g.setColor(Color.BLACK);
+                if (var != null && type != null) {
+                    g.drawString(var + " = " + type.getSimpleName(), 10, 30);
+                } else {
+                    g.drawString("Selecione a variável...", 10, 30);
+                }
             }
         };
-        panel.addJComponent(combobDevice, 15, 8, 110, 20);
-        panel.addJComponent(combobVar, 15, 32, 110, 20);
+        //adiciona os jcompoents no SimpleContainer
+        sContainer.addJComponent(combobDevice, 15, 8, 110, 20);
+        sContainer.addJComponent(combobVar, 15, 32, 110, 20);
 
-        //ainda dentro do contrutor =)
+        //esse timer é outra coisa...
         timer = new Timer(200);
     }
 
@@ -176,7 +203,8 @@ public class ReadDevice extends Procedure implements GraphicResource {
 
     @Override
     public Drawable getDrawableResource() {
-        return panel;
+        //retorna a classe responsável por desenhar esse comando.
+        return sContainer;
     }
 
     public static void main(String[] args) {

@@ -46,6 +46,7 @@ public class SimpleContainer extends DWidgetContainer {
     private AffineTransform transform;
 
     public SimpleContainer(Shape shape, Color color) {
+        widgetVisible = false;
         this.shape = shape;
         this.color = color;
         transform = new AffineTransform();
@@ -78,12 +79,18 @@ public class SimpleContainer extends DWidgetContainer {
         g.setColor(color);
         g.fill(shape);
         
-        if (!widgetVisible){
-            draw2(g, ga, in);
+        if (widgetVisible){
+            drawWJC(g, ga, in);
+        } else {
+            drawWoJC(g, ga, in);
         }
     }
     
-    protected void draw2(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+    protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
+    }
+    
+    protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         
     }
     
