@@ -282,7 +282,7 @@ public class Serial implements Connection, SerialPortEventListener {
     }
 
     public static void main(String[] args) {
-        Serial s = new Serial(57600);
+        Serial s = new Serial(115200);
 
         Robot r = new Robot();
         r.add(new HBridge(1));
@@ -369,27 +369,29 @@ public class Serial implements Connection, SerialPortEventListener {
         //ATENÇÃO: trocar intervalo de tempo na linha ~389
         //coloca 100 mensagens na lista de espera
         for (int i = 0; i < 100; i++){
-            testMessages.add(new byte[]{4, 0, 0});//get clock
+            testMessages.add(new byte[]{3, 4, 0, 0});//get clock
         }
-        
         if (s.establishConnection()) {
             System.out.println("connected");
             long timestamp = System.currentTimeMillis();
             for (int i = 0; i < 1; i++) { //repetição
+                int send = 0;
                 for (byte[] message : testMessages) {
-                    s.send(message);
+                    send++;
+                    while (send != s.r) {
+                      try {
+                        s.send(message);
+                        Thread.sleep(30); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
+                      } catch (InterruptedException ex) {
+                      }
+                    } 
                     System.out.print("Sended:   ");
-                    System.out.print("[" + message.length + "]{");
+                    System.out.print(send + "\t- [" + message.length + "]{");
                     for (byte b : message) {
                         System.out.print("," + b);
                     }
                     System.out.print("}");
-                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
-                    try {
-                        Thread.sleep(100); //intervalo entre mensagens enviadas
-                    } catch (InterruptedException ex) {
-                    }
-
+                    System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) + "ms");
                 }
                  try {
                         Thread.sleep(1000);
