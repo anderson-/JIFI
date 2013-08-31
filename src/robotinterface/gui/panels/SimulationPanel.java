@@ -1,6 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.gui.panels;
 
@@ -11,7 +32,6 @@ import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.geom.AffineTransform;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +42,10 @@ import robotinterface.robot.Robot;
 import static java.lang.Math.*;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.IRProximitySensor;
-import robotinterface.util.TextStroke;
 import robotinterface.util.observable.Observer;
 
 /**
- *
- * @author antunes
+ * Painel da simulação do robô. <### EM DESENVOLVIMENTO ###>
  */
 public class SimulationPanel extends DrawingPanel implements Serializable, Observer<Device, Robot> {
 
@@ -182,7 +200,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
     @Override
     public void update(Device device, Robot robot) {
         if (device instanceof IRProximitySensor) {
-            addObstacle(robot, ((IRProximitySensor) device).getDist()*2);
+            addObstacle(robot, ((IRProximitySensor) device).getDist() * 2);
         }
         if (device instanceof Compass) {
             robot.setTheta(Math.toRadians(((Compass) device).getAlpha()));

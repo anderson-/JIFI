@@ -1,6 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.drawable;
 
@@ -31,18 +52,14 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JPanel;
-import javax.swing.UnsupportedLookAndFeelException;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.exemples.DrawableTest.Circle;
 import robotinterface.drawable.DWidgetContainer.Widget;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-import robotinterface.drawable.exemples.DrawableTest;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
- *
- * @author antunes
+ * Painel para desenho de componentes desenháveis.
  */
 public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, Drawable {
 
@@ -140,9 +157,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public final void play() {
         clock.setPaused(false);
         //cria thread para pintar a tela
-
         if (repaintThread == null) {
-
             repaintThread = new Thread("Repaint Thread- " + Thread.activeCount()) {
                 @Override
                 public void run() {
@@ -181,7 +196,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     protected void paintComponent(Graphics g) {
-//        super.paintComponent(g); //não usar
+        //super.paintComponent(g); //não usar
 
         //ignora chamadas antes do buffer ser construido
         if (buffer == null) {
@@ -208,7 +223,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         beginDrawing = mouseClick;
-        
+
         //desenha fundo
         synchronized (objects) {
             for (Drawable d : objects) {
@@ -290,12 +305,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 }
             }
         }
-        
-        if (beginDrawing){
+
+        if (beginDrawing) {
             beginDrawing = false;
             mouseClick = false;
         }
-        
+
     }
 
     @Override
@@ -327,7 +342,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseClicked(final MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON1){
+        if (e.getButton() == MouseEvent.BUTTON1) {
             mouseClick = true;
         }
     }
@@ -583,10 +598,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 return currentBounds.contains(mouse);
             }
         }
-        
-        public boolean mouseClicked(){
+
+        public boolean mouseClicked() {
             synchronized (mouse) {
-                if (mouseClick && beginDrawing && currentBounds.contains(mouse)){
+                if (mouseClick && beginDrawing && currentBounds.contains(mouse)) {
                     return true;
                 }
                 return false;

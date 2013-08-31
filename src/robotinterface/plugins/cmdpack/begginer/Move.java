@@ -1,36 +1,53 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.plugins.cmdpack.begginer;
 
 import robotinterface.algorithm.Command;
 import robotinterface.interpreter.ExecutionException;
-import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.HBridge;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
- *
- * @author antunes
+ * Procedimento de mover o robô.
  */
-public class Move extends Command{
-    
+public class Move extends Command {
+
     private byte m1, m2;
-    
+
     public Move(int m1, int m2) {
         super();
-        this.m1 = (byte)m1;
-        this.m2 = (byte)m2;
+        this.m1 = (byte) m1;
+        this.m2 = (byte) m2;
     }
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
         HBridge hb = robot.getDevice(HBridge.class);
-        hb.setFullState(m1,m2);
+        hb.setFullState(m1, m2);
         hb.setWaiting();
     }
-    
-    
 }

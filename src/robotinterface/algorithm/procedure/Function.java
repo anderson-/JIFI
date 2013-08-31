@@ -1,6 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.algorithm.procedure;
 
@@ -15,31 +36,27 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import robotinterface.algorithm.procedure.Block;
 import java.util.List;
 import java.util.Random;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.robot.Robot;
 
 /**
- *
- * @author antunes
+ * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
  */
 public class Function extends Block implements Drawable {
 
     private static HashMap<Command, Rectangle2D.Double> teste;
     private static HashMap<Class<? extends Command>, Point2D.Double[]> wiring;
     public static final Point2D.Double divider = new Point2D.Double(Double.NaN, Double.NaN);
+    private static Random randNumGen = new Random(); //para testes
 
-    //ainda não tem funções, possuirá lista de argumentos, escopo de variaveis etc..
     public Function(String name, List<Variable> args) {
         teste = new HashMap<>();
         wiring = new HashMap<>();
-        randnum.setSeed(System.currentTimeMillis());
+        randNumGen.setSeed(System.currentTimeMillis());
 //        randnum.setSeed(0);
 
         wiring.put(While.class, new Point2D.Double[]{
@@ -57,7 +74,7 @@ public class Function extends Block implements Drawable {
 
     }
 
-    public static void ident(Block b, double x, double y, double j, double k, double l) {
+    public static void ident(Block b, double x, double y, double j, double k, double Ix, double Iy, boolean a) {
         /*
          * j - espaçamento entre comandos (pixels)
          * k - espaçamento entre o if e seus fluxos  (pixels)
@@ -68,68 +85,106 @@ public class Function extends Block implements Drawable {
          * 
          */
 
-        double cw;
+        double cw = 0;
         double ch = 0;
 
-        Rectangle2D.Double t = getCBounds(b);
+        Rectangle2D.Double t = getObjectBounds(b);
         if (t != null) {
             cw = t.width;
             ch = t.height;
             //set location
+//            t.x = x - cw / 2;
+//            t.y = y;
+//            y += ch + j;
+
             t.x = x - cw / 2;
-            t.y = y;
-            y += ch + j;
+            t.y = y - ch / 2;
+
+            x += Ix * (cw + j);
+            y += Iy * (ch + j);
         }
 
         Command it = b.start;
         while (it != null) {
 
-            t = getCBounds(it);
+            t = getObjectBounds(it);
             if (t != null) {
                 cw = t.width;
                 ch = t.height;
                 //set location
+//                t.x = x - cw / 2;
+//                t.y = y;
+//                y += ch + j;
+
                 t.x = x - cw / 2;
-                t.y = y;
-                y += ch + j;
+                t.y = y - ch / 2;
+
+                x += Ix * (cw + j);
+                y += Iy * (ch + j);
             }
 
-//            if (it instanceof GraphicResource) {
-//                Drawable d = ((GraphicResource) it).getDrawableResource();
-//                cw = d.getObjectBouds().width;
-//                ch = d.getObjectBouds().height;
-//                d.setObjectLocation(x - cw / 2, y - ch / 2);
-//                y += ch + j;
-//            }
-
             if (it instanceof Block) {
-                y -= (ch + j); //ident já cuida do espaçamento do incio do bloco
-                ident((Block) it, x, y, j, k, l);
-                Point2D.Double bb = getBounds((Block) it, null, j, k, l);
-                y += bb.y;
+                //ident já cuida do espaçamento do incio do bloco
+                x -= Ix * (cw + j);
+                y -= Iy * (ch + j);
+                ident((Block) it, x, y, j, k, Ix, Iy, a);
+                Rectangle2D.Double bb = getBounds((Block) it, null, j, k, Ix, Iy, a);
+                x += Ix * (bb.width);
+                y += Iy * (bb.height);
             } else if (it instanceof If) {
                 If i = (If) it;
-                ident(i.getBlockFalse(), x, y, j, k, l);
-                Point2D.Double bfb = getBounds(i.getBlockFalse(), null, j, k, l);
-                Point2D.Double btb = getBounds(i.getBlockTrue(), null, j, k, l);
-                ident(i.getBlockTrue(), x + bfb.x / 2 + k + btb.x / 2, y, j, k, l);
+                double pbtx;
+                double pbty;
+                double pbfx;
+                double pbfy;
 
-                y += (bfb.y > btb.y) ? bfb.y : btb.y;
-//                y += getBounds(i, null, j, k, l).y;
+                Rectangle2D.Double bfb = getBounds(i.getBlockFalse(), null, j, k, Ix, Iy, a);
+                Rectangle2D.Double btb = getBounds(i.getBlockTrue(), null, j, k, Ix, Iy, a);
+
+                if (a) {
+                    //true
+                    pbtx = 0;
+                    pbty = 0;
+                    //false
+                    pbfx = Iy * (bfb.width / 2 + btb.width / 2 + k);
+                    pbfy = Ix * (bfb.height / 2 + btb.height / 2 + k);
+                } else {
+                    //true
+                    pbtx = -Iy * (btb.width / 2 + k);
+                    pbty = -Ix * (btb.height / 2 + k);
+                    //false
+                    pbfx = Iy * (bfb.width / 2 + k);
+                    pbfy = Ix * (bfb.height / 2 + k);
+                }
+
+                ident(i.getBlockTrue(), x + pbtx, y + pbty, j, k, Ix, Iy, a);
+                ident(i.getBlockFalse(), x + pbfx, y + pbfy, j, k, Ix, Iy, a);
+
+                x += Ix * ((bfb.width > btb.width) ? bfb.width : btb.width);
+                y += Iy * ((bfb.height > btb.height) ? bfb.height : btb.height);
             }
 
             it = it.getNext();
         }
 
     }
-    private static Random randnum = new Random();
 
-    private static Rectangle2D.Double getCBounds(Command c) {
+    @Deprecated //função de teste
+    private static Rectangle2D.Double getObjectBounds(Command c) {
+//        if (c instanceof GraphicResource) {
+//            Drawable d = ((GraphicResource) c).getDrawableResource();
+//            if (d != null){
+//                if (teste.containsKey(c)){
+//                    teste.remove(c);
+//                }
+//                return d.getObjectBouds();
+//            }
+//        }
         if (!teste.containsKey(c)) {
-//            double w = 40;
-//            double h = 70;
-            double w = randnum.nextDouble() * 80 + 20;
-            double h = randnum.nextDouble() * 80 + 20;
+            double w = 30;
+            double h = 30;
+//            double w = randnum.nextDouble() * 80 + 20;
+//            double h = randnum.nextDouble() * 80 + 20;
             teste.put(c, new Rectangle2D.Double(0, 0, w, h));
         }
         return teste.get(c);
@@ -142,61 +197,62 @@ public class Function extends Block implements Drawable {
 //        
 //        return null;
 //    }
-    private static Point2D.Double getBounds(Command c, Point2D.Double ret, double j, double k, double l) {
+    public static Rectangle2D.Double getBounds(Command c, Rectangle2D.Double ret, double j, double k, double Ix, double Iy, boolean a) {
 
         /*
          * j - espaçamento entre comandos (pixels)
          * k - espaçamento entre o if e seus fluxos  (pixels)
          * l - orientação (rad)
-         * s - posição relativa ao comando anterior ([-1,1] sem unidade)
          * 
-         * TODO: usar l, atualmente o fluxograma cresce na direção y+
+         * Ix identação em x
+         * Iy identação em y
+         * 
+         * a alinhamento bloco do if
          * 
          */
 
         if (ret == null) {
-            ret = new Point2D.Double();
+            ret = new Rectangle2D.Double();
         } else {
-            ret.setLocation(0, 0);
+            ret.setRect(0, 0, 0, 0);
         }
 
         //pega o tamnho do comando atual
-        Rectangle2D.Double t = getCBounds(c);
+        Rectangle2D.Double t = getObjectBounds(c);
         if (t != null) {
-            ret.x += t.width;
-            ret.y += t.height;
-            ret.y += j;
-        }
+            ret.width += t.width;
+            ret.height += t.height;
 
-//        if (c instanceof GraphicResource) {
-//            Rectangle2D.Double t = ((GraphicResource) c).getDrawableResource().getObjectBouds();
-//            ret.x += t.width;
-//            ret.y += t.height;
-//        }
+            ret.width += Ix * j;
+            ret.height += Iy * j;
+        }
 
         if (c instanceof Block) {
             Block b = (Block) c;
-            Point2D.Double p = new Point2D.Double();
+            Rectangle2D.Double p = new Rectangle2D.Double();
             Command it = b.start;
             while (it != null) {
-                p = getBounds(it, p, j, k, l);
-                ret.x = (ret.x > p.x) ? ret.x : p.x;
-                ret.y += p.y;
+                p = getBounds(it, p, j, k, Ix, Iy, a);
+                ret.width = (ret.width > p.width) ? ret.width : p.width;
+                ret.height += p.height;
                 it = it.getNext();
             }
         } else if (c instanceof If) {
             If i = (If) c;
-            Point2D.Double p = new Point2D.Double();
+            Rectangle2D.Double p = new Rectangle2D.Double();
             //false
-            p = getBounds(i.getBlockFalse(), p, j, k, l);
-            ret.x = (ret.x > p.x) ? ret.x : p.x;
-            double ty = p.y;
+            p = getBounds(i.getBlockFalse(), p, j, k, Ix, Iy, a);
+            ret.width = (ret.width > p.width) ? ret.width : p.width;
+            double ty = p.height;
             //true
-            p = getBounds(i.getBlockTrue(), p, j, k, l);
-            ret.x += j + p.x;
-//            ret.x = (ret.x > p.x) ? ret.x : p.x;
-            ty = (ty > p.y) ? ty : p.y;
-            ret.y += ty;
+            p = getBounds(i.getBlockTrue(), p, j, k, Ix, Iy, a);
+            ret.width += p.width;
+
+            ret.width += Ix * k;
+            ret.height += Iy * k;
+
+            ty = (ty > p.height) ? ty : p.height;
+            ret.height += ty;
         }
 
         return ret;
@@ -221,7 +277,7 @@ public class Function extends Block implements Drawable {
         g.transform(at);
     }
 
-    public static void wire(Block b, ArrayList<Line2D.Double> lines, double j, double k, double l) {
+    public static void wire(Block b, ArrayList<Line2D.Double> lines, double j, double k, double Ix, double Iy, boolean a) {
         Command it = b.start;
         Line2D.Double line = null;
         while (it != null) {
@@ -230,9 +286,9 @@ public class Function extends Block implements Drawable {
                     if (c.isInstance(b)) {
                         Point2D.Double[] reference = wiring.get(c);
                         Point2D.Double pts[] = new Point2D.Double[]{new Point2D.Double(), new Point2D.Double()};
-                        Rectangle2D.Double beginBounds = getCBounds(b);
-                        double w = getBounds(b, null, j, k, l).x;
-                        Rectangle2D.Double endBounds = getCBounds(it);
+                        Rectangle2D.Double beginBounds = getObjectBounds(b);
+                        double w = getBounds(b, null, j, k, Ix, Iy, a).x;
+                        Rectangle2D.Double endBounds = getObjectBounds(it);
                         for (int i = 1; i < reference.length; i++) {
                             if (reference[i] == divider || reference[i - 1] == divider) {
                                 continue;
@@ -286,7 +342,7 @@ public class Function extends Block implements Drawable {
                     }
                 }
             } else if (it instanceof Block) {
-                wire((Block) it, lines, j, k, l);
+                wire((Block) it, lines, j, k, Ix, Iy, a);
             }
 
             it = it.getNext();
@@ -296,8 +352,7 @@ public class Function extends Block implements Drawable {
 
     @Override
     public Shape getObjectShape() {
-        Point2D.Double p = getBounds(this, null, 0, 0, 0);
-        shape.setRect(0, 0, p.x, p.y);
+        shape = getBounds(this, null, 0, 0, 0, 1, true);
         return shape;
     }
 
@@ -327,9 +382,9 @@ public class Function extends Block implements Drawable {
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if (in.isKeyPressed(KeyEvent.VK_1)) {
-            Function.ident(this, 100, 100, 50, 50, 10);
-            myLines.clear();
-            Function.wire(this, myLines, 50, 50, 10);
+            Function.ident(this, 0, 0, 10, 10, 0, 1, false);
+//            myLines.clear();
+//            Function.wire(this, myLines, 50, 50, 0, 1, true);
         }
 
         for (Command c : teste.keySet()) {
@@ -345,7 +400,7 @@ public class Function extends Block implements Drawable {
         for (Line2D.Double l : myLines) {
             g.setStroke(new BasicStroke(2));
             g.setColor(Color.MAGENTA);
-                    g.draw(l);
+            g.draw(l);
 //            if (l == null) {
 //                System.out.println("asd");
 //                b = true;

@@ -1,10 +1,30 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.interpreter;
 
-import robotinterface.interpreter.ExecutionException;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Declaration;
 import robotinterface.algorithm.procedure.Function;
@@ -27,8 +47,7 @@ import robotinterface.robot.connection.Serial;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
- *
- * @author antunes
+ * Classe responsável por interpretar os algoritmos e executar os comandos.
  */
 public class Interpreter extends Thread {
 
@@ -67,21 +86,21 @@ public class Interpreter extends Thread {
     }
 
     public boolean step() {
-        
+
         if (currentCmd == null) {
             return false;
         }
         clock.setPaused(false);
-//        System.out.println(currentCmd); //exibe o comando atual
+        //System.out.println(currentCmd); //exibe o comando atual
         try {
-            if (currentCmd instanceof Procedure){
-                ((Procedure)currentCmd).setParser(parser);
+            if (currentCmd instanceof Procedure) {
+                ((Procedure) currentCmd).setParser(parser);
             }
             currentCmd.begin(robot, clock);
             while (!currentCmd.perform(robot, clock)) {
                 clock.increase();
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(10);
                 } catch (InterruptedException ex) {
                 }
             }
@@ -99,13 +118,13 @@ public class Interpreter extends Thread {
     }
 
     public static void main(String[] args) {
-        
+
         Robot r = new Robot();
         r.add(new HBridge(1));
         r.add(new Compass());
         r.add(new Serial(9600));
         Interpreter i = new Interpreter(r);
-        
+
 
 //        f.add(new Cmd("a"));
 //        f.add(new Cmd("b"));
@@ -162,8 +181,8 @@ public class Interpreter extends Thread {
 //        func.add(new PrintString("v = %v","j"));
 //        func.add(new PrintString("fim"));
 //        i.setMainFunction(func);
-        
-        
+
+
         Function func = new Function("main", null);
         func.add(new Wait(1000));
         func.add(new PrintString("inicio"));
@@ -171,13 +190,13 @@ public class Interpreter extends Thread {
         func.add(new Declaration("i", 10));
         func.add(new PrintString("Girando %v vezes...", "i"));
         While loop = new While("i > 0");
-        loop.add(new Move(70,70)); //move
+        loop.add(new Move(70, 70)); //move
         loop.add(new Wait(500));
-        loop.add(new Move(-70,70)); //gira
+        loop.add(new Move(-70, 70)); //gira
         loop.add(new Wait(500));
-        loop.add(new Move(0,0)); //para
+        loop.add(new Move(0, 0)); //para
         loop.add(new Wait(500));
-        loop.add(new PrintString("Falta mais %v passo(s)...","i"));
+        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
         loop.add(new Procedure("i = i - 1"));
         func.add(loop);
         func.add(new PrintString("Procurando angulo 100"));
@@ -185,26 +204,28 @@ public class Interpreter extends Thread {
         func.add(new Declaration("alpha", 10));
         While loopCompass = new While("alpha != 100");// vai até 100
         If ifCompass = new If("alpha > 100");
-        ifCompass.addTrue(new Move(55,-55));
+        ifCompass.addTrue(new Move(55, -55));
         ifCompass.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass.addFalse(new Move(-55,55));
+        ifCompass.addFalse(new Move(-55, 55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
         loopCompass.add(ifCompass);
         loopCompass.add(new ReadDevice(Compass.class, "alpha"));
-        loopCompass.add(new PrintString("Angulo atual: %v","alpha"));
+        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
         func.add(loopCompass);
-        func.add(new Move(0,0));
+        func.add(new Move(0, 0));
         func.add(new ReadDevice(Compass.class, "alpha"));
-        func.add(new PrintString("Angulo final: %v","alpha"));
+        func.add(new PrintString("Angulo final: %v", "alpha"));
         func.add(new PrintString("fim"));
         i.setMainFunction(func);
-        
+
         DrawingPanel p = new DrawingPanel();
-        p.add((Drawable)func);
-        Function.ident(func, 0,0,10,10,10);
+        p.add((Drawable) func);
+        Function.ident(func, 0, 0, 10, 10, 0, 1, true);
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        
-        
+
+
+//        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
+
         //executa
 //        while (i.step()) {
 ////            try {
@@ -212,7 +233,7 @@ public class Interpreter extends Thread {
 ////                } catch (InterruptedException ex) {
 ////                }
 //        }
-//
+
 //        System.exit(0);
 
     }

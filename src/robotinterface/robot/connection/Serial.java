@@ -27,6 +27,7 @@ import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.util.ByteCharset;
 
 /**
  *
@@ -51,7 +52,7 @@ public class Serial implements Connection, SerialPortEventListener {
     private InputStream input;
     private BufferedReader bufferedReader;
     private ByteBuffer buffer;
-    public static Charset charset = Charset.forName("ISO-8859-1");//new ByteCharset();
+    public static Charset charset = new ByteCharset();
     /**
      * The output stream to the port
      */
@@ -281,16 +282,18 @@ public class Serial implements Connection, SerialPortEventListener {
     }
 
     public static void main(String[] args) {
-        Serial s = new Serial(9600);
+        Serial s = new Serial(57600);
 
         Robot r = new Robot();
         r.add(new HBridge(1));
         r.add(new Compass());
         r.add(new IRProximitySensor());
-        s.attach(r);
+//        s.attach(r);
 
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
+        /* PRIMEIROS TESTES */
+        
 //        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
 //        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
 //        testMessages.add(new byte[]{4, 0, 0});//get clock
@@ -303,9 +306,8 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
 
         
-        /**
-         * Teste: Adiciona dois leds a um robo generico *
-         */
+        /* ROBO GENERICO */
+        
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 //        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
 //            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
@@ -329,41 +331,46 @@ public class Serial implements Connection, SerialPortEventListener {
          *   FreeRam: 1272 - +1 led
          *   FreeRam: 1243 - +1 led
          */
-//        testMessages.add(new byte[]{7, (byte) 222});//reset all
-//
-//        testMessages.add(new byte[]{4, 0, 0});//get clock
-//
-//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-//
+        
+        /* NOVAS FUNÇÕES DE GIRAR */
+        
 //        ByteBuffer bf = ByteBuffer.allocate(8);
-//        bf.putChar((char) 100);
+//        bf.putChar((char) 180);
 //        byte[] tmp = new byte[2];
 //        bf.flip();
 //        bf.order(ByteOrder.LITTLE_ENDIAN);
 //        bf.get(tmp);
-////
-        
+//
 //        testMessages.add(new byte[]{4, 0, 0});//get clock
-////
-//        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});//Run action0 need2devices HbridgeId CompassId message3bytes int0byte int2byte
-////        
-
-        testMessages.add(new byte[]{6, 5, 1, 17});
-        testMessages.add(new byte[]{5, 1, 2, 0, 25, 5, 1, 2, 1, -25}); //rotaciona
-        for (int i = 0; i < 500; i++){
-            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0});//get compass & get dist
-        }
 //
+//        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});
+        
+        /* RESETA AS FUNÇÕES E PONTE H */
+        
+//        testMessages.add(new byte[]{7, (byte) 222});//reset all
+        
+        /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
+        
+//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
+//        for (int i = 0; i < 500; i++){
+//            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0});//get compass & get dist
+//        }
 //        
-//
-//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-////        testMessages.add(new byte[]{7, (byte) 224});//reset system
-//        testMessages.add(new byte[]{7, (byte) 222});//reset all  
-//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
-
-        SimulationPanel p = new SimulationPanel();
-        p.addRobot(r);
-        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+//        SimulationPanel p = new SimulationPanel();
+//        p.addRobot(r);
+//        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+//        
+        
+        /* TESTE DO RÁDIO */
+        
+        //quando uma mensagem chega é exibido "S:10 x R:10"
+        //ou seja 10 mensagens enviadas e 10 recebidas
+        //ATENÇÃO: trocar intervalo de tempo na linha ~389
+        //coloca 100 mensagens na lista de espera
+        for (int i = 0; i < 100; i++){
+            testMessages.add(new byte[]{4, 0, 0});//get clock
+        }
         
         if (s.establishConnection()) {
             System.out.println("connected");
@@ -379,7 +386,7 @@ public class Serial implements Connection, SerialPortEventListener {
                     System.out.print("}");
                     System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "s");
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(100); //intervalo entre mensagens enviadas
                     } catch (InterruptedException ex) {
                     }
 

@@ -1,27 +1,43 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.algorithm.procedure;
 
 import robotinterface.algorithm.Command;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.nfunk.jep.ParseException;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
-import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 
 /**
- *
- * @author antunes
+ * Bloco de comandos com suporte a escopo de variável.
  */
 public class Block extends Procedure {
 
-    // classe usada para definir o final de um loop
+    /**
+     * Classe usada para definir o final de um loop.
+     */
     public class BlockEnd extends Command {
 
         private Command begin;
@@ -29,10 +45,19 @@ public class Block extends Procedure {
         private BlockEnd() {
         }
 
-        public void setBegin(Command b) {
+        /**
+         * Define o inicio do bloco de coamndos.
+         *
+         * @param b Bloco de comando.
+         */
+        public void setBlockBegin(Command b) {
             begin = b;
         }
 
+        /**
+         * Reseta o escopo de variável e retorna o bloco de comandos que
+         * pertence.
+         */
         @Override
         public Command step() {
             returnNext = true;
@@ -46,7 +71,7 @@ public class Block extends Procedure {
 
     public Block() {
         end = new BlockEnd();
-        end.setBegin(this);
+        end.setBlockBegin(this);
         start = end;
     }
 
@@ -55,6 +80,12 @@ public class Block extends Procedure {
         return start;
     }
 
+    /**
+     * Adiciona um comando ao bloco de comandos.
+     *
+     * @param c Comando a ser adicionado
+     * @return true se o comando foi adicionado ao bloco
+     */
     public final boolean add(Command c) {
         if (c == null) {
             return false;
@@ -77,6 +108,11 @@ public class Block extends Procedure {
         return true;
     }
 
+    /**
+     * Obtem o numero de comandos dentro do bloco.
+     *
+     * @return O numero de comandos dentro desse bloco
+     */
     public final int size() {
         int size = 0;
         Command it = start;
@@ -115,6 +151,7 @@ public class Block extends Procedure {
         return null;
     }
 
+    //protege o final
     public final boolean remove(int index) {
         int i = 0;
         Command it = start;
@@ -142,6 +179,7 @@ public class Block extends Procedure {
         return false;
     }
 
+    //protege o final
     public final boolean remove(Command c) {
         int i = indexOf(c);
         if (i >= 0) {
@@ -193,10 +231,12 @@ public class Block extends Procedure {
         Command it = start;
         while (it != null) {
             if (it instanceof Declaration) {
-                Variable remove = st.getVar(((Declaration)it).getName());
-                if (remove != null){
-                    System.out.println("Removed var: " + remove.getName());
-                    remove.setValidValue(false);
+                for (String varName : ((Declaration) it).getVariableNames()) {
+                    Variable remove = st.getVar(varName);
+                    if (remove != null) {
+                        System.out.println("Removed var: " + remove.getName());
+                        remove.setValidValue(false);
+                    }
                 }
             }
             it = it.getNext();

@@ -1,6 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free 
+ * Software Foundation, either version 3 of the License, or (at your option) 
+ * any later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for 
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.algorithm.procedure;
 
@@ -13,9 +34,23 @@ import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Expression;
 import robotinterface.util.trafficsimulator.Clock;
 
-//classe mais 
-public class Procedure extends Command implements Expression/*, Observer*/ {
+/**
+ * Comando genérico com suporte à variaveis.
+ */
+public class Procedure extends Command implements Expression {
 
+    /**
+     * Interface para a declaração de multiplas variaveis em algum comando.
+     * @see robotinterface.algorithm.procedure.Declaration
+     */
+    protected interface Declaration {
+        
+        public ArrayList<String> getVariableNames ();
+        
+        public ArrayList<Object> getVariableValues ();
+        
+    }
+    
     private static JEP parser;
     private String procedure;
 
@@ -83,7 +118,7 @@ public class Procedure extends Command implements Expression/*, Observer*/ {
             Command up = it.getPrevious();
             while (up != null){
                 if (up instanceof Declaration){
-                    vars.add(((Declaration)up).getName());
+                    vars.addAll(((Declaration)up).getVariableNames());
                 }
                 up = up.getPrevious();
             }
@@ -92,30 +127,4 @@ public class Procedure extends Command implements Expression/*, Observer*/ {
         return vars;
     }
     
-//    public List<Variable> getVariables(){
-//        return variables;
-//    }
-    
-//    public static void getVariableScope (List<Variable> variables){
-////        parent.getVariableScope(variables);
-////        variables.addAll(this.variables);
-//    }
-
-//    @Override
-//    public void update(Object o, Object arg) {
-//        if (arg instanceof Variable){
-//            Variable var = (Variable)arg;
-//                
-//            
-//            
-////                for (Variable var : vars){
-////                    if (var.getName().equals(temp.getName())){
-////                        
-////                    }
-////                }
-////                if(!var.isConstant()){
-////                    System.out.println(var.getName());
-////                }
-//        }
-//    }
 }

@@ -1,31 +1,49 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * @file .java
+ * @author Anderson Antunes <anderson.utf@gmail.com>
+ *         *seu nome* <*seu email*>
+ * @version 1.0
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
+ *                       *seu nome* <*seu email*>
+ *
+ * RobotInterface is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package robotinterface.plugins.cmdpack.begginer;
 
-import robotinterface.algorithm.procedure.Declaration;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.DWidgetContainer;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JComboBox;
+import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.plugins.cmdpack.serial.Start;
@@ -52,87 +70,10 @@ public class ReadDevice extends Procedure implements GraphicResource {
     private DWidgetContainer panel;
 
     public ReadDevice(ArrayList<Class<? extends Device>> devices) {
-        final ArrayList<Class<? extends Device>> devs = devices;
-        //criando uma classe anonima para cuidar do desenho do objeto
-//        panel = new DWidgetContainer() {
-//            private HashMap<String, Class<? extends Device>> deviceMap;
-//
-//            { //fake constructor
-//                deviceMap = new HashMap<>();
-//                JComboBox combobDevice = new JComboBox();
-//                for (Class<? extends Device> c : devs) {
-//                    deviceMap.put(c.getSimpleName(),c);
-//                    combobDevice.addItem(c.getSimpleName());
-//                }
-//                
-//                combobDevice.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-//                        JComboBox cb = (JComboBox) e.getSource();
-//                        String devName = (String) cb.getSelectedItem();
-//                        type = deviceMap.get(devName);
-//                        System.out.println(type);
-//                    }
-//                });
-//                
-//                JComboBox combobVar = new JComboBox();
-//                combobVar.addItem(RELOAD_VARS_ITEM);
-//                
-//                combobVar.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-//                        JComboBox cb = (JComboBox) e.getSource();
-//                        var = (String) cb.getSelectedItem();
-//                        if (var.equals(RELOAD_VARS_ITEM)){
-//                            cb.removeAllItems();
-//                            cb.addItem(RELOAD_VARS_ITEM);
-//                            for (String str : ReadDevice.super.getDeclaredVariables()) {
-//                                cb.addItem(str);
-//                            }
-//                        }
-//                    }
-//                });
-//                
-//                setObjectBounds(0, 0, 150, 60);
-//                addJComponent(combobDevice, 15, 8, 110, 20);
-//                addJComponent(combobVar, 15, 32, 110, 20);
-//            }
-//
-//            @Override
-//            public int getDrawableLayer() {
-//                return Drawable.DEFAULT_LAYER;
-//            }
-//
-//            private RoundRectangle2D.Double shape = new RoundRectangle2D.Double();
-//            
-//            @Override
-//            public Shape getObjectShape() {
-//                shape.setRoundRect(bounds.x,bounds.y,bounds.width,bounds.height,20,20);
-//                return shape;
-//            }
-//
-//            @Override
-//            public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-//                if (in.isMouseOver()){
-//                    widgetVisible = true;
-////                    bounds.x = (bounds.x < 200)? bounds.x+.1 : 0;
-////                    bounds.y = (bounds.y < 200)? bounds.y+.1 : 0;
-//                } else {
-//                    widgetVisible = false;
-//                }
-//                g.setColor(Color.getHSBColor(.5f, .3f, .7f));
-//                
-//                //nunca faça isso, a forma do objeto também contem as coordenadas do objeto
-//                //g.fill(getObjectShape());
-//                //tudo tem que ser desenhado a partir do ponto (0,0)
-//                g.fillRoundRect(0,0,(int)bounds.width,(int)bounds.height,20,20);
-//            }
-//        };
-
-
+        //Cria e inicializa os componentes Swing usados no componente
         final HashMap<String, Class<? extends Device>> deviceMap = new HashMap<>();
         JComboBox combobDevice = new JComboBox();
-        for (Class<? extends Device> c : devs) {
+        for (Class<? extends Device> c : devices) {
             deviceMap.put(c.getSimpleName(), c);
             combobDevice.addItem(c.getSimpleName());
         }
@@ -164,13 +105,19 @@ public class ReadDevice extends Procedure implements GraphicResource {
                 }
             }
         });
-        
+
         Shape s = new RoundRectangle2D.Double(0, 0, 150, 60, 20, 20);
         Color c = Color.getHSBColor(.5f, .3f, .7f);
-        
-        s = SimpleContainer.createPoli(new Rectangle(0,0,150,100));
-        
-        panel = new SimpleContainer(s, c);
+
+        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100)); //cria um Losango (usar em IF)
+
+        panel = new SimpleContainer(s, c) {
+            @Override
+            protected void draw2(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                g.setColor(Color.BLACK);
+                g.drawString("Anderson", 10, 10);
+            }
+        };
         panel.addJComponent(combobDevice, 15, 8, 110, 20);
         panel.addJComponent(combobVar, 15, 32, 110, 20);
 
@@ -245,7 +192,7 @@ public class ReadDevice extends Procedure implements GraphicResource {
         func.add(new Wait(1000));
         func.add(new PrintString("inicio"));
         func.add(new Start());
-        func.add(new Declaration("i", 10));
+        func.add(new robotinterface.algorithm.procedure.Declaration("i", 10));
         func.add(new PrintString("Girando %v vezes...", "i"));
         While loop = new While("i > 0");
         loop.add(new Move(70, 70)); //move
@@ -259,7 +206,7 @@ public class ReadDevice extends Procedure implements GraphicResource {
         func.add(loop);
         func.add(new PrintString("Procurando angulo 100"));
         func.add(new Wait(500));
-        func.add(new Declaration("alpha", 10));
+        func.add(new robotinterface.algorithm.procedure.Declaration("alpha", 10));
         While loopCompass = new While("alpha != 100");// vai até 100
         If ifCompass = new If("alpha > 100");
         ifCompass.addTrue(new Move(55, -55));
