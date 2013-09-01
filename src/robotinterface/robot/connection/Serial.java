@@ -368,7 +368,7 @@ public class Serial implements Connection, SerialPortEventListener {
         //ou seja 10 mensagens enviadas e 10 recebidas
         //ATENÇÃO: trocar intervalo de tempo na linha ~389
         //coloca 100 mensagens na lista de espera
-        for (int i = 0; i < 100; i++){
+        for (int i = 0; i < 1000; i++){
             testMessages.add(new byte[]{3, 4, 0, 0});//get clock
         }
         if (s.establishConnection()) {
@@ -378,10 +378,10 @@ public class Serial implements Connection, SerialPortEventListener {
                 int send = 0;
                 for (byte[] message : testMessages) {
                     send++;
+                    s.send(message);
                     while (send != s.r) {
                       try {
-                        s.send(message);
-                        Thread.sleep(30); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
+                        Thread.sleep(1); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                       } catch (InterruptedException ex) {
                       }
                     } 
@@ -393,10 +393,11 @@ public class Serial implements Connection, SerialPortEventListener {
                     System.out.print("}");
                     System.out.println(" @Time: " + (System.currentTimeMillis() - timestamp) + "ms");
                 }
-                 try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                    }
+                System.out.println("\nAverage Time: " + (System.currentTimeMillis() - timestamp) / 1000 + "ms");
+                try {
+                       Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                }
             }
         } else {
             System.out.println("fail");
