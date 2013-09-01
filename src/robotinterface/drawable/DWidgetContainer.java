@@ -45,10 +45,13 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
 
         private JComponent widget;
         private Rectangle bounds;
+        private boolean isStatic;
+
 
         public Widget(JComponent widget, Rectangle bounds) {
             this.widget = widget;
             this.bounds = bounds;
+            isStatic = false;
         }
 
         public JComponent getJComponent() {
@@ -66,7 +69,15 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         public int getY() {
             return bounds.y;
         }
+        
+        public boolean isStatic() {
+          return isStatic;
+        }
 
+        public void setStatic(boolean isStatic) {
+          this.isStatic = isStatic;
+        }
+        
         public void setLocation(int x, int y) {
             bounds.setLocation(x, y);
             updateBounds();
@@ -192,5 +203,9 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     @Override
     public final Iterator<Widget> iterator() {
         return widgets.iterator();
+    }
+    
+    public void setJComponentStatic(int i, boolean isStatic) {
+        widgets.get(i).setStatic(isStatic);
     }
 }

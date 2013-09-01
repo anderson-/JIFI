@@ -284,7 +284,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (d instanceof DWidgetContainer) {
                     DWidgetContainer dwc = (DWidgetContainer) d;
                     for (Widget c : dwc) {
-                        if (!dwc.isWidgetVisible()) {
+                        if (!dwc.isWidgetVisible() && !c.isStatic()) {
                             c.getJComponent().setVisible(false);
                             continue;
                         }
