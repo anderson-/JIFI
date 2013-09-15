@@ -35,13 +35,16 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public abstract class Command {
 
+    public static final String identChar = "    ";
+    public static final String endChar = ";";
+    
     private Command prev;
     private Command next;
     private Command parent;
     private final String name;
     private final int id;
     private static int classCounter = 0;
-    
+
     public Command() {
         id = classCounter++;
         name = this.getClass().getSimpleName() + "[" + id + "]";
@@ -102,19 +105,18 @@ public abstract class Command {
         next = c;
         return true;
     }
-    
-    public final void remove (){
+
+    public final void remove() {
         next = prev;
         prev = next;
     }
 
     //inicio da execução do comando
-    public void begin(Robot robot, Clock clock) throws ExecutionException{
-        
+    public void begin(Robot robot, Clock clock) throws ExecutionException {
     }
-    
+
     //repete até retornar true ou lançar uma ExecutionException
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException{
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
         return true;
     }
 
@@ -134,12 +136,19 @@ public abstract class Command {
         }
         return next;
     }
-    
-    @Override
-    public String toString() {
-        return "command{" + name + "}:\n"
+
+    public void print() {
+        System.out.println("command{" + name + "}:\n"
                 + "\t^  : " + ((parent != null) ? parent.name : "null") + "\n"
                 + "\t<- : " + ((prev != null) ? prev.name : "null") + "\n"
-                + "\t-> : " + ((next != null) ? next.name : "null") + "\n";
+                + "\t-> : " + ((next != null) ? next.name : "null") + "\n");
+    }
+
+    public void toString(String ident, StringBuilder sb) {
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

@@ -42,66 +42,171 @@ import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.gui.panels.SimulationPanel;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
  */
 public class Function extends Block implements Drawable {
 
+    public static class Wiring {
+
+        public static final Point2D.Double divider = new Point2D.Double(Double.NaN, Double.NaN);
+        public static final Point2D.Double arrow = new Point2D.Double(Double.MAX_VALUE, Double.MIN_VALUE);
+        public final Class<? extends Command> type;
+        public final Class<? extends Command> parentType;
+        public final int level;
+        public final Point2D.Double[] points;
+        public Command tempCmd = null;
+
+        public Wiring(Class<? extends Command> type, Class<? extends Command> parentType, int level, Point2D.Double[] points) {
+            this.type = type;
+            this.parentType = parentType;
+            this.level = level;
+            this.points = points;
+        }
+
+        public static Wiring contains(ArrayList<Wiring> wiring, Command c) {
+            for (Wiring w : wiring) {
+                if (w.type.isInstance(c)) {
+                    if (w.parentType == null) {
+                        w.tempCmd = c;
+                        return w;
+                    } else {
+                        Command it = c;
+                        int i = 0;
+                        while (i <= w.level && it != null) {
+                            if (i == w.level && w.parentType.isInstance(it)) {
+                                w.tempCmd = it;
+                                return w;
+                            }
+
+                            i++;
+                            it = it.getParent();
+                        }
+                    }
+                }
+                w.tempCmd = null;
+            }
+            return null;
+        }
+    }
     private static HashMap<Command, Rectangle2D.Double> teste;
-    private static HashMap<Class<? extends Command>, Point2D.Double[]> wiring;
-    public static final Point2D.Double divider = new Point2D.Double(Double.NaN, Double.NaN);
+//    private static HashMap<Class<? extends Command>, Point2D.Double[]> wiring;
+    private static ArrayList<Wiring> wiring;
     private static Random randNumGen = new Random(); //para testes
 
     public Function(String name, List<Variable> args) {
         teste = new HashMap<>();
-        wiring = new HashMap<>();
+        wiring = new ArrayList<>();
         randNumGen.setSeed(System.currentTimeMillis());
 //        randnum.setSeed(0);
 
-        wiring.put(While.class, new Point2D.Double[]{
-            new Point2D.Double(0, 2),
+        wiring.add(new Wiring(Block.BlockEnd.class, While.class, 1,
+                new Point2D.Double[]{
             new Point2D.Double(0, 3),
-            new Point2D.Double(-1, 3),
+            new Point2D.Double(0, 5),
+            new Point2D.Double(-3, 5),
+            new Point2D.Double(-3, 0),
             new Point2D.Double(-1, 0),
-            new Point2D.Double(-0.5, 0),
-            divider,
-            new Point2D.Double(0.5, 0),
+            Wiring.arrow,
+            Wiring.divider,
             new Point2D.Double(1, 0),
-            new Point2D.Double(1, 4),
-            new Point2D.Double(0, 4),
-            new Point2D.Double(0, 5)});
+            new Point2D.Double(3, 0),
+            new Point2D.Double(3, 6),
+            new Point2D.Double(0, 6),
+            new Point2D.Double(0, 7),
+            Wiring.arrow
+        }));
+
+        wiring.add(new Wiring(Block.BlockEnd.class, If.class, 2,
+                new Point2D.Double[]{
+            new Point2D.Double(2, 3),
+            new Point2D.Double(2, 5),
+            new Point2D.Double(0, 5),
+            new Point2D.Double(0, 7),
+            Wiring.arrow
+        }));
+
+        wiring.add(new Wiring(If.class, null, 0, new Point2D.Double[]{}));
+        
+        wiring.add(new Wiring(If.BlockTrue.class, If.class, 1,
+                new Point2D.Double[]{
+            new Point2D.Double(0, 0),
+            new Point2D.Double(-2, 0),
+            new Point2D.Double(-2, 2),
+            Wiring.arrow,
+            Wiring.divider,
+            new Point2D.Double(-2, 3),
+            new Point2D.Double(-2, 4),
+            Wiring.arrow,
+        }));
+        
+        wiring.add(new Wiring(If.BlockFalse.class, If.class, 1,
+                new Point2D.Double[]{
+            new Point2D.Double(1, 0),
+            new Point2D.Double(2, 0),
+            new Point2D.Double(2, 2),
+            Wiring.arrow,
+            Wiring.divider,
+            new Point2D.Double(2, 3),
+            new Point2D.Double(2, 4),
+            Wiring.arrow,
+        }));
 
     }
 
+    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+        Function.ident(this, x, y, j, k, Ix, Iy, a);
+    }
+
     public static void ident(Block b, double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+
         /*
-         * j - espaçamento entre comandos (pixels)
-         * k - espaçamento entre o if e seus fluxos  (pixels)
-         * l - orientação (rad)
-         * s - posição relativa ao comando anterior ([-1,1] sem unidade)
-         * 
-         * TODO: usar l, atualmente o fluxograma cresce na direção y+
+         * c    -  comando
+         * ret  -  retangulo usado para calcular o tamanho do comando (é retornado pela função)
+         * j    -  espaçamento entre comandos [px]
+         * k    -  indentação [px]
+         * Ix   -  direção do fluxograma em x [-1,1]
+         * Iy   -  direção do fluxograma em y [-1,1]
+         * a    -  indentação simples (ou dupla)
          * 
          */
 
         double cw = 0;
         double ch = 0;
 
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
         Rectangle2D.Double t = getObjectBounds(b);
+
         if (t != null) {
             cw = t.width;
             ch = t.height;
-            //set location
-//            t.x = x - cw / 2;
-//            t.y = y;
-//            y += ch + j;
 
-            t.x = x - cw / 2;
-            t.y = y - ch / 2;
+            double px = x - Iy * (cw / 2);
+            double py = y - Ix * (ch / 2);
 
-            x += Ix * (cw + j);
-            y += Iy * (ch + j);
+            if (b instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) b).getDrawableResource();
+
+                if (d != null) {
+                    d.setObjectLocation(px, py);
+                } else {
+                    t.x = px;
+                    t.y = py;
+                }
+            } else {
+                t.x = px;
+                t.y = py;
+            }
+
+            x += Ix * (cw + xj);
+            y += Iy * (ch + yj);
         }
 
         Command it = b.start;
@@ -111,22 +216,33 @@ public class Function extends Block implements Drawable {
             if (t != null) {
                 cw = t.width;
                 ch = t.height;
-                //set location
-//                t.x = x - cw / 2;
-//                t.y = y;
-//                y += ch + j;
 
-                t.x = x - cw / 2;
-                t.y = y - ch / 2;
+                double px = x - Iy * (cw / 2);
+                double py = y - Ix * (ch / 2);
 
-                x += Ix * (cw + j);
-                y += Iy * (ch + j);
+                if (it instanceof GraphicResource) {
+                    Drawable d = ((GraphicResource) it).getDrawableResource();
+
+                    if (d != null) {
+                        d.setObjectLocation(px, py);
+//                        System.out.println(ch);
+                    } else {
+                        t.x = px;
+                        t.y = py;
+                    }
+                } else {
+                    t.x = px;
+                    t.y = py;
+                }
+
+                x += Ix * (cw + xj);
+                y += Iy * (ch + yj);
             }
 
             if (it instanceof Block) {
                 //ident já cuida do espaçamento do incio do bloco
-                x -= Ix * (cw + j);
-                y -= Iy * (ch + j);
+                x -= Ix * (cw + xj);
+                y -= Iy * (ch + yj);
                 ident((Block) it, x, y, j, k, Ix, Iy, a);
                 Rectangle2D.Double bb = getBounds((Block) it, null, j, k, Ix, Iy, a);
                 x += Ix * (bb.width);
@@ -146,15 +262,15 @@ public class Function extends Block implements Drawable {
                     pbtx = 0;
                     pbty = 0;
                     //false
-                    pbfx = Iy * (bfb.width / 2 + btb.width / 2 + k);
-                    pbfy = Ix * (bfb.height / 2 + btb.height / 2 + k);
+                    pbfx = Iy * (bfb.width / 2 + btb.width / 2 + xk);
+                    pbfy = Ix * (bfb.height / 2 + btb.height / 2 + yk);
                 } else {
                     //true
-                    pbtx = -Iy * (btb.width / 2 + k);
-                    pbty = -Ix * (btb.height / 2 + k);
+                    pbtx = -Iy * (btb.width / 2 + xk);
+                    pbty = -Ix * (btb.height / 2 + yk);
                     //false
-                    pbfx = Iy * (bfb.width / 2 + k);
-                    pbfy = Ix * (bfb.height / 2 + k);
+                    pbfx = Iy * (bfb.width / 2 + xk);
+                    pbfy = Ix * (bfb.height / 2 + yk);
                 }
 
                 ident(i.getBlockTrue(), x + pbtx, y + pbty, j, k, Ix, Iy, a);
@@ -164,6 +280,14 @@ public class Function extends Block implements Drawable {
                 y += Iy * ((bfb.height > btb.height) ? bfb.height : btb.height);
             }
 
+            //define localização
+//            if (it.getCommandName().contains("Move")) {
+////                tmpBounds.clear();
+//                System.out.println("-> " + t);
+////                tmpBounds.add((Rectangle2D.Double) t.clone());
+//            }
+
+
             it = it.getNext();
         }
 
@@ -171,20 +295,26 @@ public class Function extends Block implements Drawable {
 
     @Deprecated //função de teste
     private static Rectangle2D.Double getObjectBounds(Command c) {
-//        if (c instanceof GraphicResource) {
-//            Drawable d = ((GraphicResource) c).getDrawableResource();
-//            if (d != null){
-//                if (teste.containsKey(c)){
-//                    teste.remove(c);
-//                }
-//                return d.getObjectBouds();
-//            }
-//        }
+        if (c instanceof GraphicResource) {
+            Drawable d = ((GraphicResource) c).getDrawableResource();
+
+            if (d != null) {
+                if (teste.containsKey(c)) {
+                    teste.remove(c);
+                }
+                return (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
         if (!teste.containsKey(c)) {
-            double w = 30;
-            double h = 30;
-//            double w = randnum.nextDouble() * 80 + 20;
-//            double h = randnum.nextDouble() * 80 + 20;
+            boolean rand = false;
+            double w, h;
+            if (rand) {
+                w = 30;
+                h = 30;
+            } else {
+                w = randNumGen.nextDouble() * 50 + 10;
+                h = randNumGen.nextDouble() * 50 + 10;
+            }
             teste.put(c, new Rectangle2D.Double(0, 0, w, h));
         }
         return teste.get(c);
@@ -200,26 +330,33 @@ public class Function extends Block implements Drawable {
     public static Rectangle2D.Double getBounds(Command c, Rectangle2D.Double ret, double j, double k, double Ix, double Iy, boolean a) {
 
         /*
-         * j - espaçamento entre comandos (pixels)
-         * k - espaçamento entre o if e seus fluxos  (pixels)
-         * l - orientação (rad)
-         * 
-         * Ix identação em x
-         * Iy identação em y
-         * 
-         * a alinhamento bloco do if
+         * c    -  comando
+         * ret  -  retangulo usado para calcular o tamanho do comando (é retornado pela função)
+         * j    -  espaçamento entre comandos [px]
+         * k    -  indentação [px]
+         * Ix   -  direção do fluxograma em x [-1,1]
+         * Iy   -  direção do fluxograma em y [-1,1]
+         * a    -  indentação simples (ou dupla)
          * 
          */
 
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
         if (ret == null) {
             ret = new Rectangle2D.Double();
-        } else {
-            ret.setRect(0, 0, 0, 0);
         }
+
+        ret.setRect(Double.MAX_VALUE, Double.MAX_VALUE, 0, 0);
 
         //pega o tamnho do comando atual
         Rectangle2D.Double t = getObjectBounds(c);
         if (t != null) {
+            ret.x = (t.x < ret.x) ? t.x : ret.x;
+            ret.y = (t.y < ret.y) ? t.y : ret.y;
+
             ret.width += t.width;
             ret.height += t.height;
 
@@ -233,38 +370,53 @@ public class Function extends Block implements Drawable {
             Command it = b.start;
             while (it != null) {
                 p = getBounds(it, p, j, k, Ix, Iy, a);
-                ret.width = (ret.width > p.width) ? ret.width : p.width;
-                ret.height += p.height;
+
+                ret.x = (p.x < ret.x) ? p.x : ret.x;
+                ret.y = (p.y < ret.y) ? p.y : ret.y;
+
+                ret.width = (Iy * p.width > ret.width) ? p.width : ret.width;
+                ret.height = (Ix * p.height > ret.height) ? p.height : ret.height;
+
+                ret.width += Ix * p.width;
+                ret.height += Iy * p.height;
+
                 it = it.getNext();
             }
+
         } else if (c instanceof If) {
             If i = (If) c;
             Rectangle2D.Double p = new Rectangle2D.Double();
             //false
             p = getBounds(i.getBlockFalse(), p, j, k, Ix, Iy, a);
-            ret.width = (ret.width > p.width) ? ret.width : p.width;
-            double ty = p.height;
+            ret.add(p);
             //true
             p = getBounds(i.getBlockTrue(), p, j, k, Ix, Iy, a);
-            ret.width += p.width;
-
-            ret.width += Ix * k;
-            ret.height += Iy * k;
-
-            ty = (ty > p.height) ? ty : p.height;
-            ret.height += ty;
+            ret.add(p);
         }
+//        
+//        if (tmpBounds.size() < 100){
+//            tmpBounds.add((Rectangle2D.Double)ret.clone());
+//            tmpBoundsName.add(c.getCommandName());
+//        }
+
+//        System.out.println(c.getCommandName() + "\t\t-- >\t\t"  + ret);
+
+//        if (c.getCommandName().contains("If")) {
+////            tmpBounds.clear();
+//            tmpBounds.add((Rectangle2D.Double) ret.clone());
+//        }
 
         return ret;
     }
     public static final int ARR_SIZE = 6;
 
     public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
-        g.setStroke(new BasicStroke(2));
+//        g.setStroke(new BasicStroke(2));
 
         double dx = x2 - x1, dy = y2 - y1;
         double angle = Math.atan2(dy, dx);
         int len = (int) Math.sqrt(dx * dx + dy * dy);
+        AffineTransform o = (AffineTransform) g.getTransform().clone();
         AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
         at.concatenate(AffineTransform.getRotateInstance(angle));
         g.transform(at);
@@ -274,85 +426,161 @@ public class Function extends Block implements Drawable {
         g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
                 new int[]{0, -ARR_SIZE, ARR_SIZE, 0}, 4);
         at.setToIdentity();
-        g.transform(at);
+        g.setTransform(o);
     }
 
-    public static void wire(Block b, ArrayList<Line2D.Double> lines, double j, double k, double Ix, double Iy, boolean a) {
-        Command it = b.start;
-        Line2D.Double line = null;
+    public void wire(double j, double k, double Ix, double Iy, boolean a) {
+        myLines.clear();
+        myArrows.clear();
+        Function.wire(this, myLines, myArrows, j, k, Ix, Iy, a);
+    }
+
+    public static void wire(Block A, ArrayList<Line2D.Double> lines, ArrayList<Line2D.Double> arrows, double j, double k, double Ix, double Iy, boolean a) {
+
+        Rectangle2D.Double aBounds = getObjectBounds(A);//(Command)A
+        Rectangle2D.Double bBounds = getBounds(A, null, j, k, Ix, Iy, a);//(Block)A
+        Rectangle2D.Double cBounds = getObjectBounds(A.getEnd());//A(EndBlock)
+        Rectangle2D.Double dBounds;//(Command)It
+
+        Command it = A;
+        Wiring w;
         while (it != null) {
-            if (it instanceof Block.BlockEnd) {
-                for (Class c : wiring.keySet()) {
-                    if (c.isInstance(b)) {
-                        Point2D.Double[] reference = wiring.get(c);
-                        Point2D.Double pts[] = new Point2D.Double[]{new Point2D.Double(), new Point2D.Double()};
-                        Rectangle2D.Double beginBounds = getObjectBounds(b);
-                        double w = getBounds(b, null, j, k, Ix, Iy, a).x;
-                        Rectangle2D.Double endBounds = getObjectBounds(it);
-                        for (int i = 1; i < reference.length; i++) {
-                            if (reference[i] == divider || reference[i - 1] == divider) {
-                                continue;
-                            }
-                            pts[0].setLocation(reference[i - 1]);
-                            pts[1].setLocation(reference[i]);
-                            for (Point2D.Double p : pts) {
-                                if (p.x < 0) {
-                                    if (p.x >= -0.5) {
-                                        p.x = beginBounds.getCenterX() + p.x * beginBounds.width;
-                                    } else {
-                                        p.x = beginBounds.getCenterX() - w / 2 + p.x * (j / 2);
-                                    }
-                                } else if (p.x > 0) {
-                                    if (p.x <= 0.5) {
-                                        p.x = beginBounds.getCenterX() + p.x * beginBounds.width;
-                                    } else {
-                                        p.x = beginBounds.getCenterX() + w / 2 + p.x * (j / 2);
-                                    }
-                                } else {
-                                    p.x = beginBounds.getCenterX();
-                                }
-
-                                switch ((int) p.y) {
-                                    case 0:
-                                        p.y = beginBounds.getCenterY();
-                                        break;
-                                    case 1:
-                                        p.y = endBounds.getCenterY();
-                                        break;
-                                    case 2:
-                                        p.y = endBounds.getMaxY();
-                                        break;
-                                    case 3:
-                                        p.y = endBounds.getMaxY() + k * .40;
-                                        break;
-                                    case 4:
-                                        p.y = endBounds.getMaxY() + k * (1 - .40);
-                                        break;
-                                    case 5:
-                                        p.y = endBounds.getMaxY() + k;
-                                        break;
-                                    default:
-                                        System.err.println("Parametro inválido, wire");
-                                }
-                            }
-
-                            lines.add(new Line2D.Double(pts[0], pts[1]));
-                        }
-//                        lines.add(null);
-                    }
-                }
-            } else if (it instanceof Block) {
-                wire((Block) it, lines, j, k, Ix, Iy, a);
+            
+            if (it != A && it instanceof Block) {
+                wire((Block) it, lines, arrows, j, k, Ix, Iy, a);
+            } else if (it instanceof If) {
+                wire(((If) it).getBlockTrue(), lines, arrows, j, k, Ix, Iy, a);
+                wire(((If) it).getBlockFalse(), lines, arrows, j, k, Ix, Iy, a);
             }
 
-            it = it.getNext();
+            dBounds = getObjectBounds(it);
+            w = Wiring.contains(wiring, it);
+            if (w != null) {
+                if (w.tempCmd != it) {
+                    aBounds = getObjectBounds(w.tempCmd);
+                    bBounds = getBounds(w.tempCmd, null, j, k, Ix, Iy, a);
+                }
+
+                Point2D.Double[] reference = w.points;
+                Point2D.Double pts[] = new Point2D.Double[]{new Point2D.Double(), new Point2D.Double()};
+                for (int i = 1; i < reference.length; i++) {
+                    if (reference[i] == Wiring.divider || reference[i] == Wiring.arrow || reference[i - 1] == Wiring.divider) {
+                        continue;
+                    }
+                    pts[0].setLocation(reference[i - 1]);
+                    pts[1].setLocation(reference[i]);
+
+                    for (Point2D.Double p : pts) {
+
+                        switch ((int) p.x) {
+                            case -3:
+                                p.x = bBounds.x - (j / 2);
+                                break;
+                            case -2:
+                                p.x = dBounds.getCenterX();//*
+                                break;
+                            case -1:
+                                p.x = aBounds.getCenterX() - aBounds.width / 2;
+                                break;
+                            case 0:
+                                p.x = aBounds.getCenterX();
+                                break;
+                            case 1:
+                                p.x = aBounds.getCenterX() + aBounds.width / 2;
+                                break;
+                            case 2:
+                                p.x = dBounds.getCenterX();//*
+                                break;
+                            case 3:
+                                p.x = bBounds.x + bBounds.width + (j / 2);
+                                break;
+                            default:
+                                System.err.println("Parametro inválido, wire");
+                        }
+
+                        switch ((int) p.y) {
+                            case 0:
+                                p.y = aBounds.getCenterY();
+                                break;
+                            case 1:
+                                p.y = cBounds.getCenterY();
+                                break;
+                            case 2:
+                                p.y = dBounds.getMinY();
+                                break;
+                            case 3:
+                                p.y = dBounds.getMaxY();
+                                break;
+                            case 4:
+                                p.y = dBounds.getMaxY() + j;
+                                break;
+                            case 5:
+                                p.y = bBounds.getMaxY() - j * .60;
+                                break;
+                            case 6:
+                                p.y = bBounds.getMaxY() - j * .40;
+                                break;
+                            case 7:
+                                p.y = bBounds.getMaxY();
+                                break;
+                            default:
+                                System.err.println("Parametro inválido, wire");
+                        }
+                    }
+                    if (i + 1 < reference.length && reference[i + 1] == Wiring.arrow) {
+                        arrows.add(new Line2D.Double(pts[0], pts[1]));
+                    } else {
+                        lines.add(new Line2D.Double(pts[0], pts[1]));
+                    }
+                }
+
+//                if (it instanceof Block) {
+//                    wire((Block) it, lines, arrows, j, k, Ix, Iy, a);
+//                } else if (it instanceof If) {
+//                    wire(((If) it).getBlockTrue(), lines, arrows, j, k, Ix, Iy, a);
+//                    wire(((If) it).getBlockFalse(), lines, arrows, j, k, Ix, Iy, a);
+//                }
+            } else {
+                arrows.add(new Line2D.Double(dBounds.getCenterX(), dBounds.getMaxY(), dBounds.getCenterX(), dBounds.getMaxY() + j));
+            }
+
+            if (it == A){
+                it = A.start;
+            } else {
+                it = it.getNext();
+            }
         }
     }
+
+    public static void appendDCommandsOn(Command c, DrawingPanel p) {
+        if (c instanceof GraphicResource) {
+//            System.out.println("Adicionado: " + c.getCommandName());
+            p.add(((GraphicResource) c).getDrawableResource());
+        }
+
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            Command it = b.start;
+            while (it != null) {
+                appendDCommandsOn(it, p);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            If i = (If) c;
+            appendDCommandsOn(i.getBlockTrue(), p);
+            appendDCommandsOn(i.getBlockFalse(), p);
+        }
+    }
+
+    public void appendDCommandsOn(DrawingPanel p) {
+        appendDCommandsOn(this, p);
+    }
     Rectangle2D.Double shape = new Rectangle2D.Double();
+    static ArrayList<Rectangle2D.Double> tmpBounds = new ArrayList<>();
+    static ArrayList<String> tmpBoundsName = new ArrayList<>();
 
     @Override
     public Shape getObjectShape() {
-        shape = getBounds(this, null, 0, 0, 0, 1, true);
         return shape;
     }
 
@@ -377,43 +605,69 @@ public class Function extends Block implements Drawable {
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
-    ArrayList<Line2D.Double> myLines = new ArrayList<>();
+    public ArrayList<Line2D.Double> myLines = new ArrayList<>();
+    public ArrayList<Line2D.Double> myArrows = new ArrayList<>();
+    public static final BasicStroke dashedStroke = new BasicStroke(2.0f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_MITER,
+            10.0f, new float[]{5}, 0.0f);
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if (in.isKeyPressed(KeyEvent.VK_1)) {
-            Function.ident(this, 0, 0, 10, 10, 0, 1, false);
-//            myLines.clear();
-//            Function.wire(this, myLines, 50, 50, 0, 1, true);
+            Function.ident(this, 0, 0, 10, 100, 1, 0, true);
+            myLines.clear();
+            myArrows.clear();
+            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
+        } else if (in.isKeyPressed(KeyEvent.VK_2)) {
+            Function.ident(this, 0, 0, 10, 100, 0, 1, true);
+            myLines.clear();
+            myArrows.clear();
+            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
+        } else if (in.isKeyPressed(KeyEvent.VK_3)) {
+            Function.ident(this, 0, 0, 10, 100, 1, 1, true);
+            myLines.clear();
+            myArrows.clear();
+            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
         }
+
+        g.setColor(Color.BLUE);
+
+        g.setStroke(new BasicStroke(2));//dashedStroke);
+
+        for (Line2D.Double l : myArrows) {
+//            g.setStroke(new BasicStroke(2));
+            drawArrow(g, (int) l.x1, (int) l.y1, (int) l.x2, (int) l.y2);
+        }
+
+        for (Line2D.Double l : myLines) {
+//            g.setStroke(new BasicStroke(2));
+            g.draw(l);
+        }
+        
+        g.setColor(Color.gray);
 
         for (Command c : teste.keySet()) {
             g.setColor(Color.LIGHT_GRAY);
             Rectangle2D.Double r = teste.get(c);
-
             g.fill(r);
             g.setColor(Color.BLACK);
             g.drawString(c.getCommandName(), (int) r.getCenterX(), (int) r.getCenterY());
         }
 
-        boolean b = false;;
-        for (Line2D.Double l : myLines) {
-            g.setStroke(new BasicStroke(2));
-            g.setColor(Color.MAGENTA);
-            g.draw(l);
-//            if (l == null) {
-//                System.out.println("asd");
-//                b = true;
-//            } else {
-//                if (b) {
-//                    drawArrow(g, (int) l.x1, (int) l.y1, (int) l.x2, (int) l.y2);
-//                    b = false;
-//                } else {
-//                    
-//                }
-//
-//            }
+        for (int i = 0; i < tmpBoundsName.size(); i++) {
+            g.setColor(Color.BLUE);
+            Rectangle2D.Double r = tmpBounds.get(i);
+            g.draw(r);
+            g.drawString(tmpBoundsName.get(i), (int) r.getCenterX(), (int) r.getCenterY());
         }
+
+        for (Rectangle2D.Double r : tmpBounds) {
+            g.setColor(Color.BLUE);
+            g.draw(r);
+        }
+
+        
     }
 
     @Override

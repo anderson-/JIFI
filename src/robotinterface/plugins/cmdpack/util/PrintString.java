@@ -44,4 +44,18 @@ public class PrintString extends Procedure {
         System.out.println(out);
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("print(\"").append(str).append("\"");
+
+        for (String s : varNames) {
+            sb.append(", ").append(s);
+        }
+
+        sb.append(")");
+        return sb.toString();
+    }
 }

@@ -25,11 +25,12 @@
  */
 package robotinterface.gui.panels;
 
+import robotinterface.algorithm.procedure.Block;
 import robotinterface.drawable.DrawingPanel;
 
 /**
  * Futura implementação do painel de programação por texto.
  */
 public class CodeEditorPanel extends DrawingPanel {
-        
+    
 }

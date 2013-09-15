@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package robotinterface.robot.device;
+package robotinterface.robot.connection;
 
 import java.nio.ByteBuffer;
 import robotinterface.util.observable.Observer;

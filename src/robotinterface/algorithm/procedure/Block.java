@@ -72,12 +72,17 @@ public class Block extends Procedure {
     public Block() {
         end = new BlockEnd();
         end.setBlockBegin(this);
+        end.setParent(this);
         start = end;
     }
 
     @Deprecated
     public final Command getStart() {
         return start;
+    }
+
+    public final Command getEnd() {
+        return end;
     }
 
     /**
@@ -252,5 +257,16 @@ public class Block extends Procedure {
         } else {
             return start;
         }
+    }
+
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        sb.append(ident).append("").append("{\n");
+        Command it = start;
+        while (it != null){
+            it.toString(ident + identChar, sb);
+            it = it.getNext();
+        }
+        sb.append(ident).append("}\n");
     }
 }

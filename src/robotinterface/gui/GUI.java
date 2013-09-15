@@ -10,6 +10,7 @@ import java.awt.Component;
 import java.awt.event.ComponentListener;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
+import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.robot.Robot;
 
@@ -33,6 +34,9 @@ public class GUI extends javax.swing.JFrame {
         addMouseWheelListener(simulationPanel);
         addKeyListener(simulationPanel);
         addComponentListener(simulationPanel);
+        
+        simulationPanel.addRobot(new Robot());
+        simulationPanel.addRobot(new Robot());
         
     }
 
@@ -245,7 +249,7 @@ public class GUI extends javax.swing.JFrame {
         Component c = mainTabbedPane.getSelectedComponent();
         dynamicTabbedPane.removeAll();
         if (c == addNewCodePanel) {
-            add(new SimulationPanel(), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+            add(new FlowchartPanel(), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
         } //else if (c instanceof TabController) {
 //            for (JPanel p : ((TabController) c).getTabs()) {

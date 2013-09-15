@@ -21,6 +21,76 @@ import robotinterface.util.trafficsimulator.ColorChanger;
  */
 public class DrawableTest extends DWidgetContainer {
 
+    public static class SimpleRectangle implements Drawable {
+
+        private Rectangle2D.Double bounds;
+        private Color color;
+
+        public SimpleRectangle (){
+            bounds = new Rectangle2D.Double(0,0,30,30);
+            color = Color.getHSBColor((float)Math.random(), 1, 1);
+        }
+        
+        public SimpleRectangle(Rectangle2D.Double shape){
+            this.bounds = shape;
+            color = Color.getHSBColor((float)Math.random(), 1, 1);
+        }
+        
+        public SimpleRectangle setShape(Rectangle2D.Double shape){
+            this.bounds = shape;
+            return this;
+        }
+        
+        public SimpleRectangle setColor(Color color){
+            this.color = color;
+            return this;
+        }
+        
+        @Override
+        public Shape getObjectShape() {
+            return bounds;
+        }
+
+        @Override
+        public Rectangle2D.Double getObjectBouds() {
+            return bounds;
+        }
+
+        @Override
+        public void setObjectLocation(double x, double y) {
+            bounds.x = x;
+            bounds.y = y;
+        }
+
+        @Override
+        public void setObjectBounds(double x, double y, double width, double height) {
+            bounds.x = x;
+            bounds.y = y;
+            bounds.width = width;
+            bounds.height = height;
+        }
+
+        @Override
+        public int getDrawableLayer() {
+            return DrawingPanel.DEFAULT_LAYER;
+        }
+
+        @Override
+        public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        }
+
+        @Override
+        public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+            g.setColor(color);
+            g.draw(bounds);
+        }
+
+        @Override
+        public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        }
+    }
+    
+    
     public static class Circle implements Drawable {
 
         Rectangle2D.Double bounds = new Rectangle2D.Double(0,0,30,30);

@@ -60,9 +60,18 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
 //        robot.setLeftWheelSpeed(50);
         //mapeia a posição a cada x ms
         Timer timer = new Timer(100) {
+            
+            ArrayList<Robot> tmpBots = new ArrayList<>();
+            
             @Override
             public void run() {
-                for (Robot robot : robots) {
+                tmpBots.clear();
+                synchronized(robots){
+                    tmpBots.addAll(robots);
+                }
+                
+                for (Robot robot : tmpBots) {
+                    
                     //posição
                     synchronized (rpos) {
                         rpos.add(new Point((int) robot.getObjectBouds().x, (int) robot.getObjectBouds().y));
@@ -70,15 +79,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
                             rpos.remove(0);
                         }
                     }
-                    synchronized (obstacle) {
-                        while (obstacle.size() > MAX_ARRAY) {
-                            obstacle.remove(0);
-                        }
+                    if (this.getCount() % 20 == 0) {
+                        robot.setRightWheelSpeed(Math.random() * 100);
+                        robot.setLeftWheelSpeed(Math.random() * 100);
                     }
-//                    if (this.getCount() % 20 == 0) {
-//                        robot.setRightWheelSpeed(Math.random() * 100);
-//                        robot.setLeftWheelSpeed(Math.random() * 100);
-//                    }
                 }
             }
         };
@@ -100,29 +104,28 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
         double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
         synchronized (obstacle) {
             obstacle.add(new Point((int) tx, (int) ty));
+            while (obstacle.size() > MAX_ARRAY) {
+                obstacle.remove(0);
+            }
         }
     }
 
-    public final void add(Robot r) {
-        add((Drawable) r);
-        for (Device d : r.getDevices()) {
-            if (d instanceof Drawable) {
-                add((Drawable) d);
-            }
-        }
-        for (Connection c : r.getConnections()) {
-            add((Drawable) c);
-        }
-    }
+//    public final void add(Robot r) {
+//        add((Drawable) r);
+//        for (Device d : r.getDevices()) {
+//            if (d instanceof Drawable) {
+//                add((Drawable) d);
+//            }
+//        }
+//        for (Connection c : r.getConnections()) {
+//            add((Drawable) c);
+//        }
+//    }
 
     public static void paintPoints(Graphics2D g, List<Point> points, int size) {
         for (Point p : points) {
             g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
         }
-    }
-
-    public static double getAcceleration() {
-        return 10;
     }
 
     @Override

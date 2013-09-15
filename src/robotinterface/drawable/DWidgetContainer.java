@@ -28,6 +28,7 @@ package robotinterface.drawable;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JComponent;
@@ -46,7 +47,6 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         private JComponent widget;
         private Rectangle bounds;
         private boolean isStatic;
-
 
         public Widget(JComponent widget, Rectangle bounds) {
             this.widget = widget;
@@ -69,15 +69,15 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         public int getY() {
             return bounds.y;
         }
-        
+
         public boolean isStatic() {
-          return isStatic;
+            return isStatic;
         }
 
         public void setStatic(boolean isStatic) {
-          this.isStatic = isStatic;
+            this.isStatic = isStatic;
         }
-        
+
         public void setLocation(int x, int y) {
             bounds.setLocation(x, y);
             updateBounds();
@@ -104,8 +104,10 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     }
     private DrawingPanel parent;
     private ArrayList<Widget> widgets;
-    protected final Rectangle2D.Double bounds;
+    private AffineTransform transform;
+    protected Shape shape;
     protected boolean widgetVisible = true;
+    protected Rectangle2D.Double bounds;
 
     public boolean isWidgetVisible() {
         return widgetVisible;
@@ -118,6 +120,16 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     public DWidgetContainer() {
         parent = null;
         widgets = new ArrayList<>();
+        transform = new AffineTransform();
+        shape = null;
+        bounds = new Rectangle2D.Double();
+    }
+
+    public DWidgetContainer(Shape shape) {
+        parent = null;
+        widgets = new ArrayList<>();
+        transform = new AffineTransform();
+        this.shape = shape;
         bounds = new Rectangle2D.Double();
     }
 
@@ -163,15 +175,23 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     }
 
     @Override
-    public Shape getObjectShape() {
-        return bounds;
+    public final Shape getObjectShape() {
+        if (shape != null) {
+            transform.setToIdentity();
+            transform.translate(bounds.x, bounds.y);
+            return transform.createTransformedShape(shape);
+        } else {
+            return bounds;
+        }
     }
 
     @Override
     public final Rectangle2D.Double getObjectBouds() {
-        synchronized (bounds) {
-            return bounds;
+        if (shape != null) {
+            bounds.width = shape.getBounds2D().getWidth();
+            bounds.height = shape.getBounds2D().getHeight();
         }
+        return bounds;
     }
 
     @Override
@@ -182,10 +202,11 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
 
     @Override
     public void setObjectBounds(double x, double y, double width, double height) {
-        bounds.x = x;
-        bounds.y = y;
-        bounds.width = width;
-        bounds.height = height;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        bounds.x = x;
+//        bounds.y = y;
+//        bounds.width = width;
+//        bounds.height = height;
     }
 
     @Override
@@ -204,7 +225,7 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     public final Iterator<Widget> iterator() {
         return widgets.iterator();
     }
-    
+
     public void setJComponentStatic(int i, boolean isStatic) {
         widgets.get(i).setStatic(isStatic);
     }

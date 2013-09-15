@@ -252,4 +252,13 @@ public class ReadDevice extends Procedure implements GraphicResource {
 
         QuickFrame.drawTest(rd.getDrawableResource());
     }
+
+    @Override
+    public String toString() {
+        if (var != null && type != null){
+            return var + " = Robot." + type.getSimpleName();
+        } else {
+            return getCommandName();
+        }
+    }
 }

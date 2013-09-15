@@ -25,7 +25,12 @@
  */
 package robotinterface.plugins.cmdpack.begginer;
 
+import java.awt.Color;
+import java.awt.Rectangle;
 import robotinterface.algorithm.Command;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.HBridge;
@@ -34,7 +39,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Command {
+public class Move extends Command implements GraphicResource{
 
     private byte m1, m2;
 
@@ -49,5 +54,12 @@ public class Move extends Command {
         HBridge hb = robot.getDevice(HBridge.class);
         hb.setFullState(m1, m2);
         hb.setWaiting();
+    }
+
+    private SimpleContainer dResource = new SimpleContainer(new Rectangle(0,0,40,20),Color.CYAN);
+    
+    @Override
+    public Drawable getDrawableResource() {
+        return dResource;
     }
 }

@@ -25,6 +25,8 @@
  */
 package robotinterface.interpreter;
 
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Declaration;
 import robotinterface.algorithm.procedure.Function;
@@ -32,9 +34,12 @@ import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
+import robotinterface.algorithm.parser.Parser;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.exemples.DrawableTest.SimpleRectangle;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.plugins.cmdpack.begginer.BlockRoboF;
 import robotinterface.plugins.cmdpack.begginer.Move;
 import robotinterface.plugins.cmdpack.begginer.ReadDevice;
 import robotinterface.plugins.cmdpack.begginer.Wait;
@@ -44,6 +49,7 @@ import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
 import robotinterface.robot.connection.Serial;
+import robotinterface.robot.device.Device;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
@@ -182,6 +188,9 @@ public class Interpreter extends Thread {
 //        func.add(new PrintString("fim"));
 //        i.setMainFunction(func);
 
+        ArrayList<Class<? extends Device>> aw = new ArrayList<>();
+        aw.add(HBridge.class);
+        aw.add(Compass.class);
 
         Function func = new Function("main", null);
         func.add(new Wait(1000));
@@ -213,16 +222,25 @@ public class Interpreter extends Thread {
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
         func.add(loopCompass);
         func.add(new Move(0, 0));
-        func.add(new ReadDevice(Compass.class, "alpha"));
+        func.add(new ReadDevice(aw));
+        func.add(new BlockRoboF(aw));
+        //func.add(new ReadDevice(Compass.class, "alpha"));
         func.add(new PrintString("Angulo final: %v", "alpha"));
         func.add(new PrintString("fim"));
         i.setMainFunction(func);
 
         DrawingPanel p = new DrawingPanel();
         p.add((Drawable) func);
-        Function.ident(func, 0, 0, 10, 10, 0, 1, true);
+        boolean singleIdent = true;
+        Function.ident(func, 0, 0, 40, 100, 0, 1, singleIdent);
+        func.myLines.clear();
+        func.myArrows.clear();
+        Function.wire(func, func.myLines, func.myArrows, 40, 100, 0, 1, singleIdent);
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-
+        func.appendDCommandsOn(p);
+        //p.add(testeReadDevice.getDrawableResource());
+        
+//        System.out.println(Function.getBounds(ifCompass, null, 10, 100, 1, 1, true));
 
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
 
@@ -234,7 +252,52 @@ public class Interpreter extends Thread {
 ////                }
 //        }
 
-//        System.exit(0);
+        System.out.println(Parser.encode(func));
+        
+        System.exit(0);
 
+    }
+    
+    public static Function newTestFunction (){
+        ArrayList<Class<? extends Device>> aw = new ArrayList<>();
+        aw.add(HBridge.class);
+        aw.add(Compass.class);
+
+        Function func = new Function("main", null);
+        func.add(new Wait(1000));
+        func.add(new PrintString("inicio"));
+        func.add(new Start());
+        func.add(new Declaration("i", 10));
+        func.add(new PrintString("Girando %v vezes...", "i"));
+        While loop = new While("i > 0");
+        loop.add(new Move(70, 70)); //move
+        loop.add(new Wait(500));
+        loop.add(new Move(-70, 70)); //gira
+        loop.add(new Wait(500));
+        loop.add(new Move(0, 0)); //para
+        loop.add(new Wait(500));
+        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
+        loop.add(new Procedure("i = i - 1"));
+        func.add(loop);
+        func.add(new PrintString("Procurando angulo 100"));
+        func.add(new Wait(500));
+        func.add(new Declaration("alpha", 10));
+        While loopCompass = new While("alpha != 100");// vai até 100
+        If ifCompass = new If("alpha > 100");
+        ifCompass.addTrue(new Move(55, -55));
+        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
+        ifCompass.addFalse(new Move(-55, 55));
+        ifCompass.addFalse(new PrintString("Girando para a direita"));
+        loopCompass.add(ifCompass);
+        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
+        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
+        func.add(loopCompass);
+        func.add(new Move(0, 0));
+        func.add(new ReadDevice(aw));
+        func.add(new BlockRoboF(aw));
+        //func.add(new ReadDevice(Compass.class, "alpha"));
+        func.add(new PrintString("Angulo final: %v", "alpha"));
+        func.add(new PrintString("fim"));
+        return func;
     }
 }

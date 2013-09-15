@@ -14,7 +14,7 @@ TODO
 
 ####Grupo 1: Luís, Diego e Fernando
 
- - [ ] Implementar Dispositivos (Java e C++)
+ - [x] Implementar Dispositivos (Java e C++)
 
   - ver: **Device**->Compass->HBridge->*Robot*
 
@@ -26,7 +26,7 @@ TODO
 
 ####Grupo 2: Ricardo e Rafael
 
- - [ ] Algoritmo de posicionamento dos componentes (Drawable) dentro de um Fluxograma (Rafael)
+ - [x] Algoritmo de posicionamento dos componentes (Drawable) dentro de um Fluxograma
 
   - ver: **Command**->**Procedure**->**Block**->Function->If->While->*Interpreter.main()*->**Drawable**->**GraphicResource**
   

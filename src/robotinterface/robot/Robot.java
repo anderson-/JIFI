@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import robotinterface.util.observable.Observer;
 import robotinterface.interpreter.Interpreter;
+import robotinterface.robot.device.ReflectanceSensorArray;
 import robotinterface.util.observable.Observable;
 
 /**
@@ -43,9 +44,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     public void attach(Observer<Device, Robot> observer) {
         observers.add(observer);
     }
-    
-    public void updateObservers(Device d){
-        for (Observer<Device, Robot> o : observers){
+
+    public void updateObservers(Device d) {
+        for (Observer<Device, Robot> o : observers) {
             o.update(d, this);
         }
     }
@@ -95,6 +96,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         devices = new ArrayList<>();
         connections = new ArrayList<>();
         add(new InternalClock());
+        
+        add(new ReflectanceSensorArray());
 
         x = 0;
         y = 0;
@@ -180,6 +183,14 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         return interpreter;
     }
 
+//    public final void begin (){
+//        Connection c = getMainConnection();
+//        if (c != null){
+//            for (Device d : devices){
+//                
+//            }
+//        }
+//    }
     @Override
     public final void update(ByteBuffer message, Connection connection) {
         message.order(ByteOrder.LITTLE_ENDIAN);
@@ -411,10 +422,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         g.drawOval(-5, -5, 10, 10);
         g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);
         //frente
-        g.fillRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
+//        g.fillRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
         //contorno
         //g.setColor(Color.black);
-        g.drawRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
+//        g.drawRect(iSize / 2 - 5, -iSize / 2 + 10, 5, iSize - 20);
         //rodas
         int ww = (int) (0.4 * size);
         int wh = (int) (0.2 * size);
@@ -422,7 +433,28 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
 
         g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
+        
+        for (Device d : devices){
+            if (d instanceof Drawable){
+                ((Drawable)d).draw(g, ga, in);
+            }
+        }
+        
         g.setTransform(o);
+        
+        
+//        int sw = (int) (Robot.size / 15);
+//        int sx = (int) (Robot.size * .8 / 2);
+//        int sy = -sw / 2;
+//        AffineTransform t2 = (AffineTransform) t.clone();
+//        t2.rotate(-3 * Math.PI / 12);
+//        g.setTransform(t2);
+//        for (int si = 0; si < 5; si++) {
+//            t2.rotate(Math.PI / 12);
+//            g.setTransform(t2);
+//            g.fillOval(sx, sy, sw, sw);
+//        }
+
 
         move(ga.getClock().getDt());
     }

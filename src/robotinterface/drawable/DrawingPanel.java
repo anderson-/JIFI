@@ -55,6 +55,7 @@ import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DWidgetContainer.Widget;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import robotinterface.util.trafficsimulator.Clock;
 
@@ -186,11 +187,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public final void add(Drawable d) {
-        synchronized (objects) {
-            objects.add(d);
-        }
-        if (d instanceof DWidgetContainer) {
-            ((DWidgetContainer) d).appendTo(this);
+        if (d != null) {
+            synchronized (objects) {
+                objects.add(d);
+            }
+            if (d instanceof DWidgetContainer) {
+                ((DWidgetContainer) d).appendTo(this);
+            }
         }
     }
 
@@ -304,6 +307,17 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     }
                 }
             }
+        }
+
+        synchronized (mouse) {
+//            currentTransform.setTransform(originalTransform);
+//            currentTransform.translate(globalX, globalY);
+//            currentTransform.scale(zoom, zoom);
+//            Point2D p = currentTransform.transform(mouse, null);
+            int x = (int) ((mouse.x - globalX) / zoom);
+            int y = (int) ((mouse.y - globalY) / zoom);
+            g.setColor(Color.red);
+            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
         }
 
         if (beginDrawing) {
@@ -570,6 +584,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             t.setToIdentity();
             t.translate(objectX, objectY);
         }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
     }
 
     public class InputState {
@@ -605,6 +627,20 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     return true;
                 }
                 return false;
+            }
+        }
+        
+        public boolean mouseGeneralClick() {
+            return mouseClick;
+        }
+
+        public Point getRelativeMouse() {
+            synchronized (mouse) {
+                Point p = new Point(mouse);
+                System.out.println(currentObject.getObjectBouds());
+                p.x -= (int) currentObject.getObjectBouds().x;
+                p.y -= (int) currentObject.getObjectBouds().y;
+                return p;
             }
         }
 

@@ -41,30 +41,14 @@ import robotinterface.drawable.DrawingPanel;
  */
 public class SimpleContainer extends DWidgetContainer {
 
-    private Shape shape;
     private Color color;
-    private AffineTransform transform;
 
     public SimpleContainer(Shape shape, Color color) {
+        super(shape);
         widgetVisible = false;
-        this.shape = shape;
         this.color = color;
-        transform = new AffineTransform();
-        Rectangle2D r = shape.getBounds2D();
-        super.setObjectBounds(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
-
-    public SimpleContainer() {
-        this(new Rectangle2D.Double(), Color.white);
-    }
-
-    @Override
-    public Shape getObjectShape() {
-        transform.setToIdentity();
-        transform.translate(super.bounds.x, super.bounds.y);
-        return transform.createTransformedShape(shape);
-    }
-
+    
     @Override
     public int getDrawableLayer() {
         return Drawable.DEFAULT_LAYER;

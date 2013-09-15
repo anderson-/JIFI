@@ -170,7 +170,7 @@ public class Serial implements Connection, SerialPortEventListener {
 
         for (String name : PORT_NAMES) {
             if (name.contains("#")) {
-                for (int i = 0; i < PORT_SEARCH; i++) {
+                for (int i = 1; i < PORT_SEARCH; i++) {
                     String device = name.replace("#", "" + i);
                     //adiciona portas ocultas e bloqueadas (Linux)
                     System.setProperty("gnu.io.rxtx.SerialPorts", device);
@@ -282,7 +282,7 @@ public class Serial implements Connection, SerialPortEventListener {
     }
 
     public static void main(String[] args) {
-        Serial s = new Serial(115200);
+        Serial s = new Serial(57200);
 
         Robot r = new Robot();
         r.add(new HBridge(1));

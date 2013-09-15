@@ -78,4 +78,15 @@ public class Declaration extends Procedure implements Procedure.Declaration {
     public ArrayList<Object> getVariableValues() {
         return values;
     }
+    
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        for (int i = 0; i < names.size(); i++){
+            sb.append(ident).append("var ").append(names.get(i));
+            if (values.get(i) != null){
+                sb.append(" = ").append(values.get(i));
+            }
+            sb.append(endChar).append("\n");
+        }
+    }
 }

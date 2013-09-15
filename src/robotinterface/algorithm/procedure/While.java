@@ -26,6 +26,7 @@
 package robotinterface.algorithm.procedure;
 
 import robotinterface.algorithm.Command;
+import static robotinterface.algorithm.Command.identChar;
 import robotinterface.interpreter.ExecutionException;
 
 /**
@@ -46,5 +47,16 @@ public class While extends Block {
             return start;
         }
         return super.step();
+    }
+    
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        sb.append(ident).append("while (").append(getProcedure()).append(")").append("{\n");
+        Command it = start;
+        while (it != null){
+            it.toString(ident + identChar, sb);
+            it = it.getNext();
+        }
+        sb.append(ident).append("}\n");
     }
 }
