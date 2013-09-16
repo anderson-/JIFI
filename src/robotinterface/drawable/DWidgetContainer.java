@@ -131,6 +131,7 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         transform = new AffineTransform();
         this.shape = shape;
         bounds = new Rectangle2D.Double();
+        bounds.setRect(shape.getBounds2D());
     }
 
     private void updateWidgets() {

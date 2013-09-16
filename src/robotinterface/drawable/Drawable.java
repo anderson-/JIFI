@@ -27,15 +27,75 @@ package robotinterface.drawable;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import robotinterface.drawable.DrawingPanel.GraphicAttributes;
 import robotinterface.drawable.DrawingPanel.InputState;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 /**
  * Interface que torna uma classe desenhável por um {@link DrawingPanel}.
  */
 public interface Drawable {
 
+    public static class SimpleDrawableObject implements Drawable {
+
+        private AffineTransform transform;
+        protected Shape shape;
+        protected Rectangle2D.Double bounds;
+
+        public SimpleDrawableObject(Shape shape) {
+            transform = new AffineTransform();
+            this.shape = shape;
+            bounds = new Rectangle2D.Double();
+            bounds.setRect(shape.getBounds2D());
+        }
+
+        @Override
+        public Shape getObjectShape() {
+            transform.setToIdentity();
+            transform.translate(bounds.x, bounds.y);
+            return transform.createTransformedShape(shape);
+        }
+
+        @Override
+        public Rectangle2D.Double getObjectBouds() {
+            return bounds;
+        }
+
+        @Override
+        public void setObjectBounds(double x, double y, double width, double height) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void setObjectLocation(double x, double y) {
+            bounds.x = x;
+            bounds.y = y;
+        }
+
+        @Override
+        public int getDrawableLayer() {
+            return Drawable.DEFAULT_LAYER;
+        }
+
+        @Override
+        public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
+            
+        }
+
+        @Override
+        public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+            
+        }
+
+        @Override
+        public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+            
+        }
+    }
     public static final int BACKGROUND_LAYER = 1;
     public static final int DEFAULT_LAYER = 2;
     public static final int TOP_LAYER = 4;
@@ -45,7 +105,7 @@ public interface Drawable {
     public Rectangle2D.Double getObjectBouds();
 
     public void setObjectBounds(double x, double y, double width, double height);
-    
+
     public void setObjectLocation(double x, double y);
 
     public int getDrawableLayer();

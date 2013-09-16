@@ -25,7 +25,15 @@
  */
 package robotinterface.algorithm;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.procedure.Block;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.util.trafficsimulator.Clock;
@@ -33,11 +41,10 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Comando genérico.
  */
-public abstract class Command {
+public abstract class Command implements GraphicResource {
 
     public static final String identChar = "    ";
     public static final String endChar = ";";
-    
     private Command prev;
     private Command next;
     private Command parent;
@@ -150,5 +157,30 @@ public abstract class Command {
     @Override
     public String toString() {
         return name;
+    }
+    private Drawable d = null;
+
+    @Override
+    public Drawable getDrawableResource() {
+        if (d == null) {
+            d = new Drawable.SimpleDrawableObject(new Rectangle2D.Double(0, 0, 30, 30)) {
+                @Override
+                public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                    g.setColor(Color.lightGray);
+
+                    if (in.isMouseOver()) {
+                        g.setColor(Color.CYAN);
+                    }
+
+                    Rectangle r = shape.getBounds();
+
+                    g.fillRect(0, 0, r.width, r.height);
+
+                    g.setColor(Color.BLACK);
+                    g.drawString(getCommandName(), (int) r.getCenterX(), (int) r.getCenterY());
+                }
+            };
+        }
+        return d;
     }
 }

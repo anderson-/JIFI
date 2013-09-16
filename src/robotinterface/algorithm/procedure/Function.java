@@ -31,6 +31,8 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -130,7 +132,7 @@ public class Function extends Block implements Drawable {
         }));
 
         wiring.add(new Wiring(If.class, null, 0, new Point2D.Double[]{}));
-        
+
         wiring.add(new Wiring(If.BlockTrue.class, If.class, 1,
                 new Point2D.Double[]{
             new Point2D.Double(0, 0),
@@ -140,9 +142,8 @@ public class Function extends Block implements Drawable {
             Wiring.divider,
             new Point2D.Double(-2, 3),
             new Point2D.Double(-2, 4),
-            Wiring.arrow,
-        }));
-        
+            Wiring.arrow,}));
+
         wiring.add(new Wiring(If.BlockFalse.class, If.class, 1,
                 new Point2D.Double[]{
             new Point2D.Double(1, 0),
@@ -152,8 +153,7 @@ public class Function extends Block implements Drawable {
             Wiring.divider,
             new Point2D.Double(2, 3),
             new Point2D.Double(2, 4),
-            Wiring.arrow,
-        }));
+            Wiring.arrow,}));
 
     }
 
@@ -445,7 +445,7 @@ public class Function extends Block implements Drawable {
         Command it = A;
         Wiring w;
         while (it != null) {
-            
+
             if (it != A && it instanceof Block) {
                 wire((Block) it, lines, arrows, j, k, Ix, Iy, a);
             } else if (it instanceof If) {
@@ -544,7 +544,7 @@ public class Function extends Block implements Drawable {
                 arrows.add(new Line2D.Double(dBounds.getCenterX(), dBounds.getMaxY(), dBounds.getCenterX(), dBounds.getMaxY() + j));
             }
 
-            if (it == A){
+            if (it == A) {
                 it = A.start;
             } else {
                 it = it.getNext();
@@ -640,18 +640,21 @@ public class Function extends Block implements Drawable {
             drawArrow(g, (int) l.x1, (int) l.y1, (int) l.x2, (int) l.y2);
         }
 
+//        for (int i = 1; i < myLines.size(); i++){
+//            g.draw(smothConer(myLines.get(i-1),myLines.get(i),.5));
+//        }
+
         for (Line2D.Double l : myLines) {
 //            g.setStroke(new BasicStroke(2));
             g.draw(l);
         }
-        
+
         g.setColor(Color.gray);
 
         for (Command c : teste.keySet()) {
-            g.setColor(Color.LIGHT_GRAY);
+            g.setColor(Color.MAGENTA);
             Rectangle2D.Double r = teste.get(c);
-            g.fill(r);
-            g.setColor(Color.BLACK);
+            g.draw(r);
             g.drawString(c.getCommandName(), (int) r.getCenterX(), (int) r.getCenterY());
         }
 
@@ -667,7 +670,35 @@ public class Function extends Block implements Drawable {
             g.draw(r);
         }
 
-        
+//        g.setColor(Color.RED);
+//        
+//        Line2D.Double l1 = new Line2D.Double(0,0,20,0);
+//        Line2D.Double l2 = new Line2D.Double(new Point2D.Double(20,0),in.getMouse());
+//        
+//        g.draw(l1);
+//        g.draw(l2);
+//        
+//        g.setColor(Color.BLUE);
+//        
+//        g.draw(smothConer(l1,l2,.5));
+
+    }
+
+    public static Shape smothConer(Line2D.Double l1, Line2D.Double l2, double i) {
+        GeneralPath gp = new GeneralPath();
+        double s1 = Math.sqrt((l1.x2 - l1.x1) * (l1.x2 - l1.x1) + (l1.y2 - l1.y1) * (l1.y2 - l1.y1));
+        double s2 = Math.sqrt((l2.x2 - l2.x1) * (l2.x2 - l2.x1) + (l2.y2 - l2.y1) * (l2.y2 - l2.y1));
+        if (s1 > s2) {
+            double t = s1;
+            s1 = s2;
+            s2 = t;
+        }
+        gp.moveTo(l1.x1, l1.y1);
+        gp.lineTo((1 - i) * l1.x1 + i * l1.x2, (1 - i) * l1.y1 + i * l1.y2);
+        i = ((s2 - s1) / s2) * (1 - i) + i;
+        gp.quadTo(l1.x2, l1.y2, (1 - i) * l2.x2 + i * l2.x1, (1 - i) * l2.y2 + i * l2.y1);
+        gp.lineTo(l2.x2, l2.y2);
+        return gp;
     }
 
     @Override

@@ -72,6 +72,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private final ArrayList<Drawable> objects;
     private final ArrayList<Integer> keys;
     private final Point mouse;
+    private boolean dragEnabled = true;
     private Thread repaintThread;
     private BufferedImage buffer;
     private boolean repaint = false;
@@ -269,6 +270,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 currentObject = d;
                 if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
                     currentTransform.setTransform(originalTransform);
+                    currentBounds = d.getObjectBouds();
                     currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
                     g2.setTransform(currentTransform);
                     d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
@@ -316,7 +318,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 //            Point2D p = currentTransform.transform(mouse, null);
             int x = (int) ((mouse.x - globalX) / zoom);
             int y = (int) ((mouse.y - globalY) / zoom);
-            g.setColor(Color.red);
+
+            if (mouseClick) {
+                g.setColor(Color.red);
+            } else {
+                g.setColor(Color.black);
+            }
             g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
         }
 
@@ -363,10 +370,26 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mousePressed(MouseEvent e) {
+        synchronized (objects) {
+            for (Drawable d : objects) {
+                if (d != this) {
+                    if ((d.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
+                        if (d.getObjectShape().contains(getMouse(mouse))) {
+                            dragEnabled = false;
+                        }
+                    } else {
+                        if (d.getObjectShape().contains(mouse)) {
+                            dragEnabled = false;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        dragEnabled = true;
     }
 
     @Override
@@ -382,9 +405,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         if (e.getComponent() != this) {
             return;
         }
+
         synchronized (mouse) {
             //define a posição relativa com base no deslocamento do mouse
-            setPosition((int) (mouse.getX() - e.getPoint().getX()), (int) (mouse.getY() - e.getPoint().getY()));
+            if (dragEnabled) {
+                setPosition((int) (mouse.getX() - e.getPoint().getX()), (int) (mouse.getY() - e.getPoint().getY()));
+            }
             mouse.setLocation(e.getPoint());
         }
     }
@@ -395,7 +421,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             Rectangle r = e.getComponent().getBounds();
             Point tmp = e.getPoint();
             tmp.translate(r.x, r.y);
-
             mouse.setLocation(tmp);
             return;
         }
@@ -461,7 +486,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         return new Point(globalX, globalY);
     }
 
-    public synchronized void setPosition(int x, int y) {
+    public void setPosition(int x, int y) {
         globalX -= x;
         globalY -= y;
     }
@@ -514,7 +539,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public int getDrawableLayer() {
-        return 0;
+        return Drawable.DEFAULT_LAYER;
     }
 
     @Override
@@ -523,6 +548,24 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+//        g.setColor(Color.MAGENTA);
+//        synchronized (objects) {
+//            for (Drawable d : objects) {
+//                if (d != this) {
+//                    if ((d.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
+//                        if (d.getObjectShape().contains(getMouse(mouse))) {
+//                            System.out.println(d);
+//                            g.draw(d.getObjectBouds());
+//                        }
+//                    } else {
+//                        if (d.getObjectShape().contains(mouse)) {
+//                            System.out.println(d);
+//                            g.draw(d.getObjectBouds());
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     @Override
@@ -624,12 +667,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         public boolean mouseClicked() {
             synchronized (mouse) {
                 if (mouseClick && beginDrawing && currentBounds.contains(mouse)) {
+                    System.out.println(currentBounds.getBounds2D());
                     return true;
                 }
                 return false;
             }
         }
-        
+
         public boolean mouseGeneralClick() {
             return mouseClick;
         }
@@ -637,7 +681,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         public Point getRelativeMouse() {
             synchronized (mouse) {
                 Point p = new Point(mouse);
-                System.out.println(currentObject.getObjectBouds());
+//                System.out.println(currentObject.getObjectBouds());
                 p.x -= (int) currentObject.getObjectBouds().x;
                 p.y -= (int) currentObject.getObjectBouds().y;
                 return p;
