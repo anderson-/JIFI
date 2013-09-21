@@ -28,6 +28,7 @@ package robotinterface.algorithm.procedure;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
+import robotinterface.drawable.Drawable;
 import robotinterface.interpreter.ExecutionException;
 
 /**
@@ -64,6 +65,14 @@ public class Block extends Procedure {
             resetVariableScope();
             return begin;
         }
+
+        @Override
+        public Drawable getDrawableResource() {
+            return null;
+        }
+        
+        
+        
     }
     protected Command start;
     protected boolean returnNext = false;

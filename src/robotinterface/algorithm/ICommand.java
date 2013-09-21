@@ -23,43 +23,49 @@
  * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package robotinterface.plugins.cmdpack.begginer;
+package robotinterface.algorithm;
 
-import java.awt.Color;
-import java.awt.Rectangle;
-import robotinterface.algorithm.Command;
-import robotinterface.drawable.Drawable;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
-import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
-import robotinterface.robot.device.HBridge;
+import robotinterface.interpreter.ExecutionException;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
- * Procedimento de mover o robô.
+ * Comando genérico.
  */
-public class Move extends Command implements GraphicResource{
+public interface ICommand extends GraphicResource {
 
-    private byte m1, m2;
+    public int getID();
 
-    public Move(int m1, int m2) {
-        super();
-        this.m1 = (byte) m1;
-        this.m2 = (byte) m2;
-    }
+    public String getCommandName();
 
-    @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
-        HBridge hb = robot.getDevice(HBridge.class);
-        hb.setFullState(m1, m2);
-        hb.setWaiting();
-    }
+    public ICommand getNext();
 
-    private SimpleContainer dResource = new SimpleContainer(new Rectangle(0,0,40,20),Color.CYAN);
-    
-    @Override
-    public Drawable getDrawableResource() {
-        return dResource;
-    }
+    public void setNext(ICommand next);
+
+    public ICommand getPrevious();
+
+    public void setPrevious(ICommand previous);
+
+    public ICommand getParent();
+
+    public void setParent(ICommand parent);
+
+    public boolean addBefore(ICommand c);
+
+    public boolean addAfter(ICommand c);
+
+    public void remove();
+
+    public void begin(Robot robot, Clock clock) throws ExecutionException;
+
+    //repete até retornar true ou lançar uma ExecutionException
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException;
+
+    //executada ao final do comando a fim de saber qual é o proximo comando a ser executado
+    public ICommand step() throws ExecutionException;
+
+    public void print();
+
+    public void toString(String ident, StringBuilder sb);
 }

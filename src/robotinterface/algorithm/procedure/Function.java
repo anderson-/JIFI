@@ -28,6 +28,7 @@ package robotinterface.algorithm.procedure;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
@@ -308,9 +309,9 @@ public class Function extends Block implements Drawable {
         if (!teste.containsKey(c)) {
             boolean rand = false;
             double w, h;
-            if (rand) {
-                w = 30;
-                h = 30;
+            if (!rand) {
+                w = 10;
+                h = 10;
             } else {
                 w = randNumGen.nextDouble() * 50 + 10;
                 h = randNumGen.nextDouble() * 50 + 10;
@@ -408,7 +409,7 @@ public class Function extends Block implements Drawable {
 
         return ret;
     }
-    public static final int ARR_SIZE = 6;
+    public static final int ARR_SIZE = 7;
 
     public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
 //        g.setStroke(new BasicStroke(2));
@@ -422,20 +423,39 @@ public class Function extends Block implements Drawable {
         g.transform(at);
 
         // Draw horizontal arrow starting in (0, 0)
-        g.drawLine(0, 0, len - ARR_SIZE - 1, 0);
+//        g.drawLine(0, 0, len - ARR_SIZE, 0);
         g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
-                new int[]{0, -ARR_SIZE, ARR_SIZE, 0}, 4);
+                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
+        at.setToIdentity();
+        g.setTransform(o);
+    }
+
+    public static void drawArrow(Graphics2D g, Line2D l, boolean drawLine) {
+        double dx = l.getX2() - l.getX1();
+        double dy = l.getY2() - l.getY1();
+        double angle = Math.atan2(dy, dx);
+        int len = (int) Math.sqrt(dx * dx + dy * dy);
+        AffineTransform o = (AffineTransform) g.getTransform().clone();
+        AffineTransform at = AffineTransform.getTranslateInstance(l.getX1(), l.getY1());
+        at.concatenate(AffineTransform.getRotateInstance(angle));
+        g.transform(at);
+
+        // Draw horizontal arrow starting in (0, 0)
+        if (drawLine) {
+            g.drawLine(0, 0, len - ARR_SIZE, 0);
+        }
+        g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
+                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
         at.setToIdentity();
         g.setTransform(o);
     }
 
     public void wire(double j, double k, double Ix, double Iy, boolean a) {
         myLines.clear();
-        myArrows.clear();
-        Function.wire(this, myLines, myArrows, j, k, Ix, Iy, a);
+        Function.wire(this, myLines, j, k, Ix, Iy, a);
     }
 
-    public static void wire(Block A, ArrayList<Line2D.Double> lines, ArrayList<Line2D.Double> arrows, double j, double k, double Ix, double Iy, boolean a) {
+    public static void wire(Block A, ArrayList<Shape> lines, double j, double k, double Ix, double Iy, boolean a) {
 
         Rectangle2D.Double aBounds = getObjectBounds(A);//(Command)A
         Rectangle2D.Double bBounds = getBounds(A, null, j, k, Ix, Iy, a);//(Block)A
@@ -443,14 +463,18 @@ public class Function extends Block implements Drawable {
         Rectangle2D.Double dBounds;//(Command)It
 
         Command it = A;
+        GeneralPath gp = new GeneralPath();
         Wiring w;
         while (it != null) {
 
             if (it != A && it instanceof Block) {
-                wire((Block) it, lines, arrows, j, k, Ix, Iy, a);
+                wire((Block) it, lines, j, k, Ix, Iy, a);
             } else if (it instanceof If) {
-                wire(((If) it).getBlockTrue(), lines, arrows, j, k, Ix, Iy, a);
-                wire(((If) it).getBlockFalse(), lines, arrows, j, k, Ix, Iy, a);
+                wire(((If) it).getBlockTrue(), lines, j, k, Ix, Iy, a);
+                wire(((If) it).getBlockFalse(), lines, j, k, Ix, Iy, a);
+            } else if (A instanceof Function && it != A && it.getNext() == null){
+                it = it.getNext();
+                continue;
             }
 
             dBounds = getObjectBounds(it);
@@ -527,10 +551,19 @@ public class Function extends Block implements Drawable {
                                 System.err.println("Parametro inválido, wire");
                         }
                     }
-                    if (i + 1 < reference.length && reference[i + 1] == Wiring.arrow) {
-                        arrows.add(new Line2D.Double(pts[0], pts[1]));
+
+                    if (gp.getCurrentPoint() == null) {
+                        gp.moveTo(pts[0].x, pts[0].y);
                     } else {
-                        lines.add(new Line2D.Double(pts[0], pts[1]));
+                        gp.lineTo(pts[0].x, pts[0].y);
+                    }
+                    gp.lineTo(pts[1].x, pts[1].y);
+
+//                    lines.add(new Line2D.Double(pts[0], pts[1]));
+                    if (i + 1 < reference.length && reference[i + 1] == Wiring.arrow) {
+//                        lines.add(null);
+                        lines.add(gp);
+                        gp = new GeneralPath();
                     }
                 }
 
@@ -541,7 +574,21 @@ public class Function extends Block implements Drawable {
 //                    wire(((If) it).getBlockFalse(), lines, arrows, j, k, Ix, Iy, a);
 //                }
             } else {
-                arrows.add(new Line2D.Double(dBounds.getCenterX(), dBounds.getMaxY(), dBounds.getCenterX(), dBounds.getMaxY() + j));
+
+                if (gp.getCurrentPoint() == null) {
+                    gp.moveTo(dBounds.getCenterX(), dBounds.getMaxY());
+                } else {
+                    gp.moveTo(dBounds.getCenterX(), dBounds.getMaxY());
+//                    gp.quadTo(gp.getCurrentPoint().getX(), gp.getCurrentPoint().getY(), dBounds.getCenterX(), dBounds.getMaxY());
+                }
+//                gp.quadTo(gp.getCurrentPoint().getX(), gp.getCurrentPoint().getY(), dBounds.getCenterX(), dBounds.getMaxY()+ j);
+                gp.lineTo(dBounds.getCenterX(), dBounds.getMaxY() + j);
+                lines.add(gp);
+                gp = new GeneralPath();
+
+//                lines.add(new Line2D.Double(dBounds.getCenterX(), dBounds.getMaxY(), dBounds.getCenterX(), dBounds.getMaxY() + j));
+//                lines.add(null);
+                //arrows.add(new Line2D.Double(dBounds.getCenterX(), dBounds.getMaxY(), dBounds.getCenterX(), dBounds.getMaxY() + j));
             }
 
             if (it == A) {
@@ -550,6 +597,45 @@ public class Function extends Block implements Drawable {
                 it = it.getNext();
             }
         }
+    }
+
+    public static Command find(Point2D p, Block b) {
+        Command it = b.start;
+        while (it != null) {
+
+            if (it instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) it).getDrawableResource();
+                if (d != null) {
+                    if (d.getObjectShape().contains(p)) {
+                        return it;
+                    }
+                }
+            }
+
+            if (it instanceof Block) {
+                Command c = find(p, (Block) it);
+                if (c != null) {
+                    return c;
+                }
+            } else if (it instanceof If) {
+                Command c = find(p, ((If) it).getBlockTrue());
+                if (c != null) {
+                    return c;
+                }
+                c = find(p, ((If) it).getBlockFalse());
+                if (c != null) {
+                    return c;
+                }
+            }
+
+            it = it.getNext();
+        }
+
+        return null;
+    }
+
+    public Command find(Point2D p) {
+        return Function.find(p, this);
     }
 
     public static void appendDCommandsOn(Command c, DrawingPanel p) {
@@ -605,48 +691,74 @@ public class Function extends Block implements Drawable {
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
-    public ArrayList<Line2D.Double> myLines = new ArrayList<>();
-    public ArrayList<Line2D.Double> myArrows = new ArrayList<>();
+    public ArrayList<Shape> myLines = new ArrayList<>();
     public static final BasicStroke dashedStroke = new BasicStroke(2.0f,
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_MITER,
             10.0f, new float[]{5}, 0.0f);
 
+    float W = 0;
+    
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if (in.isKeyPressed(KeyEvent.VK_1)) {
-            Function.ident(this, 0, 0, 10, 100, 1, 0, true);
-            myLines.clear();
-            myArrows.clear();
-            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
+            ident(0, 0, 10, 100, 1, 0, true);
+            wire(50, 50, 0, 1, true);
         } else if (in.isKeyPressed(KeyEvent.VK_2)) {
-            Function.ident(this, 0, 0, 10, 100, 0, 1, true);
-            myLines.clear();
-            myArrows.clear();
-            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
+            System.out.println(myLines.size());
+            ident(0, 0, 10, 100, 0, 1, true);
+            System.out.println(myLines.size());
+            wire(50, 50, 0, 1, true);
+            System.out.println(myLines.size() + "*");
         } else if (in.isKeyPressed(KeyEvent.VK_3)) {
-            Function.ident(this, 0, 0, 10, 100, 1, 1, true);
-            myLines.clear();
-            myArrows.clear();
-            Function.wire(this, myLines, myArrows, 50, 50, 0, 1, true);
+            ident(0, 0, 10, 100, 1, 0, false);
+            wire(50, 50, 0, 1, true);
         }
+
+//        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
         g.setColor(Color.BLUE);
 
         g.setStroke(new BasicStroke(2));//dashedStroke);
 
-        for (Line2D.Double l : myArrows) {
-//            g.setStroke(new BasicStroke(2));
-            drawArrow(g, (int) l.x1, (int) l.y1, (int) l.x2, (int) l.y2);
-        }
-
-//        for (int i = 1; i < myLines.size(); i++){
-//            g.draw(smothConer(myLines.get(i-1),myLines.get(i),.5));
+//        for (int i = 1; i < myLines.size(); i++) {
+////            g.draw(smothConer(myLines.get(i-1),myLines.get(i),.5));
+//
+////            if (myLines.get(i) != null && myLines.get(i-1) != null){
+////                g.draw(smothConer(myLines.get(i-1),myLines.get(i),.5));
+////            }
+//
+//            Line2D.Double l = myLines.get(i - 1);
+//            if (myLines.get(i) == null) {
+//                drawArrow(g, l, true);
+//            } else {
+//                if (l != null) {
+//                    g.draw(l);
+//                }
+//            }
 //        }
 
-        for (Line2D.Double l : myLines) {
-//            g.setStroke(new BasicStroke(2));
-            g.draw(l);
+        float w = 0 + W;
+        W -= .0005;
+        int j = 0 + (int)(W*100);
+        for (Shape s : myLines) {
+            if (j == 1){
+              g.setColor(Color.cyan);
+            } else {
+              g.setColor(Color.gray);  
+            }
+            //g.setColor(Color.getHSBColor(w, 1, 1));
+            g.draw(s);
+            
+            if (s instanceof GeneralPath){
+                GeneralPath gp = (GeneralPath)s;
+                //gp.
+            }
+            
+            j ++;
+        }
+        if ((W*100) < -40){
+            W = 0;
         }
 
         g.setColor(Color.gray);
@@ -681,7 +793,7 @@ public class Function extends Block implements Drawable {
 //        g.setColor(Color.BLUE);
 //        
 //        g.draw(smothConer(l1,l2,.5));
-
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     }
 
     public static Shape smothConer(Line2D.Double l1, Line2D.Double l2, double i) {

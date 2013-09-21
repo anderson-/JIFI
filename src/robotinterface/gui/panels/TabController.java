@@ -32,7 +32,7 @@ import javax.swing.JPanel;
  * Interface para possibilitar abas dinâmicas nos paineis laterais.
  * @author antunes
  */
-public interface TabControler {
+public interface TabController {
     
     public List<JPanel> getTabs();
     

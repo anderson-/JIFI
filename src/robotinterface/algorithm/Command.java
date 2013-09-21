@@ -81,11 +81,11 @@ public abstract class Command implements GraphicResource {
         this.prev = previous;
     }
 
-    public final Command getParent() {
+    public Command getParent() {
         return parent;
     }
 
-    public final void setParent(Command parent) {
+    public void setParent(Command parent) {
         this.parent = parent;
     }
 
@@ -99,6 +99,7 @@ public abstract class Command implements GraphicResource {
         }
         c.prev = prev;
         c.next = this;
+        c.parent = parent;
         prev = c;
         return true;
     }
@@ -106,6 +107,7 @@ public abstract class Command implements GraphicResource {
     public final boolean addAfter(Command c) {
         c.prev = this;
         c.next = next;
+        c.parent = parent;
         if (next != null) {
             next.prev = c;
         }

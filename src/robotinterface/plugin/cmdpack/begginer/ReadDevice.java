@@ -23,7 +23,7 @@
  * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package robotinterface.plugins.cmdpack.begginer;
+package robotinterface.plugin.cmdpack.begginer;
 
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
@@ -46,8 +46,10 @@ import javax.swing.JComboBox;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
-import robotinterface.plugins.cmdpack.serial.Start;
-import robotinterface.plugins.cmdpack.util.PrintString;
+import robotinterface.gui.panels.sidepanel.Classifiable;
+import robotinterface.gui.panels.sidepanel.Item;
+import robotinterface.plugin.cmdpack.serial.Start;
+import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
@@ -60,7 +62,7 @@ import robotinterface.util.trafficsimulator.Timer;
  *
  * @author antunes
  */
-public class ReadDevice extends Procedure implements GraphicResource {
+public class ReadDevice extends Procedure implements GraphicResource, Classifiable {
 
     public static final String RELOAD_VARS_ITEM = "<atualizar>";
     private Timer timer;
@@ -68,6 +70,10 @@ public class ReadDevice extends Procedure implements GraphicResource {
     private Class<? extends Device> type;
     private String var;
     private DWidgetContainer sContainer;
+    
+    public ReadDevice() {
+        
+    }
 
     public ReadDevice(ArrayList<Class<? extends Device>> devices) {
         //Cria e inicializa os componentes Swing usados no componente
@@ -129,6 +135,8 @@ public class ReadDevice extends Procedure implements GraphicResource {
             @Override
             protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
                 //escreve coisas quando os jcomponets estão visiveis
+                ((RoundRectangle2D.Double)shape).height = 100;
+                this.bounds.height = 100;
                 g.setColor(Color.BLACK);
                 g.drawString("use o combobox:", 10, 10);
             }
@@ -136,6 +144,8 @@ public class ReadDevice extends Procedure implements GraphicResource {
             @Override
             protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
                 //escreve coisas quando os jcomponets não estão visiveis
+                ((RoundRectangle2D.Double)shape).height = 200;
+                this.bounds.height = 200;
                 g.setColor(Color.BLACK);
                 if (var != null && type != null) {
                     g.drawString(var + " = " + type.getSimpleName(), 10, 30);
@@ -260,5 +270,15 @@ public class ReadDevice extends Procedure implements GraphicResource {
         } else {
             return getCommandName();
         }
+    }
+
+    @Override
+    public Item getItem() {
+        return new Item("Read Device", new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#C05480"));
+    }
+
+    @Override
+    public Object createInstance() {
+        return new ReadDevice(Device.class, "var");
     }
 }

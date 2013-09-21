@@ -21,7 +21,7 @@
  * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package robotinterface.plugins.cmdpack.begginer;
+package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
 import java.awt.Graphics;

@@ -12,6 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.SimulationPanel;
+import robotinterface.gui.panels.TabController;
 import robotinterface.robot.Robot;
 
 /**
@@ -21,23 +22,23 @@ import robotinterface.robot.Robot;
 public class GUI extends javax.swing.JFrame {
 
     private ArrayList<Robot> robots;
-    
+
     public GUI() {
         initComponents();
         setLocationRelativeTo(null);
         secondarySplitPane.setDividerLocation(.5);
-        
+
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
-        setFocusable(true); 
-        
+        setFocusable(true);
+
         addMouseWheelListener(simulationPanel);
         addKeyListener(simulationPanel);
         addComponentListener(simulationPanel);
-        
+
         simulationPanel.addRobot(new Robot());
         simulationPanel.addRobot(new Robot());
-        
+
     }
 
     /**
@@ -247,25 +248,33 @@ public class GUI extends javax.swing.JFrame {
 
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
         Component c = mainTabbedPane.getSelectedComponent();
-        dynamicTabbedPane.removeAll();
+        //dynamicTabbedPane.removeAll();
+
+        for (Component cc : dynamicTabbedPane.getComponents()) {
+            if (cc != jPanel4){
+                dynamicTabbedPane.remove(cc);
+            }
+        }
+
         if (c == addNewCodePanel) {
             add(new FlowchartPanel(), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
-        } //else if (c instanceof TabController) {
-//            for (JPanel p : ((TabController) c).getTabs()) {
-//                dynamicTabbedPane.addTab(p.getName(), p);
-//            }
-//        }
+        } else if (c instanceof TabController) {
+            for (JPanel p : ((TabController) c).getTabs()) {
+                dynamicTabbedPane.addTab(p.getName(), p);
+            }
+        }
     }//GEN-LAST:event_mainTabbedPaneStateChanged
-    
+
     public void add(JPanel panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
-       if (panel instanceof ComponentListener){
+        if (panel instanceof ComponentListener) {
             addComponentListener((ComponentListener) panel);
         }
         mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
     }
+
     /**
      * @param args the command line arguments
      */
@@ -318,5 +327,4 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton stopButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
-
 }

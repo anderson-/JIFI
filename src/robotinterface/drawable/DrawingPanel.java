@@ -55,6 +55,7 @@ import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DWidgetContainer.Widget;
 import java.awt.Shape;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import robotinterface.util.trafficsimulator.Clock;
@@ -70,15 +71,19 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     protected final long NO_PAINT_DELAY = 100;
     protected final Clock clock;
     private final ArrayList<Drawable> objects;
+    private final ArrayList<Drawable> objectsTmp;
     private final ArrayList<Integer> keys;
     private final Point mouse;
     private boolean dragEnabled = true;
+    private int mouseDragX = 0;
+    private int mouseDragY = 0;
     private Thread repaintThread;
     private BufferedImage buffer;
     private boolean repaint = false;
     private int width;
     private int height;
     private int globalX = 0, globalY = 0;
+    private boolean zoomEnabled = true;
     private double zoom = 1.0;
     private boolean autoFullSize = false;
     private Rectangle2D.Double bounds;
@@ -88,6 +93,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private Shape currentBounds;
     private boolean beginDrawing = false;
     private boolean mouseClick = false;
+    private int mouseWheelRotation = 0;
     private Drawable currentObject;
     private int objectX = 0;
     private int objectY = 0;
@@ -107,6 +113,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         mouse = new Point();
         clock = c;
+        objectsTmp = new ArrayList<>();
         objects = new ArrayList<>();
         keys = new ArrayList<>();
         repaintThread = null;
@@ -226,57 +233,58 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         //deixa tudo lindo (antialiasing)
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        beginDrawing = mouseClick;
+        beginDrawing = true;
+
+        objectsTmp.clear();
+        synchronized (objects) {
+            objectsTmp.addAll(objects);
+        }
 
         //desenha fundo
-        synchronized (objects) {
-            for (Drawable d : objects) {
-                currentObject = d;
-                if ((d.getDrawableLayer() & BACKGROUND_LAYER) != 0) {
-                    currentTransform.setTransform(originalTransform);
-                    g2.setTransform(currentTransform);
-                    currentTransform.translate(globalX, globalY);
-                    currentTransform.scale(zoom, zoom);
-                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
-                    g2.setTransform(currentTransform);
-                    d.drawBackground(g2, currentGraphicAtributes, currentInputState);
-                }
-                currentObject = null;
+        for (Drawable d : objectsTmp) {
+            currentObject = d;
+            if ((d.getDrawableLayer() & BACKGROUND_LAYER) != 0) {
+                currentTransform.setTransform(originalTransform);
+                g2.setTransform(currentTransform);
+                currentTransform.translate(globalX, globalY);
+                currentTransform.scale(zoom, zoom);
+                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                g2.setTransform(currentTransform);
+                d.drawBackground(g2, currentGraphicAtributes, currentInputState);
             }
+            currentObject = null;
         }
 
         //desenha coisas
-        synchronized (objects) {
-            for (Drawable d : objects) {
-                currentObject = d;
-                if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
-                    currentTransform.setTransform(originalTransform);
-                    g2.setTransform(currentTransform);
-                    currentTransform.translate(globalX, globalY);
-                    currentTransform.scale(zoom, zoom);
-                    currentBounds = currentTransform.createTransformedShape(d.getObjectShape());
-                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
-                    //g2.setClip(currentBounds); usar limite de pintura
-                    g2.setTransform(currentTransform);
-                    d.draw(g2, currentGraphicAtributes, currentInputState);
-                }
-                currentObject = null;
+        for (Drawable d : objectsTmp) {
+//            System.out.println(d);
+            currentObject = d;
+            if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
+                currentTransform.setTransform(originalTransform);
+                g2.setTransform(currentTransform);
+                currentTransform.translate(globalX, globalY);
+                currentTransform.scale(zoom, zoom);
+                currentBounds = currentTransform.createTransformedShape(d.getObjectShape());
+                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                //g2.setClip(currentBounds); usar limite de pintura
+                g2.setTransform(currentTransform);
+                d.draw(g2, currentGraphicAtributes, currentInputState);
             }
+            currentObject = null;
         }
+//            System.err.println("FIM");
 
         //desenha primeiro plano (sem posição global e zoom)
-        synchronized (objects) {
-            for (Drawable d : objects) {
-                currentObject = d;
-                if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
-                    currentTransform.setTransform(originalTransform);
-                    currentBounds = d.getObjectBouds();
-                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
-                    g2.setTransform(currentTransform);
-                    d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
-                }
-                currentObject = null;
+        for (Drawable d : objectsTmp) {
+            currentObject = d;
+            if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
+                currentTransform.setTransform(originalTransform);
+                currentBounds = d.getObjectBouds();
+                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                g2.setTransform(currentTransform);
+                d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
             }
+            currentObject = null;
         }
 
         //reseta o zoom e posição para desenhar os componentes swing
@@ -284,29 +292,27 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         g2.setClip(0, 0, width, height);
 
         //redefine o tamanho e a posição dos componentes swing
-        synchronized (objects) {
-            for (Drawable d : objects) {
-                if (d instanceof DWidgetContainer) {
-                    DWidgetContainer dwc = (DWidgetContainer) d;
-                    for (Widget c : dwc) {
-                        if (!dwc.isWidgetVisible() && !c.isStatic()) {
-                            c.getJComponent().setVisible(false);
-                            continue;
-                        }
-
-                        //ativando double buffer e fundo transparente
-                        c.getJComponent().setVisible(true);
-                        c.getJComponent().setDoubleBuffered(true);
-                        c.getJComponent().setOpaque(false);
-                        c.getJComponent().revalidate();
-
-                        //tamanho do componente swing
-                        currentTransform.setToIdentity();
-                        currentTransform.translate(globalX, globalY);
-                        currentTransform.scale(zoom, zoom);
-                        currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
-                        c.getJComponent().setBounds(currentTransform.createTransformedShape(c.getBounds()).getBounds());
+        for (Drawable d : objectsTmp) {
+            if (d instanceof DWidgetContainer) {
+                DWidgetContainer dwc = (DWidgetContainer) d;
+                for (Widget c : dwc) {
+                    if (!dwc.isWidgetVisible() && !c.isStatic()) {
+                        c.getJComponent().setVisible(false);
+                        continue;
                     }
+
+                    //ativando double buffer e fundo transparente
+                    c.getJComponent().setVisible(true);
+                    c.getJComponent().setDoubleBuffered(true);
+                    c.getJComponent().setOpaque(false);
+                    c.getJComponent().revalidate();
+
+                    //tamanho do componente swing
+                    currentTransform.setToIdentity();
+                    currentTransform.translate(globalX, globalY);
+                    currentTransform.scale(zoom, zoom);
+                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                    c.getJComponent().setBounds(currentTransform.createTransformedShape(c.getBounds()).getBounds());
                 }
             }
         }
@@ -330,6 +336,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         if (beginDrawing) {
             beginDrawing = false;
             mouseClick = false;
+            mouseWheelRotation = 0;
         }
 
     }
@@ -365,31 +372,19 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public void mouseClicked(final MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             mouseClick = true;
+        } else if (e.getButton() == MouseEvent.BUTTON2) {
+            zoom = 1;
+            globalX = 0;
+            globalY = 0;
         }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        synchronized (objects) {
-            for (Drawable d : objects) {
-                if (d != this) {
-                    if ((d.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
-                        if (d.getObjectShape().contains(getMouse(mouse))) {
-                            dragEnabled = false;
-                        }
-                    } else {
-                        if (d.getObjectShape().contains(mouse)) {
-                            dragEnabled = false;
-                        }
-                    }
-                }
-            }
-        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        dragEnabled = true;
     }
 
     @Override
@@ -406,10 +401,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return;
         }
 
+        mouseDragX = 0;
+        mouseDragY = 0;
+
         synchronized (mouse) {
             //define a posição relativa com base no deslocamento do mouse
+            mouseDragX = (int) (mouse.getX() - e.getPoint().getX());
+            mouseDragY = (int) (mouse.getY() - e.getPoint().getY());
+
             if (dragEnabled) {
-                setPosition((int) (mouse.getX() - e.getPoint().getX()), (int) (mouse.getY() - e.getPoint().getY()));
+                setPosition(mouseDragX, mouseDragY);
             }
             mouse.setLocation(e.getPoint());
         }
@@ -431,7 +432,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        setZoom(e.getWheelRotation() * 0.1, e.getPoint());
+        mouseWheelRotation = e.getWheelRotation();
+        if (zoomEnabled) {
+            setZoom(e.getWheelRotation() * 0.1, e.getPoint());
+        }
     }
 
     @Override
@@ -463,17 +467,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     public synchronized void setZoom(double z, Point pos) {
         if ((zoom + z) >= MIN_ZOOM && (zoom + z) <= MAX_ZOOM) {
-
-            Point posInside = getMouse(pos);
-
-            if (new Rectangle(0, 0, width, height).contains(posInside)) {
-                globalX -= (int) (((pos.getX() - globalX) / zoom) * z);
-                globalY -= (int) (((pos.getY() - globalY) / zoom) * z);
-            } else {
-                globalX -= (int) (width * z / 2.0);
-                globalY -= (int) (height * z / 2.0);
-            }
-
+            globalX -= (int) (((pos.getX() - globalX) / zoom) * z);
+            globalY -= (int) (((pos.getY() - globalY) / zoom) * z);
             zoom = zoom + z;
         }
     }
@@ -539,16 +534,61 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER;
+        return Drawable.BACKGROUND_LAYER | Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
+    }
+
+    static void T(Graphics2D g, int s, double x, double y, double w, double h, boolean dots) {
+        Line2D.Double l = new Line2D.Double();
+
+        if (dots) {
+            for (double i = -y + y % s; i <= h - y; i += s) {
+                for (double j = -x + x % s; j <= w - x; j += s) {
+                    g.fillRect((int) j - 1, (int) i - 1, 2, 2);
+                }
+            }
+        } else {
+            for (double i = -y + y % s; i <= h - y; i += s) {
+                l.setLine(-x, i, w - x, i);
+                g.draw(l);
+            }
+
+            for (double j = -x + x % s; j <= w - x; j += s) {
+                l.setLine(j, -y, j, h - y);
+                g.draw(l);
+            }
+        }
+
+        String str = "grade: " + Math.abs(1.0f / s) * 100 + " cm";
+        int sx = g.getFontMetrics().stringWidth(str);
+        int sy = g.getFontMetrics().getHeight();
+        int px = (int) -x + (int) w - 10 - sx;
+        int py = (int) -y + (int) h - 20;
+        g.setColor(Color.lightGray);
+        g.fillRect(px, py - 11, sx, sy);
+        g.setColor(Color.white);
+        g.drawString(str, px, py);
     }
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
+        g.setColor(Color.red);
+//        drawGrade(g,10,100,new Rectangle(width,height));
+
+        T(g, 30, globalX * 1 / zoom, globalY * 1 / zoom, width * 1 / zoom, height * 1 / zoom, false);
+
+//            for (int x = -globalX+globalX%prop; x <= width-globalX; x += prop) {
+//                g.drawLine(x, -globalY, x, height-globalY);
+//            }
+//            
+//            for (int y = -globalY+globalY%prop; y <= height-globalY; y += prop) {
+//                g.drawLine(-globalX, y, width-globalX, y);
+//            }
     }
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 //        g.setColor(Color.MAGENTA);
+//        g.draw(currentBounds);
 //        synchronized (objects) {
 //            for (Drawable d : objects) {
 //                if (d != this) {
@@ -605,6 +645,22 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         public Clock getClock() {
             return clock;
+        }
+
+        public boolean isZoomEnabled() {
+            return zoomEnabled;
+        }
+
+        public void setZoomEnabled(boolean zoomEnabled) {
+            DrawingPanel.this.zoomEnabled = zoomEnabled;
+        }
+
+        public boolean isDragEnabled() {
+            return dragEnabled;
+        }
+
+        public void setDragEnabled(boolean dragEnabled) {
+            DrawingPanel.this.dragEnabled = dragEnabled;
         }
 
         public void applyZoom(AffineTransform t) {
@@ -664,10 +720,31 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
+        public Drawable getObjectOverMouse() {
+            ArrayList<Drawable> tmp;
+            synchronized (objects) {
+                tmp = (ArrayList<Drawable>) objects.clone();
+            }
+            for (Drawable d : tmp) {
+                if (d != this) {
+                    if ((d.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
+                        if (d.getObjectShape().contains(DrawingPanel.this.getMouse(mouse))) {
+                            return d;
+                        }
+                    } else {
+                        if (d.getObjectShape().contains(mouse)) {
+                            return d;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         public boolean mouseClicked() {
             synchronized (mouse) {
                 if (mouseClick && beginDrawing && currentBounds.contains(mouse)) {
-                    System.out.println(currentBounds.getBounds2D());
+//                    System.out.println(currentBounds.getBounds2D());
                     return true;
                 }
                 return false;
@@ -688,10 +765,22 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
+        public Point getTransformedMouse() {
+            return new Point((int) ((mouse.getX() - globalX) / zoom), (int) ((mouse.getY() - globalY) / zoom));
+        }
+
         public Point getMouse() {
             synchronized (mouse) {
                 return new Point(mouse);//mudar para posição relativa?
             }
+        }
+
+        public Point getMouseDrag() {
+            return new Point(mouseDragX, mouseDragY);
+        }
+
+        public int getMouseWheelRotation() {
+            return mouseWheelRotation;
         }
     }
 

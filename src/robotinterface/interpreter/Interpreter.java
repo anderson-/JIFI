@@ -39,12 +39,12 @@ import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.exemples.DrawableTest.SimpleRectangle;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.plugins.cmdpack.begginer.BlockRoboF;
-import robotinterface.plugins.cmdpack.begginer.Move;
-import robotinterface.plugins.cmdpack.begginer.ReadDevice;
-import robotinterface.plugins.cmdpack.begginer.Wait;
-import robotinterface.plugins.cmdpack.serial.Start;
-import robotinterface.plugins.cmdpack.util.PrintString;
+import robotinterface.plugin.cmdpack.begginer.BlockRoboF;
+import robotinterface.plugin.cmdpack.begginer.Move;
+import robotinterface.plugin.cmdpack.begginer.ReadDevice;
+import robotinterface.plugin.cmdpack.begginer.Wait;
+import robotinterface.plugin.cmdpack.serial.Start;
+import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
@@ -232,14 +232,12 @@ public class Interpreter extends Thread {
         DrawingPanel p = new DrawingPanel();
         p.add((Drawable) func);
         boolean singleIdent = true;
-        Function.ident(func, 0, 0, 40, 100, 0, 1, singleIdent);
-        func.myLines.clear();
-        func.myArrows.clear();
-        Function.wire(func, func.myLines, func.myArrows, 40, 100, 0, 1, singleIdent);
+        func.ident(0, 0, 40, 100, 0, 1, singleIdent);
+        func.wire(40, 100, 0, 1, singleIdent);
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
         func.appendDCommandsOn(p);
         //p.add(testeReadDevice.getDrawableResource());
-        
+
 //        System.out.println(Function.getBounds(ifCompass, null, 10, 100, 1, 1, true));
 
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
@@ -253,12 +251,12 @@ public class Interpreter extends Thread {
 //        }
 
         System.out.println(Parser.encode(func));
-        
+
         System.exit(0);
 
     }
-    
-    public static Function newTestFunction (){
+
+    public static Function newTestFunction() {
         ArrayList<Class<? extends Device>> aw = new ArrayList<>();
         aw.add(HBridge.class);
         aw.add(Compass.class);
@@ -288,6 +286,24 @@ public class Interpreter extends Thread {
         ifCompass.addTrue(new PrintString("Girando para a esquerda"));
         ifCompass.addFalse(new Move(-55, 55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
+        
+        
+        If ifCompass2 = new If("alpha > 100");
+        ifCompass2.addTrue(new Move(55, -55));
+        ifCompass2.addTrue(new PrintString("Girando para a esquerda"));
+        ifCompass2.addFalse(new Move(-55, 55));
+        ifCompass2.addFalse(new PrintString("Girando para a direita"));
+        ifCompass.addFalse(ifCompass2);
+        
+        
+        If ifCompass3 = new If("alpha > 100");
+        ifCompass3.addTrue(new Move(55, -55));
+        ifCompass3.addTrue(new PrintString("Girando para a esquerda"));
+        ifCompass3.addFalse(new Move(-55, 55));
+        ifCompass3.addFalse(new PrintString("Girando para a direita"));
+        ifCompass2.addTrue(ifCompass3);
+        
+        
         loopCompass.add(ifCompass);
         loopCompass.add(new ReadDevice(Compass.class, "alpha"));
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));

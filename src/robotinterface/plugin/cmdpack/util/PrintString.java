@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package robotinterface.plugins.cmdpack.util;
+package robotinterface.plugin.cmdpack.util;
 
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Procedure;

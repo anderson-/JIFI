@@ -27,6 +27,7 @@ package robotinterface.algorithm.procedure;
 
 import java.util.ArrayList;
 import org.nfunk.jep.SymbolTable;
+import robotinterface.algorithm.Command;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.util.trafficsimulator.Clock;
@@ -39,6 +40,7 @@ public class Declaration extends Procedure implements Procedure.Declaration {
 
     private ArrayList<String> names;
     private ArrayList<Object> values;
+    private boolean isParameter = false;
 
     public Declaration (){
         names = new ArrayList<>();
@@ -55,6 +57,28 @@ public class Declaration extends Procedure implements Procedure.Declaration {
         values.add(value);
     }
 
+    public boolean isIsParameter() {
+        if (!(getParent() instanceof Function)){
+            isParameter = false;
+        }
+        return isParameter;
+    }
+
+    public void setParameter(boolean isParameter) {
+        if (!(getParent() instanceof Function)){
+            isParameter = false;
+        }
+        this.isParameter = isParameter;
+    }
+    
+    @Override
+    public void setParent(Command parent) {
+        if (!(parent instanceof Function)){
+            isParameter = false;
+        }
+        super.setParent(parent);
+    }
+    
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
         SymbolTable st = getParser().getSymbolTable();
