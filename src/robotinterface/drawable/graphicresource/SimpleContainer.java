@@ -25,6 +25,7 @@
  */
 package robotinterface.drawable.graphicresource;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -56,18 +57,31 @@ public class SimpleContainer extends DWidgetContainer {
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        if(in.mouseClicked()){
+        if(in.mouseClicked() && in.getMouseClickCount() == 2){
             super.widgetVisible = !super.widgetVisible;
         }
 
-        g.setColor(color);
+//        g.setColor(color);
+//        g.fill(shape);
+        
+//        g.setColor(color.brighter().brighter());
+        
+        g.setColor(Color.white);
+        
         g.fill(shape);
+        
+        AffineTransform o = g.getTransform();
         
         if (widgetVisible){
             drawWJC(g, ga, in);
         } else {
             drawWoJC(g, ga, in);
         }
+        
+        g.setTransform(o);
+        g.setStroke(new BasicStroke(5));
+        g.setColor(color);
+        g.draw(shape);
     }
     
     protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {

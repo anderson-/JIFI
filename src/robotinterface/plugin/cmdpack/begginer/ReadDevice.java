@@ -70,9 +70,8 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     private Class<? extends Device> type;
     private String var;
     private DWidgetContainer sContainer;
-    
+
     public ReadDevice() {
-        
     }
 
     public ReadDevice(ArrayList<Class<? extends Device>> devices) {
@@ -124,7 +123,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
          * 
          * para mostrar os componente deve-se selecionar com o mouse.
          */
-        
+
         Shape s = new RoundRectangle2D.Double(0, 0, 150, 60, 20, 20);
         //cria um Losango (usar em IF)
         //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
@@ -135,16 +134,19 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             @Override
             protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
                 //escreve coisas quando os jcomponets estão visiveis
-                ((RoundRectangle2D.Double)shape).height = 100;
+                ((RoundRectangle2D.Double) shape).height = 100;
                 this.bounds.height = 100;
                 g.setColor(Color.BLACK);
                 g.drawString("use o combobox:", 10, 10);
+                double x = bounds.x + bounds.width/2;
+                double y = bounds.y ;
+                ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
             }
 
             @Override
             protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
                 //escreve coisas quando os jcomponets não estão visiveis
-                ((RoundRectangle2D.Double)shape).height = 200;
+                ((RoundRectangle2D.Double) shape).height = 200;
                 this.bounds.height = 200;
                 g.setColor(Color.BLACK);
                 if (var != null && type != null) {
@@ -152,6 +154,9 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 } else {
                     g.drawString("Selecione a variável...", 10, 30);
                 }
+                double x = bounds.x + bounds.width/2;
+                double y = bounds.y ;
+                ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
             }
         };
         //adiciona os jcompoents no SimpleContainer
@@ -217,55 +222,55 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         return sContainer;
     }
 
-    public static void main(String[] args) {
-//        QuickFrame.applyLookAndFeel();
-
-        ArrayList<Class<? extends Device>> a = new ArrayList<>();
-        a.add(HBridge.class);
-        a.add(Compass.class);
-
-        ReadDevice rd = new ReadDevice(a);
-
-        Function func = new Function("main", null);
-        func.add(new Wait(1000));
-        func.add(new PrintString("inicio"));
-        func.add(new Start());
-        func.add(new robotinterface.algorithm.procedure.Declaration("i", 10));
-        func.add(new PrintString("Girando %v vezes...", "i"));
-        While loop = new While("i > 0");
-        loop.add(new Move(70, 70)); //move
-        loop.add(new Wait(500));
-        loop.add(new Move(-70, 70)); //gira
-        loop.add(new Wait(500));
-        loop.add(new Move(0, 0)); //para
-        loop.add(new Wait(500));
-        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
-        loop.add(new Procedure("i = i - 1"));
-        func.add(loop);
-        func.add(new PrintString("Procurando angulo 100"));
-        func.add(new Wait(500));
-        func.add(new robotinterface.algorithm.procedure.Declaration("alpha", 10));
-        While loopCompass = new While("alpha != 100");// vai até 100
-        If ifCompass = new If("alpha > 100");
-        ifCompass.addTrue(new Move(55, -55));
-        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass.addFalse(new Move(-55, 55));
-        ifCompass.addFalse(new PrintString("Girando para a direita"));
-        loopCompass.add(ifCompass);
-        loopCompass.add(rd);
-        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
-        func.add(loopCompass);
-        func.add(new Move(0, 0));
-        func.add(new ReadDevice(Compass.class, "alpha"));
-        func.add(new PrintString("Angulo final: %v", "alpha"));
-        func.add(new PrintString("fim"));
-
-        QuickFrame.drawTest(rd.getDrawableResource());
-    }
+//    public static void main(String[] args) {
+////        QuickFrame.applyLookAndFeel();
+//
+//        ArrayList<Class<? extends Device>> a = new ArrayList<>();
+//        a.add(HBridge.class);
+//        a.add(Compass.class);
+//
+//        ReadDevice rd = new ReadDevice(a);
+//
+//        Function func = new Function("main", null);
+//        func.add(new Wait(1000));
+//        func.add(new PrintString("inicio"));
+//        func.add(new Start());
+//        func.add(new robotinterface.algorithm.procedure.Declaration("i", 10));
+//        func.add(new PrintString("Girando %v vezes...", "i"));
+//        While loop = new While("i > 0");
+//        loop.add(new Move(70, 70)); //move
+//        loop.add(new Wait(500));
+//        loop.add(new Move(-70, 70)); //gira
+//        loop.add(new Wait(500));
+//        loop.add(new Move(0, 0)); //para
+//        loop.add(new Wait(500));
+//        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
+//        loop.add(new Procedure("i = i - 1"));
+//        func.add(loop);
+//        func.add(new PrintString("Procurando angulo 100"));
+//        func.add(new Wait(500));
+//        func.add(new robotinterface.algorithm.procedure.Declaration("alpha", 10));
+//        While loopCompass = new While("alpha != 100");// vai até 100
+//        If ifCompass = new If("alpha > 100");
+//        ifCompass.addTrue(new Move(55, -55));
+//        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
+//        ifCompass.addFalse(new Move(-55, 55));
+//        ifCompass.addFalse(new PrintString("Girando para a direita"));
+//        loopCompass.add(ifCompass);
+//        loopCompass.add(rd);
+//        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
+//        func.add(loopCompass);
+//        func.add(new Move(0, 0));
+//        func.add(new ReadDevice(Compass.class, "alpha"));
+//        func.add(new PrintString("Angulo final: %v", "alpha"));
+//        func.add(new PrintString("fim"));
+//
+//        QuickFrame.drawTest(rd.getDrawableResource());
+//    }
 
     @Override
     public String toString() {
-        if (var != null && type != null){
+        if (var != null && type != null) {
             return var + " = Robot." + type.getSimpleName();
         } else {
             return getCommandName();
@@ -279,6 +284,10 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     @Override
     public Object createInstance() {
-        return new ReadDevice(Device.class, "var");
+        ArrayList<Class<? extends Device>> a = new ArrayList<>();
+        a.add(HBridge.class);
+        a.add(Compass.class);
+
+        return new ReadDevice(a);
     }
 }

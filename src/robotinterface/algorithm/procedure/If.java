@@ -25,9 +25,16 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import static robotinterface.algorithm.procedure.Function.getBounds;
+import static robotinterface.algorithm.procedure.Function.ident;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.robot.Robot;
+import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Divisor de fluxo.
@@ -70,6 +77,11 @@ public class If extends Procedure {
     public Block getBlockFalse() {
         return blockFalse;
     }
+    
+    @Override
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+        return true;
+    }
 
     @Override
     public Command step() throws ExecutionException {
@@ -92,6 +104,95 @@ public class If extends Procedure {
             blockFalse.toString(ident + identChar, sb);
         } else {
             sb.append("\n");
+        }
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+
+        Rectangle2D.Double p = new Rectangle2D.Double();
+        //false
+        p = getBounds(getBlockFalse(), p, j, k, Ix, Iy, a);
+        tmp.add(p);
+        //true
+        p = getBounds(getBlockTrue(), p, j, k, Ix, Iy, a);
+        tmp.add(p);
+
+        return tmp;
+    }
+
+    @Override
+    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
+        double pbtx;
+        double pbty;
+        double pbfx;
+        double pbfy;
+        
+        Rectangle2D.Double t = null;
+        if (this instanceof GraphicResource) {
+            Drawable d = ((GraphicResource) this).getDrawableResource();
+
+            if (d != null) {
+                t = (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
+
+        if (t != null) {
+            double cw = t.width;
+            double ch = t.height;
+
+            double px = x - Iy * (cw / 2);
+            double py = y - Ix * (ch / 2);
+
+            if (this instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) this).getDrawableResource();
+
+                if (d != null) {
+                    d.setObjectLocation(px, py);
+//                    System.out.println(this + " [" + px + "," + py + "]");
+                }
+            }
+
+            x += Ix * (cw + xj);
+            y += Iy * (ch + yj);
+        }
+
+        Rectangle2D.Double btb = blockTrue.getBounds(null, j, k, Ix, Iy, a);
+        Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k, Ix, Iy, a);
+//        System.out.println(bfb);
+//        System.out.println(btb);
+
+        if (a) {
+            //true
+            pbtx = 0;
+            pbty = 0;
+            //false
+            pbfx = Iy * (bfb.width / 2 + btb.width / 2 + xk);
+            pbfy = Ix * (bfb.height / 2 + btb.height / 2 + yk);
+        } else {
+            //true
+            pbtx = -Iy * (btb.width / 2 + xk);
+            pbty = -Ix * (btb.height / 2 + yk);
+            //false
+            pbfx = Iy * (bfb.width / 2 + xk);
+            pbfy = Ix * (bfb.height / 2 + yk);
+        }
+
+        blockTrue.ident(x + pbtx, y + pbty, j, k, Ix, Iy, a);
+        blockFalse.ident(x + pbfx, y + pbfy, j, k, Ix, Iy, a);
+
+        x += Ix * ((bfb.width > btb.width) ? bfb.width : btb.width);
+        y += Iy * ((bfb.height > btb.height) ? bfb.height : btb.height);
+
+        if (getNext() != null) {
+//            System.out.println("*" + this + " => " + getNext());
+            getNext().ident(x, y, j, k, Ix, Iy, a);
         }
     }
 }

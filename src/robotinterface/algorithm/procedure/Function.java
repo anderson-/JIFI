@@ -158,9 +158,10 @@ public class Function extends Block implements Drawable {
 
     }
 
-    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
-        Function.ident(this, x, y, j, k, Ix, Iy, a);
-    }
+//    @Override
+//    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+//        Function.ident(this, x, y, j, k, Ix, Iy, a);
+//    }
 
     public static void ident(Block b, double x, double y, double j, double k, double Ix, double Iy, boolean a) {
 
@@ -369,6 +370,7 @@ public class Function extends Block implements Drawable {
             Block b = (Block) c;
             Rectangle2D.Double p = new Rectangle2D.Double();
             Command it = b.start;
+            boolean ident = true;
             while (it != null) {
                 p = getBounds(it, p, j, k, Ix, Iy, a);
 
@@ -381,7 +383,16 @@ public class Function extends Block implements Drawable {
                 ret.width += Ix * p.width;
                 ret.height += Iy * p.height;
 
+                if (it instanceof If) {
+                    ident = false;
+                }
+
                 it = it.getNext();
+            }
+            
+            if (ident) {
+                ret.x -= j;
+                ret.width += 2 * j;
             }
 
         } else if (c instanceof If) {
@@ -472,7 +483,7 @@ public class Function extends Block implements Drawable {
             } else if (it instanceof If) {
                 wire(((If) it).getBlockTrue(), lines, j, k, Ix, Iy, a);
                 wire(((If) it).getBlockFalse(), lines, j, k, Ix, Iy, a);
-            } else if (A instanceof Function && it != A && it.getNext() == null){
+            } else if (A instanceof Function && it != A && it.getNext() == null) {
                 it = it.getNext();
                 continue;
             }
@@ -696,9 +707,8 @@ public class Function extends Block implements Drawable {
             BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_MITER,
             10.0f, new float[]{5}, 0.0f);
-
     float W = 0;
-    
+
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if (in.isKeyPressed(KeyEvent.VK_1)) {
@@ -714,6 +724,8 @@ public class Function extends Block implements Drawable {
             ident(0, 0, 10, 100, 1, 0, false);
             wire(50, 50, 0, 1, true);
         }
+        
+        ident(200, 0, 10, 100, 0, 1, true);
 
 //        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
@@ -740,24 +752,24 @@ public class Function extends Block implements Drawable {
 
         float w = 0 + W;
         W -= .0005;
-        int j = 0 + (int)(W*100);
+        int j = 0 + (int) (W * 100);
         for (Shape s : myLines) {
-            if (j == 1){
-              g.setColor(Color.cyan);
+            if (j == 1) {
+                g.setColor(Color.cyan);
             } else {
-              g.setColor(Color.gray);  
+                g.setColor(Color.gray);
             }
             //g.setColor(Color.getHSBColor(w, 1, 1));
             g.draw(s);
-            
-            if (s instanceof GeneralPath){
-                GeneralPath gp = (GeneralPath)s;
+
+            if (s instanceof GeneralPath) {
+                GeneralPath gp = (GeneralPath) s;
                 //gp.
             }
-            
-            j ++;
+
+            j++;
         }
-        if ((W*100) < -40){
+        if ((W * 100) < -40) {
             W = 0;
         }
 

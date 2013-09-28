@@ -99,6 +99,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private int objectY = 0;
     private GraphicAttributes currentGraphicAtributes;
     private InputState currentInputState;
+    private int mouseButton;
+    private int mouseClickCount;
 
     public DrawingPanel(Clock c) {
         super(true);
@@ -304,7 +306,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     //ativando double buffer e fundo transparente
                     c.getJComponent().setVisible(true);
                     c.getJComponent().setDoubleBuffered(true);
-                    c.getJComponent().setOpaque(false);
+//                    c.getJComponent().setOpaque(false);
                     c.getJComponent().revalidate();
 
                     //tamanho do componente swing
@@ -370,9 +372,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseClicked(final MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON1) {
+        if (e.getButton() != MouseEvent.BUTTON2) {
             mouseClick = true;
-        } else if (e.getButton() == MouseEvent.BUTTON2) {
+            mouseButton = e.getButton();
+            mouseClickCount = e.getClickCount();
+        } else {
             zoom = 1;
             globalX = 0;
             globalY = 0;
@@ -537,7 +541,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         return Drawable.BACKGROUND_LAYER | Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
     }
 
-    static void T(Graphics2D g, int s, double x, double y, double w, double h, boolean dots) {
+    public static void drawGrid(Graphics2D g, int s, double x, double y, double w, double h, boolean dots) {
         Line2D.Double l = new Line2D.Double();
 
         if (dots) {
@@ -558,7 +562,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        String str = "grade: " + Math.abs(1.0f / s) * 100 + " cm";
+        String str = "grade: " + Math.abs(s) + " cm";
         int sx = g.getFontMetrics().stringWidth(str);
         int sy = g.getFontMetrics().getHeight();
         int px = (int) -x + (int) w - 10 - sx;
@@ -571,18 +575,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        g.setColor(Color.red);
-//        drawGrade(g,10,100,new Rectangle(width,height));
-
-        T(g, 30, globalX * 1 / zoom, globalY * 1 / zoom, width * 1 / zoom, height * 1 / zoom, false);
-
-//            for (int x = -globalX+globalX%prop; x <= width-globalX; x += prop) {
-//                g.drawLine(x, -globalY, x, height-globalY);
-//            }
-//            
-//            for (int y = -globalY+globalY%prop; y <= height-globalY; y += prop) {
-//                g.drawLine(-globalX, y, width-globalX, y);
-//            }
+        g.setColor(Color.LIGHT_GRAY);
+        drawGrid(g, 60, globalX / zoom, globalY / zoom, width / zoom, height / zoom, false);
     }
 
     @Override
@@ -691,6 +685,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         public int getHeight() {
             return height;
         }
+
+        public void removeRelativePosition(AffineTransform t) {
+            Rectangle2D b = currentBounds.getBounds2D();
+            t.translate(-b.getX(), -b.getY());
+        }
     }
 
     public class InputState {
@@ -749,6 +748,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 }
                 return false;
             }
+        }
+        
+        public int getMouseButton(){
+            return mouseButton;
+        }
+        
+        public int getMouseClickCount(){
+            return mouseClickCount;
         }
 
         public boolean mouseGeneralClick() {

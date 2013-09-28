@@ -49,7 +49,7 @@ public class PrintString extends Procedure {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("print(\"").append(str).append("\"");
+        sb.append("print(\"").append(str.replaceAll("\n", "/n")).append("\"");
 
         for (String s : varNames) {
             sb.append(", ").append(s);

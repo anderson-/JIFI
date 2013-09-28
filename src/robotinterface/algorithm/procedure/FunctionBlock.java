@@ -15,10 +15,19 @@ import robotinterface.interpreter.ExecutionException;
 public class FunctionBlock extends Procedure {
     //talvez tenha que ser criado um clone completo da função (para recursividade)
     //o parser suporta isso? Acho que não...
+
     private Function function;
 
-    public void setFunction(Function function) {
+    public FunctionBlock() {
+    }
+
+    public FunctionBlock(Function function) {
+        setFunction(function);
+    }
+
+    public final void setFunction(Function function) {
         this.function = function;
+        function.getEnd().setBlockBegin(this);
     }
 
     public Function getFunction() {
@@ -27,8 +36,13 @@ public class FunctionBlock extends Procedure {
 
     @Override
     public Command step() throws ExecutionException {
-        //calcula o valor da expressão
-        return function.step();
+        if (function.isDone()) {
+            function.setDone(false);
+            function.reset();
+            return super.step();
+        } else {
+            return function.step();
+        }
     }
 
     @Override

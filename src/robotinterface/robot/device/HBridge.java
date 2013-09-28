@@ -15,6 +15,8 @@ import robotinterface.robot.Robot;
 public class HBridge extends Device {
 
     private byte[] msg;
+    private int LeftWheelSpeed;
+    private int RightWheelSpeed;
 
     public HBridge(int id) {
         msg = new byte[5];
@@ -31,6 +33,11 @@ public class HBridge extends Device {
         msg[3] = (byte) motor; //byte 1 - motor
         msg[4] = speed; //byte 2 - velocidade
         send(msg); //envia mensagem
+        if (motor == 0){
+            this.LeftWheelSpeed = speed;
+        } else {
+            this.RightWheelSpeed = speed;
+        }
     }
 
     public void setFullState(byte speedM1, byte speedM2) {
@@ -44,6 +51,16 @@ public class HBridge extends Device {
         msg[3] = 1;
         msg[4] = speedM2;
         send(msg);
+        this.LeftWheelSpeed = speedM1;
+        this.RightWheelSpeed = speedM2;
+    }
+
+    public int getLeftWheelSpeed() {
+        return LeftWheelSpeed/2;
+    }
+
+    public int getRightWheelSpeed() {
+        return RightWheelSpeed/2;
     }
 
     @Override

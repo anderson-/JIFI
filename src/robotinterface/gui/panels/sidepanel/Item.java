@@ -53,7 +53,7 @@ public class Item implements Drawable {
     public void setRef(Object ref) {
         this.ref = ref;
     }
-    
+
     public static Font getFont() {
         return font;
     }
@@ -165,16 +165,17 @@ public class Item implements Drawable {
             g.fill(icon);
         }
         g.translate(-x, -y);
+        g.translate(-insetX, -insetY);
+
         Rectangle2D stringBounds = font.getStringBounds(name, g.getFontRenderContext());
 
-        x = maxIconWidth + insetX;
-        y = maxIconHeight / 2 + stringBounds.getHeight() / 2 - insetY;
+        x = maxIconWidth + 2 * insetX;
+        y = maxHeight / 2 + stringBounds.getHeight() / 2 - 2;
 
         g.translate(x, y);
         g.drawString(name, 0, 0);
         g.translate(-x, -y);
 
-        g.translate(-insetX, -insetY);
         g.translate(-shape.x, -shape.y);
     }
 

@@ -25,11 +25,17 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
+import static robotinterface.algorithm.procedure.Function.getBounds;
+import static robotinterface.algorithm.procedure.Function.ident;
 import robotinterface.drawable.Drawable;
+import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.robot.Robot;
+import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Bloco de comandos com suporte a escopo de variável.
@@ -66,13 +72,10 @@ public class Block extends Procedure {
             return begin;
         }
 
-        @Override
-        public Drawable getDrawableResource() {
-            return null;
-        }
-        
-        
-        
+//        @Override
+//        public Drawable getDrawableResource() {
+//            return null;
+//        }
     }
     protected Command start;
     protected boolean returnNext = false;
@@ -90,7 +93,7 @@ public class Block extends Procedure {
         return start;
     }
 
-    public final Command getEnd() {
+    public final BlockEnd getEnd() {
         return end;
     }
 
@@ -244,17 +247,30 @@ public class Block extends Procedure {
         SymbolTable st = getParser().getSymbolTable();
         Command it = start;
         while (it != null) {
-            if (it instanceof Declaration) {
-                for (String varName : ((Declaration) it).getVariableNames()) {
+            if (it instanceof Procedure) {
+                for (String varName : ((Procedure) it).getVariableNames()) {
                     Variable remove = st.getVar(varName);
                     if (remove != null) {
-                        System.out.println("Removed var: " + remove.getName());
+//                        System.out.println("Removed var: " + remove.getName());
                         remove.setValidValue(false);
                     }
                 }
             }
             it = it.getNext();
         }
+    }
+
+    public boolean isDone() {
+        return returnNext;
+    }
+
+    void setDone(boolean b) {
+        returnNext = b;
+    }
+    
+    @Override
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+        return true;
     }
 
     @Override
@@ -272,10 +288,99 @@ public class Block extends Procedure {
     public void toString(String ident, StringBuilder sb) {
         sb.append(ident).append("").append("{\n");
         Command it = start;
-        while (it != null){
+        while (it != null) {
             it.toString(ident + identChar, sb);
             it = it.getNext();
         }
         sb.append(ident).append("}\n");
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+
+        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+
+        Rectangle2D.Double p = new Rectangle2D.Double();
+        Command it = this.start;
+        boolean ident = true;
+        while (it != null) {
+            p = it.getBounds(p, j, k, Ix, Iy, a);
+//            if (it instanceof GraphicResource) {
+//                Drawable d = ((GraphicResource) it).getDrawableResource();
+//
+//                if (d != null) {
+//                    p = (Rectangle2D.Double) d.getObjectBouds();
+//                }
+//            }
+
+            tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+            tmp.y = (p.y < tmp.y) ? p.y : tmp.y;
+
+            tmp.width = (Iy * p.width > tmp.width) ? p.width : tmp.width;
+            tmp.height = (Ix * p.height > tmp.height) ? p.height : tmp.height;
+
+            tmp.width += Ix * p.width;
+            tmp.height += Iy * p.height;
+
+            if (it instanceof If) {
+                ident = false;
+            }
+
+            it = it.getNext();
+        }
+
+        if (ident) {
+            tmp.x -= j;
+            tmp.width += 2 * j;
+        }
+
+        return tmp;
+    }
+
+    @Override
+    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+        double cw = 0;
+        double ch = 0;
+
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
+        Rectangle2D.Double t = null;
+        if (this instanceof GraphicResource) {
+            Drawable d = ((GraphicResource) this).getDrawableResource();
+
+            if (d != null) {
+                t = (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
+
+        if (t != null) {
+            cw = t.width;
+            ch = t.height;
+
+            double px = x - Iy * (cw / 2);
+            double py = y - Ix * (ch / 2);
+
+            if (this instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) this).getDrawableResource();
+
+                if (d != null) {
+                    d.setObjectLocation(px, py);
+//                    System.out.println(this + " [" + px + "," + py + "]");
+                }
+            }
+
+            x += Ix * (cw + xj);
+            y += Iy * (ch + yj);
+        }
+
+        start.ident(x, y, j, k, Ix, Iy, a);
+
+        if (getNext() != null) {
+            getNext().ident(x, y + this.getBounds(null, j, k, Ix, Iy, a).height - Iy * (ch + yj), j, k, Ix, Iy, a);
+        }
+
     }
 }

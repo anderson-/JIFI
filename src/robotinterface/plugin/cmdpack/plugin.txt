@@ -1,1 +1,2 @@
 robotinterface.plugin.cmdpack.begginer.ReadDevice
+robotinterface.plugin.cmdpack.begginer.Move

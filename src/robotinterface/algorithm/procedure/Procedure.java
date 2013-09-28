@@ -25,12 +25,40 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 import org.nfunk.jep.JEP;
+import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
 import static robotinterface.algorithm.Command.endChar;
 import static robotinterface.algorithm.Command.identChar;
+import robotinterface.drawable.DWidgetContainer;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.panels.sidepanel.Classifiable;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Expression;
@@ -39,49 +67,58 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Comando genérico com suporte à variaveis.
  */
-public class Procedure extends Command implements Expression {
+public class Procedure extends Command implements Expression, Classifiable {
 
-    /**
-     * Interface para a declaração de multiplas variaveis em algum comando.
-     *
-     * @see robotinterface.algorithm.procedure.Declaration
-     */
-    protected interface Declaration {
-        
-        public ArrayList<String> getVariableNames();
-        
-        public ArrayList<Object> getVariableValues();
-    }
+//    /**
+//     * Interface para a declaração de multiplas variaveis em algum comando.
+//     *
+//     * @see robotinterface.algorithm.procedure.Declaration
+//     */
+//    protected interface Declaration {
+//
+//        public Collection<String> getVariableNames();
+//
+//        public Collection<Object> getVariableValues();
+//    }
+    private ArrayList<String> names;
+    private ArrayList<Object> values;
     private static JEP parser;
     private String procedure;
-    
+    private static final int TEXTFIELD_WIDTH = 110;
+    private static final int TEXTFIELD_HEIGHT = 23;
+    private static final int BUTTON_WIDTH = 20;
+    private static final int INSET_X = 5;
+    private static final int INSET_Y = 5;
+
     public Procedure() {
         parser = null;
         procedure = "0";
+        names = new ArrayList<>();
+        values = new ArrayList<>();
     }
-    
+
     public Procedure(String procedure) {
         this();
         this.procedure = procedure;
-    }    
-    
+    }
+
     protected final JEP getParser() {
         return parser;
     }
-    
+
     @Override
     public final void setParser(JEP parser) {
         Procedure.parser = parser;
     }
-    
+
     public final String getProcedure() {
         return procedure;
     }
-    
+
     public final void setProcedure(String procedure) {
         this.procedure = procedure;
     }
-    
+
     @Override
     public boolean perform(Robot robot, Clock clock) throws ExecutionException {
         evaluate();
@@ -93,10 +130,45 @@ public class Procedure extends Command implements Expression {
         if (parser == null) {
             throw new ExecutionException("Parser not found!");
         }
-        parser.parseExpression(procedure);
-        return parser.getValueAsObject();
+
+        Object o = null;
+
+        for (String str : procedure.split(";")) {
+            if (str.startsWith("var")) {
+                SymbolTable st = getParser().getSymbolTable();
+                str = str.replaceFirst("var ", "");
+                String varName;
+                Object varValue;
+                for (String declaration : str.split(",")) {
+                    int eq = declaration.indexOf("=");
+                    if (eq > 0) {
+                        varName = declaration.substring(0, eq).trim();
+                        varValue = Double.parseDouble(declaration.substring(eq + 1));
+                    } else {
+                        varName = declaration.trim();
+                        varValue = null;
+                    }
+                    if (st.getVar(varName) != null && st.getVar(varName).hasValidValue()) {
+                        throw new ExecutionException("Variable already exists!");
+                    } else {
+                        if (!names.contains(varName)){
+                            names.add(str);
+                            values.add(varValue);
+                        }
+                        st.makeVarIfNeeded(varName, varValue);
+                    }
+                }
+            } else {
+                parser.parseExpression(str);
+                o = parser.getValueAsObject();
+            }
+        }
+
+//        parser.parseExpression(procedure);
+
+        return o;
     }
-    
+
     protected final boolean evaluate(String procedure) throws ExecutionException {
         Object o = execute(procedure);
         if (o instanceof Number) {
@@ -105,23 +177,35 @@ public class Procedure extends Command implements Expression {
         }
         return false;
     }
-    
+
     protected final boolean evaluate() throws ExecutionException {
         return evaluate(procedure);
     }
-    
-    protected final Variable newVariable(String name, Object value) {
-        return parser.getSymbolTable().makeVarIfNeeded(name, value);
+
+//    protected final Variable newVariable(String name, Object value) {
+//        return parser.getSymbolTable().makeVarIfNeeded(name, value);
+//    }
+    protected final void addVariable(String name, Object value) {
+        names.add(name);
+        values.add(value);
     }
-    
-    public ArrayList<String> getDeclaredVariables() {
+
+    protected Collection<String> getVariableNames() {
+        return names;
+    }
+
+    protected Collection<Object> getVariableValues() {
+        return values;
+    }
+
+    public Collection<String> getDeclaredVariables() {
         ArrayList<String> vars = new ArrayList<>();
         Command it = this;
         while (it != null) {
             Command up = it.getPrevious();
             while (up != null) {
-                if (up instanceof Declaration) {
-                    vars.addAll(((Declaration) up).getVariableNames());
+                if (up instanceof Procedure) {
+                    vars.addAll(((Procedure) up).getVariableNames());
                 }
                 up = up.getPrevious();
             }
@@ -129,7 +213,7 @@ public class Procedure extends Command implements Expression {
         }
         return vars;
     }
-    
+
     @Override
     public void toString(String ident, StringBuilder sb) {
         if (!procedure.equals("0")) {
@@ -138,5 +222,262 @@ public class Procedure extends Command implements Expression {
             sb.append(ident).append(toString());
         }
         sb.append(endChar).append("\n");
+    }
+
+    @Override
+    public Item getItem() {
+        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#D2BA45"));
+    }
+
+    @Override
+    public Object createInstance() {
+        return new Procedure("<insire um comando>");
+    }
+    private Drawable d = null;
+    private static Font font = new Font("Dialog", Font.BOLD, 12);
+
+    @Override
+    public Drawable getDrawableResource() {
+        if (d == null) {
+            Shape s = new Rectangle2D.Double(0, 0, 150, 60);
+            //cria um Losango (usar em IF)
+            //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
+            Color c = Color.decode("#69CD87");
+
+            SimpleContainer sContainer = new SimpleContainer(s, c) {
+                private ArrayList<Widget> wFields = new ArrayList<>();
+                private Widget addButton;
+                private Widget remButton;
+                private boolean updateFields = false;
+
+                {
+                    createTextFields();
+
+                    JButton b = new JButton("+");
+
+                    b.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            addTextField("");
+                            if (wFields.size() > 1) {
+                                JButton btn = (JButton) remButton.getJComponent();
+                                btn.setEnabled(true);
+                            }
+                        }
+                    });
+
+                    addButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+
+                    b = new JButton("-");
+
+                    b.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            Widget w = wFields.get(wFields.size() - 1);
+                            removeJComponent(w);
+                            wFields.remove(w);
+                            if (wFields.size() < 2) {
+                                JButton btn = (JButton) remButton.getJComponent();
+                                btn.setEnabled(false);
+                            }
+                        }
+                    });
+
+                    remButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+
+                }
+
+                private void addTextField(String str) {
+                    JTextField textField = new JTextField(str);
+
+                    textField.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            updateProcedure();
+                        }
+                    });
+
+                    wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                }
+
+                private void updateProcedure() {
+                    StringBuilder sb = new StringBuilder();
+
+                    for (Widget w : wFields) {
+                        JTextField tf = (JTextField) w.getJComponent();
+                        String str = tf.getText();
+                        sb.append(str);
+                        if (!str.isEmpty() && !str.endsWith(";")) {
+                            sb.append(";");
+                        }
+                    }
+
+                    procedure = sb.toString();
+                }
+
+                private void createTextFields() {
+                    for (Iterator<DWidgetContainer.Widget> it = wFields.iterator(); it.hasNext();) {
+                        Widget w = it.next();
+                        removeJComponent(w);
+                        it.remove();
+                    }
+
+                    for (String str : procedure.split(";")) {
+                        addTextField(str);
+                    }
+                }
+
+                private void drawLine(Graphics2D g) {
+                    Command c = getNext();
+                    if (c instanceof GraphicResource) {
+                        Drawable d = ((GraphicResource) c).getDrawableResource();
+                        if (d != null) {
+                            Rectangle2D.Double bThis = getObjectBouds();
+                            Rectangle2D.Double bNext = d.getObjectBouds();
+                            Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bNext.getCenterX(), bNext.getMinY());
+                            g.setStroke(new BasicStroke(2));
+                            g.setColor(Color.red);
+                            g.draw(l);
+                        }
+                    }
+                }
+
+                @Override
+                protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                    //escreve coisas quando os jcomponets estão visiveis
+                    if (updateFields) {
+                        createTextFields();
+                        updateFields = false;
+                    }
+
+                    String str = "Procedimento:";
+
+                    g.setFont(font);
+                    FontMetrics fm = g.getFontMetrics();
+
+                    double x;
+                    double y;
+
+                    double totalWidth = 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH + 4 * INSET_X;
+
+                    double width = fm.stringWidth(str);
+                    double height = fm.getHeight();
+
+                    x = (totalWidth - width) / 2;
+                    y = INSET_Y + fm.getAscent();
+
+                    g.setColor(Color.black);
+                    g.translate(x, y);
+                    g.drawString(str, 0, 0);
+                    g.translate(-x, -y);
+
+                    x = BUTTON_WIDTH + 2 * INSET_X;
+
+                    for (Widget w : wFields) {
+                        y += INSET_Y;
+                        w.setLocation((int) x, (int) y);
+                        y += TEXTFIELD_HEIGHT;
+                    }
+
+                    ((Rectangle2D.Double) shape).width = totalWidth;
+                    ((Rectangle2D.Double) shape).height = y + INSET_Y;
+                    ((Rectangle2D.Double) bounds).width = totalWidth;
+                    ((Rectangle2D.Double) bounds).height = y + INSET_Y;
+
+                    y -= TEXTFIELD_HEIGHT;
+                    x = INSET_X;
+
+                    remButton.setLocation((int) x, (int) y);
+                    addButton.setLocation((int) x + BUTTON_WIDTH + TEXTFIELD_WIDTH + 2 * INSET_X, (int) y);
+
+
+
+//                    AffineTransform o = g.getTransform();
+//                    System.out.println(o);
+//                    ga.removeRelativePosition(o);
+//                    ga.applyGlobalPosition(o);
+//                    //ga.removeZoom(o);
+//                    g.setTransform(o);
+
+
+                    g.translate(-bounds.x, -bounds.y);
+                    drawLine(g);
+                }
+
+                @Override
+                protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                    //escreve coisas quando os jcomponets não estão visiveis
+
+                    if (!updateFields) {
+                        updateProcedure();
+                        updateFields = true;
+                    }
+
+
+                    g.setFont(font);
+                    FontMetrics fm = g.getFontMetrics();
+
+                    double x = INSET_X;
+                    double y = INSET_Y;
+
+                    double width = 0;
+                    double tmpWidth;
+
+                    g.setColor(Color.black);
+
+                    g.translate(x, 0);
+                    for (String str : procedure.split(";")) {
+                        str += ";";
+                        str = str.trim();
+                        tmpWidth = fm.stringWidth(str);
+                        if (tmpWidth > width) {
+                            width = tmpWidth;
+                        }
+                        y += fm.getAscent();
+
+                        g.translate(0, y);
+                        g.drawString(str, 0, 0);
+                        g.translate(0, -y);
+
+                    }
+                    g.translate(-x, 0);
+
+                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
+                    ((Rectangle2D.Double) shape).height = y + 2 * INSET_Y;
+                    ((Rectangle2D.Double) bounds).width = width + 2 * INSET_X;
+                    ((Rectangle2D.Double) bounds).height = y + 2 * INSET_Y;
+
+                    g.translate(-bounds.x, -bounds.y);
+                    drawLine(g);
+
+//                    double width = fm.stringWidth(procedure);
+//                    double height = fm.getHeight();
+//
+//                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
+//                    ((Rectangle2D.Double) shape).height = height + 2 * INSET_Y;
+//
+//                    double x;
+//                    double y;
+//
+//                    x = INSET_X;
+//                    y = (((Rectangle2D.Double) shape).height - height) / 2 + fm.getAscent();
+//
+//                    g.setColor(Color.black);
+//                    g.translate(x, y);
+//                    g.drawString(procedure, 0, 0);
+//                    g.translate(-x, -y);
+
+                }
+            };
+
+            d = sContainer;
+        }
+        return d;
+    }
+
+    public static void main(String[] args) {
+        Procedure p = new Procedure("var x,y,z; x = 2 + 2;");
+        QuickFrame.applyLookAndFeel();
+        QuickFrame.drawTest(p.getDrawableResource());
     }
 }

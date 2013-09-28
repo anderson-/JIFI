@@ -140,9 +140,11 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         }
     }
 
-    public final void addJComponent(JComponent comp, int x, int y, int width, int height) {
+    public final Widget addJComponent(JComponent comp, int x, int y, int width, int height) {
+        Widget w = null;
         if (comp != null) {
-            widgets.add(new Widget(comp, new Rectangle(x, y, width, height)));
+            w = new Widget(comp, new Rectangle(x, y, width, height));
+            widgets.add(w);
             updateWidgets();
         }
         if (parent != null) {
@@ -155,6 +157,16 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
                 //permite receber ações de movimento do mouse no DrawingPanel
                 dc.widget.addMouseMotionListener(parent);
             }
+        }
+        return w;
+    }
+    
+    public final void removeJComponent(Widget w) {
+        widgets.remove(w);
+        updateWidgets();
+        if (parent != null) {
+            parent.remove(w.widget);
+            w.widget.removeMouseMotionListener(parent);
         }
     }
 

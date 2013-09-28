@@ -29,8 +29,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collection;
 import robotinterface.algorithm.procedure.Block;
+import static robotinterface.algorithm.procedure.Function.getBounds;
+import static robotinterface.algorithm.procedure.Function.ident;
+import robotinterface.algorithm.procedure.If;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
@@ -41,7 +47,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Comando genérico.
  */
-public abstract class Command implements GraphicResource {
+public abstract class Command implements GraphicResource, GraphicFlowchart {
 
     public static final String identChar = "    ";
     public static final String endChar = ";";
@@ -69,7 +75,7 @@ public abstract class Command implements GraphicResource {
         return next;
     }
 
-    public final void setNext(Command next) {
+    public void setNext(Command next) {
         this.next = next;
     }
 
@@ -77,7 +83,7 @@ public abstract class Command implements GraphicResource {
         return prev;
     }
 
-    public final void setPrevious(Command previous) {
+    public void setPrevious(Command previous) {
         this.prev = previous;
     }
 
@@ -89,7 +95,7 @@ public abstract class Command implements GraphicResource {
         this.parent = parent;
     }
 
-    public final boolean addBefore(Command c) {
+    public boolean addBefore(Command c) {
         if (prev != null) {
             prev.next = c;
         } else {
@@ -104,7 +110,7 @@ public abstract class Command implements GraphicResource {
         return true;
     }
 
-    public final boolean addAfter(Command c) {
+    public boolean addAfter(Command c) {
         c.prev = this;
         c.next = next;
         c.parent = parent;
@@ -115,9 +121,9 @@ public abstract class Command implements GraphicResource {
         return true;
     }
 
-    public final void remove() {
-        next = prev;
-        prev = next;
+    public void remove() {
+        this.prev.next = this.next;
+        this.next.prev = this.prev;
     }
 
     //inicio da execução do comando
@@ -172,6 +178,12 @@ public abstract class Command implements GraphicResource {
 
                     if (in.isMouseOver()) {
                         g.setColor(Color.CYAN);
+                        if (in.isKeyPressed(KeyEvent.VK_D)) {
+                            g.setColor(Color.RED);
+                            if (in.mouseGeneralClick()) {
+                                remove();
+                            }
+                        }
                     }
 
                     Rectangle r = shape.getBounds();
@@ -184,5 +196,79 @@ public abstract class Command implements GraphicResource {
             };
         }
         return d;
+    }
+
+    @Override
+    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+
+        double cw = 0;
+        double ch = 0;
+
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
+        Rectangle2D.Double t = null;
+        if (this instanceof GraphicResource) {
+            Drawable d = ((GraphicResource) this).getDrawableResource();
+
+            if (d != null) {
+                t = (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
+
+        if (t != null) {
+            cw = t.width;
+            ch = t.height;
+
+            double px = x - Iy * (cw / 2);
+            double py = y - Ix * (ch / 2);
+
+            if (this instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) this).getDrawableResource();
+
+                if (d != null) {
+                    d.setObjectLocation(px, py);
+                }
+            }
+
+            x += Ix * (cw + xj);
+            y += Iy * (ch + yj);
+        }
+
+        if (next != null) {
+            next.ident(x, y, j, k, Ix, Iy, a);
+        }
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+        Rectangle2D.Double t = null;
+        if (this instanceof GraphicResource) {
+            Drawable d = ((GraphicResource) this).getDrawableResource();
+
+            if (d != null) {
+                t = (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
+
+        if (tmp == null) {
+            tmp = new Rectangle2D.Double();
+        }
+
+        tmp.setRect(Double.MAX_VALUE, Double.MAX_VALUE, 0, 0);
+
+        if (t != null) {
+            tmp.x = (t.x < tmp.x) ? t.x : tmp.x;
+            tmp.y = (t.y < tmp.y) ? t.y : tmp.y;
+
+            tmp.width += t.width;
+            tmp.height += t.height;
+
+            tmp.width += Ix * j;
+            tmp.height += Iy * j;
+        }
+        return tmp;
     }
 }

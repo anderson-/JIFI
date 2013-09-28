@@ -27,10 +27,13 @@ package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.awt.geom.RoundRectangle2D;
 import robotinterface.algorithm.Command;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.gui.panels.sidepanel.Classifiable;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.HBridge;
@@ -39,10 +42,14 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Command implements GraphicResource{
+public class Move extends Command implements GraphicResource, Classifiable{
 
     private byte m1, m2;
 
+    public Move() {
+        
+    }
+    
     public Move(int m1, int m2) {
         super();
         this.m1 = (byte) m1;
@@ -61,5 +68,15 @@ public class Move extends Command implements GraphicResource{
     @Override
     public Drawable getDrawableResource() {
         return dResource;
+    }
+
+    @Override
+    public Item getItem() {
+        return new Item("Move", new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#80DE71"));
+    }
+
+    @Override
+    public Object createInstance() {
+        return new Move(10,10);
     }
 }

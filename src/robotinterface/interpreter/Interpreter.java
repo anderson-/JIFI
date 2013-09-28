@@ -25,20 +25,14 @@
  */
 package robotinterface.interpreter;
 
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import robotinterface.algorithm.Command;
-import robotinterface.algorithm.procedure.Declaration;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.Parser;
-import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.exemples.DrawableTest.SimpleRectangle;
-import robotinterface.drawable.util.QuickFrame;
 import robotinterface.plugin.cmdpack.begginer.BlockRoboF;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
@@ -57,9 +51,13 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class Interpreter extends Thread {
 
+    public static final int STOP = 0;
+    public static final int PLAY = 1;
+    public static final int WAITING = 2;
     private JEP parser;
     private Function mainFunction;
     private Command currentCmd = null;
+    private int state;
     private Robot robot;
     private Clock clock = new Clock();
 
@@ -67,12 +65,16 @@ public class Interpreter extends Thread {
         super("Interpreter::" + r.toString());
         parser = new JEP();
         robot = r;
+        state = WAITING;
     }
 
     public void reset() {
         if (mainFunction != null) {
-            currentCmd = mainFunction.get(0);
+            currentCmd = mainFunction;//.get(0);
+        } else {
+            currentCmd = null;
         }
+        
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
 //        parser.setTraverse(true); //exibe debug
@@ -83,12 +85,29 @@ public class Interpreter extends Thread {
 //        parser.setAllowUndeclared(true);
     }
 
+    public Function getMainFunction() {
+        return mainFunction;
+    }
+    
     public void setMainFunction(Function f) {
         mainFunction = f;
         reset();
     }
 
-    public void setCommand(Command c) {
+    public void setInterpreterState(int state) {
+        this.state = state;
+        if (state == STOP) {
+            reset();
+            this.state = WAITING;
+        }
+    }
+
+    public int getInterpreterState() {
+        return state;
+    }
+
+    public Command getCurrentCommand() {
+        return currentCmd;
     }
 
     public boolean step() {
@@ -96,8 +115,11 @@ public class Interpreter extends Thread {
         if (currentCmd == null) {
             return false;
         }
+
         clock.setPaused(false);
+
         //System.out.println(currentCmd); //exibe o comando atual
+
         try {
             if (currentCmd instanceof Procedure) {
                 ((Procedure) currentCmd).setParser(parser);
@@ -121,6 +143,22 @@ public class Interpreter extends Thread {
 
     @Override
     public void run() {
+        while (true) {
+            if (state == PLAY) {
+                if (!step()) {
+                    state = WAITING;
+                }
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException ex) {
+                }
+            } else {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                }
+            }
+        }
     }
 
     public static void main(String[] args) {
@@ -193,67 +231,156 @@ public class Interpreter extends Thread {
         aw.add(Compass.class);
 
         Function func = new Function("main", null);
-        func.add(new Wait(1000));
-        func.add(new PrintString("inicio"));
-        func.add(new Start());
-        func.add(new Declaration("i", 10));
-        func.add(new PrintString("Girando %v vezes...", "i"));
-        While loop = new While("i > 0");
-        loop.add(new Move(70, 70)); //move
-        loop.add(new Wait(500));
-        loop.add(new Move(-70, 70)); //gira
-        loop.add(new Wait(500));
-        loop.add(new Move(0, 0)); //para
-        loop.add(new Wait(500));
-        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
-        loop.add(new Procedure("i = i - 1"));
-        func.add(loop);
-        func.add(new PrintString("Procurando angulo 100"));
-        func.add(new Wait(500));
-        func.add(new Declaration("alpha", 10));
-        While loopCompass = new While("alpha != 100");// vai até 100
-        If ifCompass = new If("alpha > 100");
-        ifCompass.addTrue(new Move(55, -55));
-        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass.addFalse(new Move(-55, 55));
-        ifCompass.addFalse(new PrintString("Girando para a direita"));
-        loopCompass.add(ifCompass);
-        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
-        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
-        func.add(loopCompass);
-        func.add(new Move(0, 0));
-        func.add(new ReadDevice(aw));
-        func.add(new BlockRoboF(aw));
-        //func.add(new ReadDevice(Compass.class, "alpha"));
-        func.add(new PrintString("Angulo final: %v", "alpha"));
-        func.add(new PrintString("fim"));
+//        func.add(new Wait(1000));
+//        func.add(new PrintString("inicio"));
+//        func.add(new Start());
+//        func.add(new Declaration("i", 10));
+//        func.add(new PrintString("Girando %v vezes...", "i"));
+//        While loop = new While("i > 0");
+//        loop.add(new Move(70, 70)); //move
+//        loop.add(new Wait(500));
+//        loop.add(new Move(-70, 70)); //gira
+//        loop.add(new Wait(500));
+//        loop.add(new Move(0, 0)); //para
+//        loop.add(new Wait(500));
+//        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
+//        loop.add(new Procedure("i = i - 1"));
+//        func.add(loop);
+//        func.add(new PrintString("Procurando angulo 100"));
+//        func.add(new Wait(500));
+//        func.add(new Declaration("alpha", 10));
+//        While loopCompass = new While("alpha != 100");// vai até 100
+//        If ifCompass = new If("alpha > 100");
+//        ifCompass.addTrue(new Move(55, -55));
+//        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
+//        ifCompass.addFalse(new Move(-55, 55));
+//        ifCompass.addFalse(new PrintString("Girando para a direita"));
+//        loopCompass.add(ifCompass);
+//        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
+//        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
+//        func.add(loopCompass);
+//        func.add(new Move(0, 0));
+//        func.add(new ReadDevice(aw));
+//        func.add(new BlockRoboF(aw));
+//        //func.add(new ReadDevice(Compass.class, "alpha"));
+//        func.add(new PrintString("Angulo final: %v", "alpha"));
+//        func.add(new PrintString("fim"));
+//        func.add(new Declaration("i", new Vector<Object>(Arrays.asList(new Double[]{1.2,3.4}))));
+
+
+//        func.add(new PrintString("inicio"));
+//        func.add(new FunctionBlock(bubbleSort(10, false)));
+//        func.add(new PrintString("fim"));
+        
+        func = bubbleSort(10, false);
         i.setMainFunction(func);
 
-        DrawingPanel p = new DrawingPanel();
-        p.add((Drawable) func);
-        boolean singleIdent = true;
-        func.ident(0, 0, 40, 100, 0, 1, singleIdent);
-        func.wire(40, 100, 0, 1, singleIdent);
-        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        func.appendDCommandsOn(p);
-        //p.add(testeReadDevice.getDrawableResource());
+//        DrawingPanel p = new DrawingPanel();
+//        p.add((Drawable) func);
+//        boolean singleIdent = true;
+//        func.ident(0, 0, 40, 100, 0, 1, singleIdent);
+//        func.wire(40, 100, 0, 1, singleIdent);
+//        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
+//        func.appendDCommandsOn(p);
+
 
 //        System.out.println(Function.getBounds(ifCompass, null, 10, 100, 1, 1, true));
 
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
 
         //executa
+        while (i.step()) {
+//            try {
+//                Thread.sleep(100);
+//            } catch (InterruptedException ex) {
+//            }
+        }
+
+//        i.reset();
+//        
 //        while (i.step()) {
 ////            try {
-////                    Thread.sleep(100);
-////                } catch (InterruptedException ex) {
-////                }
+////                Thread.sleep(100);
+////            } catch (InterruptedException ex) {
+////            }
 //        }
 
         System.out.println(Parser.encode(func));
 
-        System.exit(0);
+//        System.exit(0);
 
+    }
+
+    public static Function bubbleSort(int size, boolean rand) {
+        rand = false;
+        Function func = new Function("main", null);
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("V = [");
+        if (rand) {
+            for (int i = size - 1; i > 1; i--) {
+                sb.append((int) (Math.random() * 100)).append(",");
+            }
+            sb.append((int) (Math.random() * 100)).append("]");
+        } else {
+            for (int i = size - 1; i > 1; i--) {
+                sb.append(i).append(",");
+            }
+            sb.append("1]");
+        }
+
+        func.add(new Procedure("var V"));
+        func.add(new Procedure(sb.toString()));
+        func.add(new Procedure("var size = " + size));
+        func.add(new Procedure("var i =1,j = 0;var k = 0, aux ,v = 1"));
+//        func.add(new Declaration("i", 1));
+//        func.add(new Declaration("j", 0));
+//        func.add(new Declaration("k", 0));
+//        func.add(new Declaration("aux", 0));
+//        func.add(new Declaration("v", 1));
+
+        func.add(new PrintString("Antes:"));
+        While loopP0 = new While("i < size");
+        loopP0.add(new Procedure("v = V[i]"));
+        loopP0.add(new PrintString("V[%v]: %v", "i", "v"));
+        loopP0.add(new Procedure("i = i + 1"));
+        func.add(loopP0);
+
+
+        func.add(new Procedure("k = size-1"));
+
+        func.add(new Procedure("i = 1"));
+        While loopI = new While("i < size");
+        loopI.add(new Procedure("j = 1"));
+
+        While loopJ = new While("j <= k");
+
+        If cond = new If("V[j] > V[j+1]");
+        
+//        cond.addTrue(new Procedure("aux = V[j]"));
+//        cond.addTrue(new Procedure("V[j] = V[j+1]"));
+//        cond.addTrue(new Procedure("V[j+1] = aux"));
+
+        cond.addTrue(new Procedure("aux = V[j];V[j] = V[j+1];V[j+1] = aux;"));
+        
+        
+        loopJ.add(cond);
+        loopJ.add(new Procedure("j = j + 1"));
+
+        loopI.add(loopJ);
+        loopI.add(new Procedure("k = k - 1"));
+        loopI.add(new Procedure("i = i + 1"));
+        func.add(loopI);
+
+        func.add(new PrintString("\nDepois:"));
+        func.add(new Procedure("i = 1"));
+        While loopP1 = new While("i < size");
+        loopP1.add(new Procedure("v = V[i]"));
+        loopP1.add(new PrintString("V[%v]: %v", "i", "v"));
+        loopP1.add(new Procedure("i = i + 1"));
+        func.add(loopP1);
+
+        return func;
     }
 
     public static Function newTestFunction() {
@@ -265,7 +392,7 @@ public class Interpreter extends Thread {
         func.add(new Wait(1000));
         func.add(new PrintString("inicio"));
         func.add(new Start());
-        func.add(new Declaration("i", 10));
+        func.add(new Procedure("var i = 10"));
         func.add(new PrintString("Girando %v vezes...", "i"));
         While loop = new While("i > 0");
         loop.add(new Move(70, 70)); //move
@@ -279,31 +406,31 @@ public class Interpreter extends Thread {
         func.add(loop);
         func.add(new PrintString("Procurando angulo 100"));
         func.add(new Wait(500));
-        func.add(new Declaration("alpha", 10));
+        func.add(new Procedure("var alpha = 10"));
         While loopCompass = new While("alpha != 100");// vai até 100
         If ifCompass = new If("alpha > 100");
         ifCompass.addTrue(new Move(55, -55));
         ifCompass.addTrue(new PrintString("Girando para a esquerda"));
         ifCompass.addFalse(new Move(-55, 55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
-        
-        
+
+
         If ifCompass2 = new If("alpha > 100");
         ifCompass2.addTrue(new Move(55, -55));
         ifCompass2.addTrue(new PrintString("Girando para a esquerda"));
         ifCompass2.addFalse(new Move(-55, 55));
         ifCompass2.addFalse(new PrintString("Girando para a direita"));
         ifCompass.addFalse(ifCompass2);
-        
-        
+
+
         If ifCompass3 = new If("alpha > 100");
         ifCompass3.addTrue(new Move(55, -55));
         ifCompass3.addTrue(new PrintString("Girando para a esquerda"));
         ifCompass3.addFalse(new Move(-55, 55));
         ifCompass3.addFalse(new PrintString("Girando para a direita"));
         ifCompass2.addTrue(ifCompass3);
-        
-        
+
+
         loopCompass.add(ifCompass);
         loopCompass.add(new ReadDevice(Compass.class, "alpha"));
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));

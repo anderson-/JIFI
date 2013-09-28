@@ -6,26 +6,16 @@ package robotinterface.gui.panels.sidepanel;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.event.KeyEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.UIManager;
 import robotinterface.drawable.DWidgetContainer;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.plugin.Pluggable;
-import robotinterface.robot.device.Device;
 
 /**
  *
@@ -42,7 +32,7 @@ public class SidePanel extends DWidgetContainer {
     private boolean zoomDisabled = false;
     private boolean dragDisabled = false;
     private RoundRectangle2D.Double closeBtn;
-    private Color color = Color.decode("#54A4A4");
+    private Color color = Color.gray;
     private ArrayList<Item> itens;
 
     public SidePanel() {
@@ -64,6 +54,10 @@ public class SidePanel extends DWidgetContainer {
     public void setColor(Color color) {
         this.color = color;
     }
+    
+    public void setOpen (boolean b){
+        open = b;
+    }
 
     @Override
     public int getDrawableLayer() {
@@ -74,6 +68,8 @@ public class SidePanel extends DWidgetContainer {
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         g.setStroke(new BasicStroke());
 
+        g.setColor(Color.white);
+        g.fill(closeBtn);
         g.setColor(color);
 
         if (in.mouseGeneralClick() && closeBtn.contains(in.getRelativeMouse())) {
@@ -188,7 +184,19 @@ public class SidePanel extends DWidgetContainer {
         }
     }
 
-    public void addAll(Collection<Class> list) {
+    public void add(Item item) {
+        itens.add(item);
+        item.setPanel(this);
+    }
+
+    public void addAll(Collection<Item> list) {
+        itens.addAll(list);
+        for (Item i : list) {
+            i.setPanel(this);
+        }
+    }
+
+    public void addAllClasses(Collection<Class> list) {
         for (Class c : list) {
             try {
                 if (Classifiable.class.isAssignableFrom(c)) {
@@ -202,18 +210,21 @@ public class SidePanel extends DWidgetContainer {
                 } else {
                     throw new Exception("ClassTypeError");
                 }
+//                    tmp = SidePanel.newInstance(ref);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
     }
 
-    protected static final <T> T newInstance (Object ref) {
-        if (ref instanceof Class){
+    protected static final <T> T newInstance(Object ref) {
+        if (ref instanceof Class) {
             Class c = (Class) ref;
             if (Pluggable.class.isAssignableFrom(c)) {
                 try {
-                    return (T) c.newInstance();
+//                    return (T) c.newInstance();
+                    Pluggable p = (Pluggable) c.newInstance();
+                    return (T) p.createInstance();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

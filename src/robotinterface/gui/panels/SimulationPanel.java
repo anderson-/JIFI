@@ -32,6 +32,12 @@ import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +46,13 @@ import robotinterface.robot.device.Device;
 import robotinterface.util.trafficsimulator.Timer;
 import robotinterface.robot.Robot;
 import static java.lang.Math.*;
+import java.util.Iterator;
+import robotinterface.gui.panels.sidepanel.Item;
+import robotinterface.gui.panels.sidepanel.SidePanel;
+import robotinterface.plugin.PluginManager;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.util.LineIterator;
 import robotinterface.util.observable.Observer;
 
 /**
@@ -49,29 +60,54 @@ import robotinterface.util.observable.Observer;
  */
 public class SimulationPanel extends DrawingPanel implements Serializable, Observer<Device, Robot> {
 
+    public static final Item ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 5), Color.DARK_GRAY);
+    public static final Item ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 5), Color.decode("#9B68C0"));
+    public static final Item ITEM_CILINDER = new Item("Cilindro", new Ellipse2D.Double(0, 0, 20, 20), Color.decode("#9B68C0"));
+    public static final Item ITEM_REMOVE_LINE = new Item("Remover", new Rectangle(0, 0, 20, 20), Color.decode("#D24545"));
     private static final int MAX_ARRAY = 500;
     private final ArrayList<Robot> robots = new ArrayList<>();
     private final ArrayList<Point> rpos = new ArrayList<>();
     private final ArrayList<Point> obstacle = new ArrayList<>();
-    private boolean stop = false;
-
+    private final ArrayList<Shape> obstacles = new ArrayList<>();
+    private Item itemSelected;
+    private Point2D.Double point = null;
+SidePanel sp;
     public SimulationPanel() {
 //        robot.setRightWheelSpeed(50);
 //        robot.setLeftWheelSpeed(50);
+
+
+        sp = new SidePanel() {
+            @Override
+            protected void ItemSelected(Item item, Object ref) {
+                try {
+                    itemSelected = item;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+//        sp.setOpen(false);
+//        sp.setColor(Color.decode("#FF7070"));//FF7070
+        sp.add(ITEM_LINE);
+        sp.add(ITEM_OBSTACLE_LINE);
+        sp.add(ITEM_CILINDER);
+        sp.add(ITEM_REMOVE_LINE);
+        add(sp);
+
         //mapeia a posição a cada x ms
         Timer timer = new Timer(100) {
-            
             ArrayList<Robot> tmpBots = new ArrayList<>();
-            
+
             @Override
             public void run() {
                 tmpBots.clear();
-                synchronized(robots){
+                synchronized (robots) {
                     tmpBots.addAll(robots);
                 }
-                
+
                 for (Robot robot : tmpBots) {
-                    
+
                     //posição
                     synchronized (rpos) {
                         rpos.add(new Point((int) robot.getObjectBouds().x, (int) robot.getObjectBouds().y));
@@ -79,10 +115,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
                             rpos.remove(0);
                         }
                     }
-                    if (this.getCount() % 20 == 0) {
-                        robot.setRightWheelSpeed(Math.random() * 100);
-                        robot.setLeftWheelSpeed(Math.random() * 100);
-                    }
+//                    if (this.getCount() % 20 == 0) {
+//                        robot.setRightWheelSpeed(Math.random() * 100);
+//                        robot.setLeftWheelSpeed(Math.random() * 100);
+//                    }
                 }
             }
         };
@@ -121,7 +157,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
 //            add((Drawable) c);
 //        }
 //    }
-
     public static void paintPoints(Graphics2D g, List<Point> points, int size) {
         for (Point p : points) {
             g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
@@ -135,12 +170,74 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        g.setColor(Color.gray);
-        drawGrade(g, 4, (float) ((Robot.size * 100) / Robot.SIZE_CM), getBounds());
+        super.drawBackground(g, ga, in);
     }
 
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+        if (sp.getObjectBouds().contains(in.getMouse())){
+            return;
+        }
+        if (itemSelected != null) {
+            if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            Line2D.Double line = new Line2D.Double(point, in.getTransformedMouse());
+
+                            if (itemSelected == ITEM_LINE) {
+                            } else if (itemSelected == ITEM_OBSTACLE_LINE) {
+                                obstacles.add(line);
+                            } else if (itemSelected == ITEM_REMOVE_LINE) {
+                                for (Iterator<Shape> it = obstacles.iterator(); it.hasNext();) {
+                                    Shape s = it.next();
+                                    if (s instanceof Line2D.Double) {
+                                        if (((Line2D.Double) s).intersectsLine(line)) {
+                                            it.remove();
+                                        }
+                                    } else {
+                                        Point2D p;
+                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
+                                            p = iter.next();
+                                            if (s.contains(p)) {
+                                                it.remove();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                point = null;
+                                return;
+                            }
+
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            } else if (itemSelected == ITEM_CILINDER) {
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            double r = point.distance(in.getTransformedMouse());
+                            double x = point.x - r;
+                            double y = point.y - r;
+                            r *= 2;
+                            obstacles.add(new Ellipse2D.Double(x, y, r, r));
+                            point = null;
+                            return;
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            }
+//            g.translate(in.getMouse().x - 10, in.getMouse().y - 10);
+//            g.setColor(itemSelected.getColor());
+//            g.fill(itemSelected.getIcon());
+        }
     }
     public static final BasicStroke defaultStroke = new BasicStroke();
     public static final BasicStroke dashedStroke = new BasicStroke(1.0f,
@@ -191,6 +288,28 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
         synchronized (obstacle) {
             paintPoints(g, obstacle, 5);
         }
+
+
+        g.setStroke(new BasicStroke(5));
+
+        if (point != null) {
+            if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
+                g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
+            } else {
+                double r = point.distance(in.getTransformedMouse());
+                double x = point.x - r;
+                double y = point.y - r;
+                r *= 2;
+                g.drawOval((int) x, (int) y, (int) r, (int) r);
+            }
+        }
+
+        g.setColor(Color.BLACK);
+        for (Shape s : obstacles) {
+            g.draw(s);
+        }
+        
+        g.setStroke(defaultStroke);
     }
 
     public static void main(String[] args) {
