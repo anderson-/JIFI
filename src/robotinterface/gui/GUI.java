@@ -10,15 +10,24 @@ import javax.swing.UIManager;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseWheelListener;
+import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import robotinterface.algorithm.procedure.Function;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.Interpertable;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.gui.panels.TabController;
 import robotinterface.gui.panels.console.MessageConsole;
+import robotinterface.gui.panels.robot.RobotControlPanel;
+import robotinterface.gui.panels.robot.RobotManager;
 import robotinterface.interpreter.Interpreter;
 import robotinterface.robot.Robot;
 
@@ -28,9 +37,10 @@ import robotinterface.robot.Robot;
  */
 public class GUI extends javax.swing.JFrame {
 
+    private static GUI INSTANCE = null;
     private ArrayList<Robot> robots;
 
-    public GUI() {
+    private GUI() {
         initComponents();
         setLocationRelativeTo(null);
         secondarySplitPane.setDividerLocation(.5);
@@ -38,10 +48,6 @@ public class GUI extends javax.swing.JFrame {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
-
-        addMouseWheelListener(simulationPanel);
-        addKeyListener(simulationPanel);
-        addComponentListener(simulationPanel);
 
         simulationPanel.addRobot(new Robot());
         simulationPanel.addRobot(new Robot());
@@ -57,7 +63,42 @@ public class GUI extends javax.swing.JFrame {
         mc.redirectOut(Color.BLACK, System.out);
         mc.redirectErr(Color.RED, System.err);
         mc.setMessageLines(100);
-        
+
+        jSpinner1.setModel(new SpinnerNumberModel(100, 0, 9999, 10));
+        jSpinner1.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                int i = (int) jSpinner1.getValue();
+                Component cmp = mainTabbedPane.getSelectedComponent();
+                if (cmp instanceof Interpertable) {
+                    Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+                    interpreter.setTimestep(i);
+                }
+            }
+        });
+
+        //robot manager
+
+        jScrollPane3.setViewportView(new RobotManager());
+    }
+
+    public static GUI getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new GUI();
+        }
+        return INSTANCE;
+    }
+
+    public Collection<Function> getFunctions() {
+        ArrayList<Function> funcs = new ArrayList<>();
+
+        for (Component cc : mainTabbedPane.getComponents()) {
+            if (cc instanceof FlowchartPanel) {
+                funcs.add(((FlowchartPanel) cc).getFunction());
+            }
+        }
+
+        return funcs;
     }
 
     /**
@@ -79,10 +120,13 @@ public class GUI extends javax.swing.JFrame {
         jComboBox1 = new javax.swing.JComboBox();
         runButton2 = new javax.swing.JButton();
         runButton = new javax.swing.JButton();
+        jSpinner1 = new javax.swing.JSpinner();
         stepButton = new javax.swing.JButton();
         pauseButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
         abortButton = new javax.swing.JButton();
+        undoButton = new javax.swing.JButton();
+        redoButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -91,6 +135,7 @@ public class GUI extends javax.swing.JFrame {
         staticTabbedPane = new javax.swing.JTabbedPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
+        jScrollPane3 = new javax.swing.JScrollPane();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
@@ -99,6 +144,7 @@ public class GUI extends javax.swing.JFrame {
         menuEdit = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(1024, 700));
 
         toolBar.setFloatable(false);
 
@@ -160,6 +206,9 @@ public class GUI extends javax.swing.JFrame {
         });
         toolBar.add(runButton);
 
+        jSpinner1.setPreferredSize(new java.awt.Dimension(70, 28));
+        toolBar.add(jSpinner1);
+
         stepButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/step.png"))); // NOI18N
         stepButton.setToolTipText("Passo-a-passo");
         stepButton.setFocusable(false);
@@ -208,6 +257,30 @@ public class GUI extends javax.swing.JFrame {
         });
         toolBar.add(abortButton);
 
+        undoButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/edit-undo.png"))); // NOI18N
+        undoButton.setText("0");
+        undoButton.setFocusable(false);
+        undoButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        undoButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        undoButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                undoButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(undoButton);
+
+        redoButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/edit-redo.png"))); // NOI18N
+        redoButton.setText("0");
+        redoButton.setFocusable(false);
+        redoButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        redoButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        redoButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                redoButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(redoButton);
+
         primarySplitPane.setDividerLocation(180);
         primarySplitPane.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         primarySplitPane.setDoubleBuffered(true);
@@ -225,11 +298,11 @@ public class GUI extends javax.swing.JFrame {
         addNewCodePanel.setLayout(addNewCodePanelLayout);
         addNewCodePanelLayout.setHorizontalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 446, Short.MAX_VALUE)
+            .addGap(0, 747, Short.MAX_VALUE)
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 369, Short.MAX_VALUE)
+            .addGap(0, 491, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -247,6 +320,7 @@ public class GUI extends javax.swing.JFrame {
         jScrollPane2.setViewportView(jTree1);
 
         staticTabbedPane.addTab("Projeto", jScrollPane2);
+        staticTabbedPane.addTab("Robôs", jScrollPane3);
 
         secondarySplitPane.setLeftComponent(staticTabbedPane);
 
@@ -258,7 +332,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 306, Short.MAX_VALUE)
+            .addGap(0, 235, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -282,7 +356,7 @@ public class GUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
+            .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(primarySplitPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -291,7 +365,7 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 407, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 529, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -300,6 +374,8 @@ public class GUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
+        System.gc();
+
         Component c = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
 
@@ -324,9 +400,31 @@ public class GUI extends javax.swing.JFrame {
             updateControlBar(interpreter);
         } else {
             runButton.setEnabled(false);
+            jSpinner1.setEnabled(false);
             stepButton.setEnabled(false);
             pauseButton.setEnabled(false);
             stopButton.setEnabled(false);
+        }
+
+//        if (cmp instanceof MouseWheelListener) {
+//            for (MouseWheelListener l : getMouseWheelListeners()){
+//                removeMouseWheelListener(l);
+//            }
+//            addMouseWheelListener((MouseWheelListener) cmp);
+//        }
+
+        if (cmp instanceof KeyListener) {
+            for (KeyListener l : getKeyListeners()) {
+                removeKeyListener(l);
+            }
+            addKeyListener((KeyListener) cmp);
+        }
+
+        if (cmp instanceof ComponentListener) {
+            for (ComponentListener l : getComponentListeners()) {
+                removeComponentListener(l);
+            }
+            addComponentListener((ComponentListener) cmp);
         }
     }//GEN-LAST:event_mainTabbedPaneStateChanged
 
@@ -368,7 +466,35 @@ public class GUI extends javax.swing.JFrame {
 
     private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
         // TODO add your handling code here:
+        Component cmp = mainTabbedPane.getSelectedComponent();
+        if (cmp instanceof FlowchartPanel) {
+            FlowchartPanel fp = (FlowchartPanel) cmp;
+            redoButton.setText("" + fp.redo.size());
+            undoButton.setText("" + fp.undo.size());
+        }
     }//GEN-LAST:event_abortButtonActionPerformed
+
+    private void redoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_redoButtonActionPerformed
+        // TODO add your handling code here:
+        Component cmp = mainTabbedPane.getSelectedComponent();
+        if (cmp instanceof FlowchartPanel) {
+            FlowchartPanel fp = (FlowchartPanel) cmp;
+            fp.redo();
+            redoButton.setText("" + fp.redo.size());
+            undoButton.setText("" + fp.undo.size());
+        }
+    }//GEN-LAST:event_redoButtonActionPerformed
+
+    private void undoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoButtonActionPerformed
+        // TODO add your handling code here:
+        Component cmp = mainTabbedPane.getSelectedComponent();
+        if (cmp instanceof FlowchartPanel) {
+            FlowchartPanel fp = (FlowchartPanel) cmp;
+            fp.undo();
+            redoButton.setText("" + fp.redo.size());
+            undoButton.setText("" + fp.undo.size());
+        }
+    }//GEN-LAST:event_undoButtonActionPerformed
 
     public void add(JPanel panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
@@ -400,6 +526,7 @@ public class GUI extends javax.swing.JFrame {
             pauseButton.setEnabled(false);
             stopButton.setEnabled(false);
         }
+        jSpinner1.setEnabled(true);
     }
 
     /**
@@ -421,7 +548,7 @@ public class GUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new GUI().setVisible(true);
+                GUI.getInstance().setVisible(true);
             }
         });
     }
@@ -433,7 +560,9 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTree jTree1;
     private javax.swing.JTabbedPane mainTabbedPane;
@@ -444,6 +573,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton openButton;
     private javax.swing.JButton pauseButton;
     private javax.swing.JSplitPane primarySplitPane;
+    private javax.swing.JButton redoButton;
     private javax.swing.JButton runButton;
     private javax.swing.JButton runButton1;
     private javax.swing.JButton runButton2;
@@ -454,5 +584,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton stepButton;
     private javax.swing.JButton stopButton;
     private javax.swing.JToolBar toolBar;
+    private javax.swing.JButton undoButton;
     // End of variables declaration//GEN-END:variables
 }

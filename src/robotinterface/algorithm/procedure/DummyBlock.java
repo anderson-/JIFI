@@ -4,6 +4,8 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import robotinterface.drawable.Drawable;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -16,16 +18,6 @@ import robotinterface.util.trafficsimulator.Clock;
  * @author antunes
  */
 public class DummyBlock extends Procedure {
-
-//    @Override
-//    public Item getItem() {
-//        return null;
-//    }
-
-    @Override
-    public Object createInstance() {
-        return new DummyBlock();
-    }
 
     @Override
     public Drawable getDrawableResource() {
@@ -77,6 +69,17 @@ public class DummyBlock extends Procedure {
     @Override
     public void remove() {
         super.remove(); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+    @Override
+    public Item getItem() {
+        return new Item("Dummy", new Rectangle2D.Double(0, 0, 20, 15), Color.red);
+    }
+
+    @Override
+    public Object createInstance() {
+        return new DummyBlock();
     }
     
 }

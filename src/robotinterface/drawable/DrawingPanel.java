@@ -58,6 +58,7 @@ import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import javax.swing.JComponent;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
@@ -199,11 +200,23 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public final void add(Drawable d) {
         if (d != null) {
             synchronized (objects) {
-                objects.add(d);
+                objects.add(0, d);
             }
             if (d instanceof DWidgetContainer) {
                 ((DWidgetContainer) d).appendTo(this);
             }
+        }
+    }
+
+    public final void remove(Drawable d) {
+        if (d instanceof DWidgetContainer){
+            //((DWidgetContainer) d).widgetVisible = false;
+            for (Widget w : ((DWidgetContainer) d)){
+                super.remove(w.getJComponent());
+            }
+        }
+        synchronized (objects) {
+            objects.remove(d);
         }
     }
 
@@ -708,7 +721,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (!keys.isEmpty()) {
                     return keys.get(0);
                 } else {
-                    return -1;
+                    return 0;
                 }
             }
         }
@@ -749,12 +762,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 return false;
             }
         }
-        
-        public int getMouseButton(){
+
+        public int getMouseButton() {
             return mouseButton;
         }
-        
-        public int getMouseClickCount(){
+
+        public int getMouseClickCount() {
             return mouseClickCount;
         }
 

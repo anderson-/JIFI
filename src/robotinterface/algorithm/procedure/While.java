@@ -25,8 +25,12 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Color;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 
 /**
@@ -58,5 +62,22 @@ public class While extends Block {
             it = it.getNext();
         }
         sb.append(ident).append("}\n");
+    }
+    
+     @Override
+    public Item getItem() {
+        return super.getItem(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Object createInstance() {
+        return new While();
+    }
+
+    @Override
+    public Drawable getDrawableResource() {
+        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
+        sc.setColor(Color.blue);
+        return sc;
     }
 }

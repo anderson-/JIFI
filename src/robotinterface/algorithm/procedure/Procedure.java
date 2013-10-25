@@ -34,6 +34,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -43,9 +45,15 @@ import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
@@ -84,17 +92,20 @@ public class Procedure extends Command implements Expression, Classifiable {
     private ArrayList<Object> values;
     private static JEP parser;
     private String procedure;
-    private static final int TEXTFIELD_WIDTH = 110;
-    private static final int TEXTFIELD_HEIGHT = 23;
-    private static final int BUTTON_WIDTH = 20;
-    private static final int INSET_X = 5;
-    private static final int INSET_Y = 5;
+    public static final int TEXTFIELD_WIDTH = 110;
+    public static final int TEXTFIELD_HEIGHT = 23;
+    public static final int BUTTON_WIDTH = 20;
+    public static final int INSET_X = 5;
+    public static final int INSET_Y = 5;
 
     public Procedure() {
         parser = null;
         procedure = "0";
         names = new ArrayList<>();
         values = new ArrayList<>();
+    }
+
+    public Procedure(Procedure p) {
     }
 
     public Procedure(String procedure) {
@@ -151,7 +162,7 @@ public class Procedure extends Command implements Expression, Classifiable {
                     if (st.getVar(varName) != null && st.getVar(varName).hasValidValue()) {
                         throw new ExecutionException("Variable already exists!");
                     } else {
-                        if (!names.contains(varName)){
+                        if (!names.contains(varName)) {
                             names.add(str);
                             values.add(varValue);
                         }
@@ -226,7 +237,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Item getItem() {
-        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#D2BA45"));
+        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#69CD87"));
     }
 
     @Override
@@ -300,6 +311,45 @@ public class Procedure extends Command implements Expression, Classifiable {
                     wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
                 }
 
+//                private void addTextFieldHTML(String str) {
+//                    JTextPane textField = new JTextPane();
+//                    textField.setContentType("text/html");
+//                    textField.setText("<html><font color=red>The program performs</font></html>");
+//
+//                    textField.getDocument().addDocumentListener(new DocumentListener() {
+//
+//                        @Override
+//                        public void insertUpdate(DocumentEvent e) {
+//                            System.out.println("insert");
+//                            try {
+//                                e.getDocument().remove(0, e.getLength());
+//                            } catch (BadLocationException ex) {
+//                                System.out.println(":/");
+//                            }
+//                            
+//                        }
+//
+//                        @Override
+//                        public void removeUpdate(DocumentEvent e) {
+//                            System.out.println("remove");
+//                        }
+//
+//                        @Override
+//                        public void changedUpdate(DocumentEvent e) {
+//                            System.out.println("change");
+//                        }
+//                       
+//                    });
+//
+////                    textField.addActionListener(new ActionListener() {
+////                        @Override
+////                        public void actionPerformed(ActionEvent e) {
+////                            updateProcedure();
+////                        }
+////                    });
+//
+//                    wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+//                }
                 private void updateProcedure() {
                     StringBuilder sb = new StringBuilder();
 
@@ -473,6 +523,51 @@ public class Procedure extends Command implements Expression, Classifiable {
             d = sContainer;
         }
         return d;
+    }
+
+    public Procedure copy(Procedure copy) {
+        if (copy != null) {
+            copy.procedure = procedure;
+            copy.names.addAll(names);
+            copy.values.addAll(values);
+        }
+
+        return copy;
+    }
+
+    public static Procedure copyAll(Procedure p) {
+        Procedure start = p.copy((Procedure) p.createInstance());
+        Procedure old = start;
+        Procedure newCopy;
+
+        Command it = p.getNext();
+
+        while (it != null) {
+
+            if (it instanceof Procedure) {
+                newCopy = ((Procedure) it).copy((Procedure) ((Procedure) it).createInstance());
+
+                System.out.println(it.getClass().getSimpleName() + " -> " + newCopy.getClass().getSimpleName());
+
+                if (old != null) {
+                    old.setNext(newCopy);
+                    newCopy.setPrevious(old);
+                }
+
+                old = newCopy;
+
+            } else {
+                if (!(it instanceof Block.BlockEnd)) {
+                    System.out.println("Erro ao copiar: ");
+                    it.print();
+                    break;
+                }
+            }
+
+            it = it.getNext();
+        }
+
+        return start;
     }
 
     public static void main(String[] args) {

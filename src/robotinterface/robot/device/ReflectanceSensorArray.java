@@ -85,10 +85,8 @@ public class ReflectanceSensorArray extends Device implements Drawable {
         AffineTransform t2 = (AffineTransform) t;
         t2.rotate(-3 * Math.PI / 12);
         g.setTransform(t2);
-        Color c = Color.CYAN;
         for (int si = 0; si < 5; si++) {
-            g.setColor(c);
-            c = c.darker();
+            g.setColor(Color.getHSBColor(.0f, 1, 1-(float)(values[si]/1024f)));
             t2.rotate(Math.PI / 12);
             g.setTransform(t2);
             g.fillOval(sx, sy, sw, sw);

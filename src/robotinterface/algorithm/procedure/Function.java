@@ -38,11 +38,13 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
+import static robotinterface.algorithm.Command.identChar;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
@@ -99,8 +101,22 @@ public class Function extends Block implements Drawable {
 //    private static HashMap<Class<? extends Command>, Point2D.Double[]> wiring;
     private static ArrayList<Wiring> wiring;
     private static Random randNumGen = new Random(); //para testes
+    private String name;
+    private ArrayList<String> args;
 
-    public Function(String name, List<Variable> args) {
+    public Function() {
+        args = new ArrayList<>();
+    }
+    
+    public Function(String name, List<String> args) {
+        this.name = name;
+        this.args = new ArrayList<>();
+        if (args != null) {
+            this.args.addAll(args);
+        }
+
+        setProcedure(name);
+
         teste = new HashMap<>();
         wiring = new ArrayList<>();
         randNumGen.setSeed(System.currentTimeMillis());
@@ -158,11 +174,42 @@ public class Function extends Block implements Drawable {
 
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Collection<String> getArgs() {
+        return args;
+    }
+
+    public void addArgs(Collection<String> args) {
+        this.args.addAll(args);
+    }
+
+    public void removeArg(String arg) {
+        args.remove(arg);
+    }
+
+    @Override
+    public boolean addBefore(Command c) {
+        System.out.println("before");
+        return super.addBegin(c);
+    }
+
+    @Override
+    public boolean addAfter(Command c) {
+        System.out.println("after");
+        return super.addBegin(c);
+    }
+
 //    @Override
 //    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
 //        Function.ident(this, x, y, j, k, Ix, Iy, a);
 //    }
-
     public static void ident(Block b, double x, double y, double j, double k, double Ix, double Iy, boolean a) {
 
         /*
@@ -389,7 +436,7 @@ public class Function extends Block implements Drawable {
 
                 it = it.getNext();
             }
-            
+
             if (ident) {
                 ret.x -= j;
                 ret.width += 2 * j;
@@ -646,6 +693,9 @@ public class Function extends Block implements Drawable {
     }
 
     public Command find(Point2D p) {
+        if (getDrawableResource().getObjectShape().contains(p)) {
+            return this;
+        }
         return Function.find(p, this);
     }
 
@@ -724,7 +774,7 @@ public class Function extends Block implements Drawable {
             ident(0, 0, 10, 100, 1, 0, false);
             wire(50, 50, 0, 1, true);
         }
-        
+
         ident(200, 0, 10, 100, 0, 1, true);
 
 //        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -827,5 +877,35 @@ public class Function extends Block implements Drawable {
 
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+    }
+    
+    @Override
+    public Procedure copy(Procedure copy) {
+        Procedure p = super.copy(copy);
+
+        if (copy instanceof Function) {
+            ((Function) copy).name = name;
+            //TODO: copiar argumentos e etc
+        } else {
+            System.out.println("Erro ao copiar: ");
+            print();
+        }
+
+        return p;
+    }
+    
+    public Function copy(){
+        return (Function) copy((Procedure) new Function());
+    }
+
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        sb.append(ident).append("func ").append(name).append("(").append("").append(") {\n");
+        Command it = start;
+        while (it != null) {
+            it.toString(ident + identChar, sb);
+            it = it.getNext();
+        }
+        sb.append(ident).append("}\n");
     }
 }

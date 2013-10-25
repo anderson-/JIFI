@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import robotinterface.util.observable.Observer;
 import robotinterface.interpreter.Interpreter;
+import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.robot.device.ReflectanceSensorArray;
 import robotinterface.util.observable.Observable;
 
@@ -96,7 +97,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         devices = new ArrayList<>();
         connections = new ArrayList<>();
         add(new InternalClock());
-        
+        add(new IRProximitySensor());
         add(new ReflectanceSensorArray());
 
         x = 0;

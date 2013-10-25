@@ -62,6 +62,10 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
         id = classCounter++;
         name = this.getClass().getSimpleName() + "[" + id + "]";
     }
+    
+    public Command(Command c) {
+        this();
+    }
 
     public final int getID() {
         return id;
@@ -71,7 +75,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
         return name;
     }
 
-    public final Command getNext() {
+    public Command getNext() {
         return next;
     }
 
@@ -122,8 +126,12 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
     }
 
     public void remove() {
-        this.prev.next = this.next;
-        this.next.prev = this.prev;
+        if (prev != null) {
+            prev.next = next;
+        }
+        if (next != null) {
+            next.prev = prev;
+        }
     }
 
     //inicio da execução do comando

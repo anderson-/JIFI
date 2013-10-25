@@ -49,6 +49,14 @@ public class SimpleContainer extends DWidgetContainer {
         widgetVisible = false;
         this.color = color;
     }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
     
     @Override
     public int getDrawableLayer() {

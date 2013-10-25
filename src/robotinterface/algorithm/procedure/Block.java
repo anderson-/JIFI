@@ -25,6 +25,7 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
@@ -33,6 +34,8 @@ import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
@@ -71,7 +74,6 @@ public class Block extends Procedure {
             resetVariableScope();
             return begin;
         }
-
 //        @Override
 //        public Drawable getDrawableResource() {
 //            return null;
@@ -88,8 +90,14 @@ public class Block extends Procedure {
         start = end;
     }
 
-    @Deprecated
     public final Command getStart() {
+        return start;
+    }
+
+    public Command shiftStart() {
+        if (start != null && start != end) {
+            start = start.getNext();
+        }
         return start;
     }
 
@@ -97,6 +105,11 @@ public class Block extends Procedure {
         return end;
     }
 
+//    @Override
+//    public Command getNext() {
+//        final na classe Command
+//        return super.getNext();
+//    }
     /**
      * Adiciona um comando ao bloco de comandos.
      *
@@ -119,6 +132,32 @@ public class Block extends Procedure {
             //...<-it<->c<->end->null
             it.setNext(c);
             c.setPrevious(it);
+        } else {
+            start = c;
+        }
+        return true;
+    }
+
+    public final boolean addAll(Command c) {
+        if (c == null) {
+            return false;
+        }
+        c.setParent(this);
+        //pega o elemento antes do ultimo
+        Command begin = end.getPrevious();
+
+        Command it = c;
+        while (it.getNext() != null) {
+            it = it.getNext();
+        }
+        it.setNext(end);
+        end.setPrevious(c);
+        end.setNext(null);
+        //adiciona end ao final da lista
+        if (begin != null) {
+            //...<-it<->c<->end->null
+            begin.setNext(c);
+            c.setPrevious(begin);
         } else {
             start = c;
         }
@@ -224,6 +263,7 @@ public class Block extends Procedure {
                 c.setNext(x);
                 start = c;
             }
+            c.setParent(this);
         }
         return false;
     }
@@ -234,6 +274,7 @@ public class Block extends Procedure {
             c.setNext(x.getNext());
             x.getNext().setPrevious(c);
             x.setNext(c);
+            c.setParent(this);
         }
         return false;
     }
@@ -267,7 +308,7 @@ public class Block extends Procedure {
     void setDone(boolean b) {
         returnNext = b;
     }
-    
+
     @Override
     public boolean perform(Robot robot, Clock clock) throws ExecutionException {
         return true;
@@ -382,5 +423,36 @@ public class Block extends Procedure {
             getNext().ident(x, y + this.getBounds(null, j, k, Ix, Iy, a).height - Iy * (ch + yj), j, k, Ix, Iy, a);
         }
 
+    }
+
+    @Override
+    public Item getItem() {
+        return super.getItem();
+    }
+
+    @Override
+    public Object createInstance() {
+        return new Block();
+    }
+
+    @Override
+    public Procedure copy(Procedure copy) {
+        Procedure p = super.copy(copy);
+
+        if (start instanceof Procedure && copy instanceof Block) {
+            ((Block) copy).addAll(Procedure.copyAll((Procedure) start));
+        } else {
+            System.out.println("Erro ao copiar: ");
+            start.print();
+        }
+
+        return p;
+    }
+
+    @Override
+    public Drawable getDrawableResource() {
+        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
+        sc.setColor(Color.red);
+        return sc;
     }
 }

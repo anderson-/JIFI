@@ -25,6 +25,7 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
@@ -32,6 +33,8 @@ import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
@@ -113,10 +116,10 @@ public class If extends Procedure {
 
         Rectangle2D.Double p = new Rectangle2D.Double();
         //false
-        p = getBounds(getBlockFalse(), p, j, k, Ix, Iy, a);
+        p = Function.getBounds(getBlockFalse(), p, j, k, Ix, Iy, a);
         tmp.add(p);
         //true
-        p = getBounds(getBlockTrue(), p, j, k, Ix, Iy, a);
+        p = Function.getBounds(getBlockTrue(), p, j, k, Ix, Iy, a);
         tmp.add(p);
 
         return tmp;
@@ -195,4 +198,39 @@ public class If extends Procedure {
             getNext().ident(x, y, j, k, Ix, Iy, a);
         }
     }
+    
+     @Override
+    public Item getItem() {
+        return super.getItem(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Object createInstance() {
+        return new If();
+    }
+    
+    
+    @Override
+    public Procedure copy(Procedure copy) {
+        Procedure p = super.copy(copy);
+        
+        if (copy instanceof If) {
+            blockTrue.copy(((If) copy).blockTrue);
+            blockFalse.copy(((If) copy).blockFalse);
+        } else {
+            System.out.println("Erro ao copiar: ");
+            print();
+        }
+        
+        return p;
+    }
+
+    @Override
+    public Drawable getDrawableResource() {
+        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
+        sc.setColor(Color.yellow);
+        return sc;
+    }
+    
+    
 }

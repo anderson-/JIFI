@@ -115,10 +115,10 @@ SidePanel sp;
                             rpos.remove(0);
                         }
                     }
-//                    if (this.getCount() % 20 == 0) {
-//                        robot.setRightWheelSpeed(Math.random() * 100);
-//                        robot.setLeftWheelSpeed(Math.random() * 100);
-//                    }
+                    if (this.getCount() % 20 == 0) {
+                        robot.setRightWheelSpeed(Math.random() * 100);
+                        robot.setLeftWheelSpeed(Math.random() * 100);
+                    }
                 }
             }
         };

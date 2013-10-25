@@ -33,6 +33,7 @@ import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.Parser;
+import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.plugin.cmdpack.begginer.BlockRoboF;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
@@ -60,6 +61,7 @@ public class Interpreter extends Thread {
     private int state;
     private Robot robot;
     private Clock clock = new Clock();
+    private int timestep = 100;
 
     public Interpreter(Robot r) {
         super("Interpreter::" + r.toString());
@@ -110,6 +112,10 @@ public class Interpreter extends Thread {
         return currentCmd;
     }
 
+    public void setTimestep(int timestep) {
+        this.timestep = timestep;
+    }
+
     public boolean step() {
 
         if (currentCmd == null) {
@@ -149,7 +155,7 @@ public class Interpreter extends Thread {
                     state = WAITING;
                 }
                 try {
-                    Thread.sleep(30);
+                    Thread.sleep(timestep);
                 } catch (InterruptedException ex) {
                 }
             } else {
@@ -313,7 +319,7 @@ public class Interpreter extends Thread {
 
     public static Function bubbleSort(int size, boolean rand) {
         rand = false;
-        Function func = new Function("main", null);
+        Function func = new Function("bbSort", null);
         
         StringBuilder sb = new StringBuilder();
         sb.append("V = [");
@@ -338,6 +344,8 @@ public class Interpreter extends Thread {
 //        func.add(new Declaration("k", 0));
 //        func.add(new Declaration("aux", 0));
 //        func.add(new Declaration("v", 1));
+        
+//        func.add(new DummyBlock());
 
         func.add(new PrintString("Antes:"));
         While loopP0 = new While("i < size");
@@ -414,21 +422,21 @@ public class Interpreter extends Thread {
         ifCompass.addFalse(new Move(-55, 55));
         ifCompass.addFalse(new PrintString("Girando para a direita"));
 
+//
+//        If ifCompass2 = new If("alpha > 100");
+//        ifCompass2.addTrue(new Move(55, -55));
+//        ifCompass2.addTrue(new PrintString("Girando para a esquerda"));
+//        ifCompass2.addFalse(new Move(-55, 55));
+//        ifCompass2.addFalse(new PrintString("Girando para a direita"));
+//        ifCompass.addFalse(ifCompass2);
 
-        If ifCompass2 = new If("alpha > 100");
-        ifCompass2.addTrue(new Move(55, -55));
-        ifCompass2.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass2.addFalse(new Move(-55, 55));
-        ifCompass2.addFalse(new PrintString("Girando para a direita"));
-        ifCompass.addFalse(ifCompass2);
-
-
-        If ifCompass3 = new If("alpha > 100");
-        ifCompass3.addTrue(new Move(55, -55));
-        ifCompass3.addTrue(new PrintString("Girando para a esquerda"));
-        ifCompass3.addFalse(new Move(-55, 55));
-        ifCompass3.addFalse(new PrintString("Girando para a direita"));
-        ifCompass2.addTrue(ifCompass3);
+//
+//        If ifCompass3 = new If("alpha > 100");
+//        ifCompass3.addTrue(new Move(55, -55));
+//        ifCompass3.addTrue(new PrintString("Girando para a esquerda"));
+//        ifCompass3.addFalse(new Move(-55, 55));
+//        ifCompass3.addFalse(new PrintString("Girando para a direita"));
+//        ifCompass2.addTrue(ifCompass3);
 
 
         loopCompass.add(ifCompass);
