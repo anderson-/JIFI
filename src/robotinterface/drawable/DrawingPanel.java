@@ -715,6 +715,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 return keys.contains(key);
             }
         }
+        
+        public int keysPressed (){
+            synchronized (keys) {
+                return keys.size();
+            }
+        }
 
         public int getSingleKey() {
             synchronized (keys) {

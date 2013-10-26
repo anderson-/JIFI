@@ -541,13 +541,15 @@ public class Procedure extends Command implements Expression, Classifiable {
         Procedure newCopy;
 
         Command it = p.getNext();
+        int i = 0;
 
         while (it != null) {
 
             if (it instanceof Procedure) {
                 newCopy = ((Procedure) it).copy((Procedure) ((Procedure) it).createInstance());
 
-                System.out.println(it.getClass().getSimpleName() + " -> " + newCopy.getClass().getSimpleName());
+                i++;
+                //System.out.println(it.getClass().getSimpleName() + " -> " + newCopy.getClass().getSimpleName());
 
                 if (old != null) {
                     old.setNext(newCopy);

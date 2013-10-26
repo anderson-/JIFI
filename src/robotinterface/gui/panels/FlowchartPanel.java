@@ -6,16 +6,21 @@ package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import robotinterface.gui.panels.sidepanel.SidePanel;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.Parser;
@@ -48,13 +53,47 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     private int fIx = 0;
     private int fIy = 1;
     private boolean fsi = false;
+    private ArrayList<Command> selection = new ArrayList<>();
+    private ArrayList<Command> copy = new ArrayList<>();
+    private boolean keyActionUsed = false;
     public Stack<Function> undo = new Stack<>();
     public Stack<Function> redo = new Stack<>();
     Command tmp = null;
     Item itmp = null;
     int tmpi = 0;
 
-    public FlowchartPanel() {
+//    public FlowchartPanel() {
+        
+//        try {
+//            function = Parser.decode("func myFunc() {var x = 4; if (x > 2) print(\"ok\") else print(\"rodrigo\")}");
+//        } catch (Exception ex) {
+//            function = Interpreter.bubbleSort(10, true);
+//        }
+
+//        function = Interpreter.bubbleSort(10, true);
+
+//        Procedure p = (Procedure) function.getStart();
+//        Procedure np = Procedure.copyAll(p);
+//        function = new Function("ss", null);
+//        function.addAll(np);
+
+//        function = (Function) function.copy((Procedure) new Function());
+
+        //function = Interpreter.newTestFunction();
+//        add(function);
+        
+//        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+//        function.wire(fj, fk, fIx, fIy, fsi);
+        
+
+//        JTextArea console = new JTextArea();
+
+//        mc.redirectOut(null, System.out);
+
+        
+//    }
+
+    public FlowchartPanel(Function function) {
         SidePanel sp = new SidePanel() {
             @Override
             protected void ItemSelected(Item item, Object ref) {
@@ -70,36 +109,17 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt"));
         sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt"));
         add(sp);
-//        try {
-//            function = Parser.decode("func myFunc() {var x = 4; if (x > 2) print(\"ok\") else print(\"rodrigo\")}");
-//        } catch (Exception ex) {
-//            function = Interpreter.bubbleSort(10, true);
-//        }
-
-        function = Interpreter.bubbleSort(10, true);
-
-//        Procedure p = (Procedure) function.getStart();
-//        Procedure np = Procedure.copyAll(p);
-//        function = new Function("ss", null);
-//        function.addAll(np);
-
-        function = (Function) function.copy((Procedure) new Function());
-
-        //function = Interpreter.newTestFunction();
+        
+        this.function = function;
         add(function);
+        setName(function.toString());
+        
         interpreter = new Interpreter(new Robot());
         interpreter.setInterpreterState(Interpreter.STOP);
         interpreter.setMainFunction(function);
         interpreter.start();
-//        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
-//        function.wire(fj, fk, fIx, fIy, fsi);
+        
         function.appendDCommandsOn(this);
-
-//        JTextArea console = new JTextArea();
-
-//        mc.redirectOut(null, System.out);
-
-        setName(function.toString());
     }
 
     @Override
@@ -217,29 +237,116 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+
+        for (Command c : selection) {
+            if (c instanceof GraphicResource) {
+                Drawable d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    g.setColor(Color.red);
+                    g.draw(d.getObjectShape());
+                }
+            }
+        }
+
+        if (in.isKeyPressed(KeyEvent.VK_DELETE) && !selection.isEmpty()) {
+            pushUndo();
+            redo.clear();
+
+            for (Command c : selection) {
+                removeGraphicResources(c);
+            }
+
+            selection.clear();
+
+            function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+        }
+
         if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {
+            if (!keyActionUsed) {
+                if (in.isKeyPressed(KeyEvent.VK_Z)) {
+                    undo();
+                    keyActionUsed = true;
+                }
+
+                if (in.isKeyPressed(KeyEvent.VK_Y)) {
+                    redo();
+                    keyActionUsed = true;
+                }
+
+                if (in.isKeyPressed(KeyEvent.VK_X)) {
+                    if (isValidSelection()) {
+                        copy.clear();
+                        for (Command c : selection) {
+                            if (c instanceof Procedure) {
+                                Procedure p = (Procedure) c;
+                                copy.add(p.copy((Procedure) p.createInstance()));
+                            } else {
+                                System.out.println("Erro de copia");
+                            }
+                        }
+                    }
+                    keyActionUsed = true;
+                }
+
+                if (in.isKeyPressed(KeyEvent.VK_C)) {
+                    if (isValidSelection()) {
+                        copy.clear();
+                        for (Command c : selection) {
+                            if (c instanceof Procedure) {
+                                Procedure p = (Procedure) c;
+                                copy.add(p.copy((Procedure) p.createInstance()));
+                            } else {
+                                System.out.println("Erro de copia");
+                            }
+                        }
+                    }
+                    keyActionUsed = true;
+                }
+
+                if (in.isKeyPressed(KeyEvent.VK_V)) {
+                    if (!selection.isEmpty() && !copy.isEmpty()) {
+                        pushUndo();
+                        Command s = selection.get(0);
+                        for (Command c : copy) {
+                            if (c instanceof Procedure) {
+                                Procedure p = (Procedure) c;
+                                c = p.copy((Procedure) p.createInstance());
+                            }
+                            s.addAfter(c);
+                            s = c;
+                            if (c instanceof GraphicResource) {
+                                Drawable d = ((GraphicResource) c).getDrawableResource();
+                                if (d != null) {
+                                    add(d);
+                                }
+                            }
+                        }
+                    }
+                    keyActionUsed = true;
+                }
+            }
+        }
+        if (in.keysPressed() <= 1) {
+            keyActionUsed = false;
+        }
+
+        if (in.mouseGeneralClick()) {
             Point p = in.getTransformedMouse();
             Command c = function.find(p);
 
             if (c != null) {
-                if (c instanceof GraphicResource) {
-                    Drawable d = ((GraphicResource) c).getDrawableResource();
-                    if (d != null) {
-                        g.setColor(Color.red);
-                        g.draw(d.getObjectShape());
+                if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {
+                    if (selection.contains(c)) {
+                        selection.remove(c);
+                    } else {
+                        selection.add(0, c);
                     }
+                } else {
+                    selection.clear();
+                    selection.add(c);
                 }
-
-//                c.print();
-
-                if (in.mouseGeneralClick()) {
-                    pushUndo();
-                    redo.clear();
-
-                    removeGraphicResources(c);
-
-                    function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
-                }
+            } else {
+                selection.clear();
             }
         }
     }
@@ -264,8 +371,43 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         c.remove();
     }
 
+    private boolean isValidSelection() {
+        if (selection.isEmpty()) {
+            return false;
+        }
+
+        Command start, end;
+
+        start = selection.get(0);
+
+        while (selection.contains(start.getPrevious())) {
+            start = start.getPrevious();
+        }
+
+        end = start;
+
+        int i = 1;
+
+        while (selection.contains(end.getNext())) {
+            i++;
+            end = end.getNext();
+        }
+
+        if (i == selection.size()) {
+            selection.clear();
+            Command it = start;
+            while (it != end.getNext()) {
+                selection.add(it);
+                it = it.getNext();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     public static void main(String[] args) {
-        FlowchartPanel p = new FlowchartPanel();
+        FlowchartPanel p = new FlowchartPanel(Interpreter.bubbleSort(10, true));
         QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
     }
 
@@ -292,14 +434,35 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         if (undo.size() > 0) {
             pushRedo();
             setFunction(undo.pop());
+            selection.clear();
         }
     }
 
     public void redo() {
-
         if (redo.size() > 0) {
             pushUndo();
             setFunction(redo.pop());
+            selection.clear();
         }
+    }
+    
+    private JButton undoButton = new JButton();
+    private JButton redoButton = new JButton();
+    
+    private ArrayList<JComponent> toolBar = new ArrayList<>();
+    
+    {
+        undoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-undo.png")));
+        redoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-redo.png")));
+        //tentar simplificar isso aqui =/
+        undoButton.setPreferredSize(new Dimension(40,40));
+        redoButton.setPreferredSize(new Dimension(40,40));
+        toolBar.add(undoButton);
+        toolBar.add(redoButton);
+    }
+    
+    @Override
+    public Collection<JComponent> getToolBarComponents() {
+        return toolBar;
     }
 }

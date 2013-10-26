@@ -5,6 +5,7 @@
 package robotinterface.algorithm.parser;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.parser.decoder.Decoder;
@@ -28,6 +29,12 @@ public class Parser {
         Function f = parser.decode();
         return f;
     }
+    
+    public static Function decode(InputStream stream) throws ParseException {
+        Decoder parser = new Decoder(stream);
+        Function f = parser.decode();
+        return f;
+    }
 
     public static String encode(Block b) {
         StringBuilder sb = new StringBuilder();
@@ -39,8 +46,8 @@ public class Parser {
     public static void main (String [] args) throws Exception {
         Function a = Interpreter.bubbleSort(10, true);
         String as = encode(a);
-//        System.out.println(as);
-//        System.out.println("=========== decodificando ===========");
+        System.out.println(as);
+        System.out.println("=========== decodificando ===========");
         Function b = decode(as);
         String bs = encode(b);
         System.out.println(bs);

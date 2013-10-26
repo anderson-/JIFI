@@ -90,6 +90,12 @@ public class Block extends Procedure {
         start = end;
     }
 
+    public void clear() {
+        start = end;
+        end.setNext(null);
+        end.setPrevious(null);
+    }
+
     public final Command getStart() {
         return start;
     }
@@ -105,40 +111,7 @@ public class Block extends Procedure {
         return end;
     }
 
-//    @Override
-//    public Command getNext() {
-//        final na classe Command
-//        return super.getNext();
-//    }
-    /**
-     * Adiciona um comando ao bloco de comandos.
-     *
-     * @param c Comando a ser adicionado
-     * @return true se o comando foi adicionado ao bloco
-     */
     public final boolean add(Command c) {
-        if (c == null) {
-            return false;
-        }
-        c.setParent(this);
-        //pega o elemento antes do ultimo
-        Command it = end.getPrevious();
-        //define a relação entre o novo elemento e o final ...<-c<->end
-        c.setNext(end);
-        end.setPrevious(c);
-        end.setNext(null);
-        //adiciona end ao final da lista
-        if (it != null) {
-            //...<-it<->c<->end->null
-            it.setNext(c);
-            c.setPrevious(it);
-        } else {
-            start = c;
-        }
-        return true;
-    }
-
-    public final boolean addAll(Command c) {
         if (c == null) {
             return false;
         }
@@ -162,6 +135,43 @@ public class Block extends Procedure {
             start = c;
         }
         return true;
+    }
+
+//    public final boolean addAfter(Command x, Command c) {
+//        if (contains(x) && c != null) {
+//            c.setPrevious(x);
+//            c.setNext(x.getNext());
+//            x.getNext().setPrevious(c);
+//            x.setNext(c);
+//            c.setParent(this);
+//        }
+//        return false;
+//    }
+    public final boolean addAfter(Command x, Command c) {
+        if (c == null || x == null) {
+            return false;
+        }
+        c.setParent(this);
+        //pega o elemento antes do ultimo
+        Command begin = x;
+
+        Command end = c;
+        while (end.getNext() != x) {
+            end = end.getNext();
+        }
+
+        //begin<->c<->...<->end<->begin.next
+
+        if (end != null && begin.getNext() != null) {
+            end.setNext(begin.getNext());
+            begin.getNext().setPrevious(end);
+
+            begin.setNext(c);
+            c.setPrevious(begin);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -263,17 +273,6 @@ public class Block extends Procedure {
                 c.setNext(x);
                 start = c;
             }
-            c.setParent(this);
-        }
-        return false;
-    }
-
-    public final boolean addAfter(Command x, Command c) {
-        if (contains(x) && c != null) {
-            c.setPrevious(x);
-            c.setNext(x.getNext());
-            x.getNext().setPrevious(c);
-            x.setNext(c);
             c.setParent(this);
         }
         return false;
@@ -438,9 +437,11 @@ public class Block extends Procedure {
     @Override
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
-
-        if (start instanceof Procedure && copy instanceof Block) {
-            ((Block) copy).addAll(Procedure.copyAll((Procedure) start));
+        
+        if (copy instanceof Block) {
+            if (start instanceof Procedure) {
+                ((Block) copy).add(Procedure.copyAll((Procedure) start));
+            }
         } else {
             System.out.println("Erro ao copiar: ");
             start.print();

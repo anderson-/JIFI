@@ -8,9 +8,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+import javax.swing.JTree;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.interpreter.Interpreter;
@@ -22,16 +30,23 @@ import robotinterface.interpreter.Interpreter;
 public class Project {
 
     public static void main(String[] args) {
-
 //        Project a = new Project("teste");
 //        a.save("teste.zip");
-
     }
     private ArrayList<Function> functions;
-    private boolean exists;
+
+    public Project() {
+        functions = new ArrayList<>();
+    }
 
     public Project(String name, ArrayList<Function> functions) {
         this.functions = functions;
+    }
+
+    public void setJTree(JTree tree) {
+        tree.setEditable(true);
+
+//        DefaultMutableTreeNode root = tree.getModel().getRoot();
     }
 
     public boolean save(String path) {
@@ -39,39 +54,35 @@ public class Project {
         ZipOutputStream zip;
         FileOutputStream fileWriter;
 
-        if (exists) {
-            System.out.println("Não Implementado... Ainda");
-        } else {
+        try {
+            System.out.println("Program Start zipping");
 
-            try {
-                System.out.println("Program Start zipping");
+            /*
+             * create the output stream to zip file result
+             */
+            fileWriter = new FileOutputStream(path);
+            zip = new ZipOutputStream(fileWriter);
+            /*
+             * add the folder to the zip
+             */
+            addFolderToZip("", "functions", zip);
 
-                /*
-                 * create the output stream to zip file result
-                 */
-                fileWriter = new FileOutputStream(path);
-                zip = new ZipOutputStream(fileWriter);
-                /*
-                 * add the folder to the zip
-                 */
-                addFolderToZip("", "functions", zip);
-
-                for (Function f : functions){
-                    addFileToZip("functions", functionToFile(f), zip, false);
-                }
-                /*
-                 * close the zip objects
-                 */
-                zip.flush();
-                zip.close();
-
-                result = true;
-                System.out.println("Given files are successfully zipped");
-            } catch (Exception e) {
-                System.out.println("Some Errors happned during the zip process");
-                e.printStackTrace();
+            for (Function f : functions) {
+                addFileToZip("functions", functionToFile(f), zip, false);
             }
+            /*
+             * close the zip objects
+             */
+            zip.flush();
+            zip.close();
+
+            result = true;
+            System.out.println("Given files are successfully zipped");
+        } catch (Exception e) {
+            System.out.println("Some Errors happned during the zip process");
+            e.printStackTrace();
         }
+
         return result;
     }
 
@@ -79,7 +90,7 @@ public class Project {
         File file = null;
         try {
             String str = Parser.encode(f);
-            file = new File(f.getName()+".func");
+            file = new File(f.getName() + ".func");
 
             FileWriter fw = new FileWriter(file);
             fw.write(str);
@@ -127,8 +138,8 @@ public class Project {
                 }
             }
         }
-        
-        if (file.delete()){
+
+        if (file.delete()) {
             System.out.println(file.getName() + " is deleted!");
         } else {
             System.out.println("Delete operation is failed.");
@@ -161,7 +172,43 @@ public class Project {
         }
     }
 
-    public Project load(String path) {
-        return null;
+    public void importFile(String path) {
+        importZip(path, functions);
+    }
+
+    private static void importZip(String path, Collection<Function> functions) {
+        try {
+            ZipFile zipFile = new ZipFile(path);
+
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+
+                InputStream stream = zipFile.getInputStream(entry);
+
+                if (entry.getName().startsWith("functions/") && entry.getName().endsWith(".func")) {
+                    System.out.println("Convertendo: " + entry);
+                    Function function = Parser.decode(stream);
+                    if (function != null) {
+                        functions.add(function);
+                    }
+                }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static Project load(String path) {
+        Project p = new Project();
+        importZip(path, p.functions);
+
+        return p;
+    }
+
+    public Collection<Function> getFunctions() {
+        return functions;
     }
 }

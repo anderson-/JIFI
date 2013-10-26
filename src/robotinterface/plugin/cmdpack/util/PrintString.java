@@ -59,7 +59,7 @@ public class PrintString extends Procedure {
         for (String var : w.split(",")) {
             String vart = var.trim();
             if (!vart.isEmpty()) {
-                varNames.add(var);
+                varNames.add(vart);
             }
         }
 

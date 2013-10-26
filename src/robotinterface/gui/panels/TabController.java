@@ -25,7 +25,9 @@
  */
 package robotinterface.gui.panels;
 
+import java.util.Collection;
 import java.util.List;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /**
@@ -34,6 +36,8 @@ import javax.swing.JPanel;
  */
 public interface TabController {
     
-    public List<JPanel> getTabs();
+    public Collection<JPanel> getTabs();
+
+    public Collection<JComponent> getToolBarComponents();
     
 }

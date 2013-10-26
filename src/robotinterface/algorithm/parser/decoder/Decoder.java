@@ -770,6 +770,7 @@ private boolean functionCall = false;
       {
         block.add(new Procedure(getString()));
       }
+      functionCall = false;
     }
       break;
     case IF:
