@@ -30,35 +30,19 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
-import org.nfunk.jep.Variable;
-import static robotinterface.algorithm.Command.endChar;
-import static robotinterface.algorithm.Command.identChar;
 import robotinterface.drawable.DWidgetContainer;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
@@ -228,11 +212,12 @@ public class Procedure extends Command implements Expression, Classifiable {
     @Override
     public void toString(String ident, StringBuilder sb) {
         if (!procedure.equals("0")) {
-            sb.append(ident).append(procedure);
+            for (String p : procedure.split(";")){
+                sb.append(ident).append(p).append(";\n");
+            }
         } else {
-            sb.append(ident).append(toString());
+            sb.append(ident).append(toString()).append(";\n");
         }
-        sb.append(endChar).append("\n");
     }
 
     @Override
@@ -358,7 +343,12 @@ public class Procedure extends Command implements Expression, Classifiable {
                         String str = tf.getText();
                         sb.append(str);
                         if (!str.isEmpty() && !str.endsWith(";")) {
-                            sb.append(";");
+                            //APENAS ANTES DOS BLOCOS IF E WHILE ESTIVEREM PRONTOS!
+                            if (Procedure.this instanceof While || Procedure.this instanceof If){
+                                // NÂO USAR
+                            } else {
+                                sb.append(";");
+                            }
                         }
                     }
 
@@ -576,5 +566,13 @@ public class Procedure extends Command implements Expression, Classifiable {
         Procedure p = new Procedure("var x,y,z; x = 2 + 2;");
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    public void append(String string) {
+        if (procedure.endsWith(";")){
+            procedure += string;
+        } else {
+            procedure += "; " + string;
+        }
     }
 }

@@ -25,6 +25,7 @@ import java.util.Iterator;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import org.nfunk.jep.Variable;
+import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DWidgetContainer;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawingPanel;
@@ -39,7 +40,7 @@ import robotinterface.util.trafficsimulator.Clock;
  *
  * @author antunes
  */
-public class PrintString extends Procedure {
+public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
     private String str;
     private ArrayList<String> varNames;
@@ -402,5 +403,15 @@ public class PrintString extends Procedure {
         Procedure p = new PrintString("ANDERSON");
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    @Override
+    public String getToken() {
+        return "print";
+    }
+
+    @Override
+    public PrintString createInstance(String args) {
+        return new PrintString(args, true);
     }
 }

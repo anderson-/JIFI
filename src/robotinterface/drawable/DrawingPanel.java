@@ -482,7 +482,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public void componentHidden(ComponentEvent e) {
     }
 
-    public synchronized void setZoom(double z, Point pos) {
+    public void setZoom(double z, Point pos) {
         if ((zoom + z) >= MIN_ZOOM && (zoom + z) <= MAX_ZOOM) {
             globalX -= (int) (((pos.getX() - globalX) / zoom) * z);
             globalY -= (int) (((pos.getY() - globalY) / zoom) * z);
@@ -490,11 +490,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
     }
 
-    public synchronized double getZoom() {
+    public double getZoom() {
         return zoom;
     }
 
-    public synchronized Point getPosition() {
+    public Point getPosition() {
         return new Point(globalX, globalY);
     }
 
@@ -503,12 +503,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         globalY -= y;
     }
 
-    public synchronized void center(Rectangle clip) {
+    public void center(Rectangle clip) {
         globalX = (int) (clip.width * zoom / 2.0 - width * zoom / 2.0);
         globalY = (int) (clip.height * zoom / 2.0 - height * zoom / 2.0);
     }
 
-    public synchronized Point getMouse(Point mouse) {
+    public Point getMouse(Point mouse) {
         return new Point((int) ((mouse.getX() - globalX) / zoom), (int) ((mouse.getY() - globalY) / zoom));
     }
 

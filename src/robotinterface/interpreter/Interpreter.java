@@ -34,6 +34,8 @@ import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.DummyBlock;
+import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.plugin.cmdpack.begginer.BlockRoboF;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
@@ -61,7 +63,7 @@ public class Interpreter extends Thread {
     private int state;
     private Robot robot;
     private Clock clock = new Clock();
-    private int timestep = 100;
+    private int timestep = 0;
 
     public Interpreter(Robot r) {
         super("Interpreter::" + r.toString());
@@ -172,7 +174,7 @@ public class Interpreter extends Thread {
         Robot r = new Robot();
         r.add(new HBridge(1));
         r.add(new Compass());
-        r.add(new Serial(9600));
+        r.add(new Serial(57600));
         Interpreter i = new Interpreter(r);
 
 
@@ -278,7 +280,7 @@ public class Interpreter extends Thread {
 //        func.add(new FunctionBlock(bubbleSort(10, false)));
 //        func.add(new PrintString("fim"));
         
-        func = bubbleSort(10, false);
+        func = newTestFunction();
         i.setMainFunction(func);
 
 //        DrawingPanel p = new DrawingPanel();
@@ -294,6 +296,12 @@ public class Interpreter extends Thread {
 
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
 
+        
+        SimulationPanel p = new SimulationPanel();
+        p.addRobot(r);
+        r.attach(p);
+        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+        
         //executa
         while (i.step()) {
 //            try {
@@ -402,7 +410,7 @@ public class Interpreter extends Thread {
         func.add(new Start());
         func.add(new Procedure("var i = 10"));
         func.add(new PrintString("Girando %v vezes...", "i"));
-        While loop = new While("i > 0");
+        While loop = new While("i > 10");
         loop.add(new Move(70, 70)); //move
         loop.add(new Wait(500));
         loop.add(new Move(-70, 70)); //gira
@@ -444,9 +452,10 @@ public class Interpreter extends Thread {
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
         func.add(loopCompass);
         func.add(new Move(0, 0));
-        func.add(new ReadDevice(aw));
-        func.add(new BlockRoboF(aw));
-        //func.add(new ReadDevice(Compass.class, "alpha"));
+//        func.add(new ReadDevice(aw));
+//        func.add(new BlockRoboF(aw));
+        func.add(new Wait(500));
+        func.add(new ReadDevice(Compass.class, "alpha"));
         func.add(new PrintString("Angulo final: %v", "alpha"));
         func.add(new PrintString("fim"));
         return func;

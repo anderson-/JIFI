@@ -25,7 +25,9 @@ import javax.swing.JPanel;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.Block;
+import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.algorithm.procedure.Function;
+import robotinterface.algorithm.procedure.FunctionBlock;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.Drawable;
@@ -106,20 +108,13 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
             }
         };
         sp.setColor(Color.decode("#54A4A4"));
-        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt"));
-        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt"));
+        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt", Procedure.class));
+        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
         add(sp);
         
-        this.function = function;
-        add(function);
-        setName(function.toString());
-        
         interpreter = new Interpreter(new Robot());
-        interpreter.setInterpreterState(Interpreter.STOP);
-        interpreter.setMainFunction(function);
         interpreter.start();
-        
-        function.appendDCommandsOn(this);
+        setFunction(function);
     }
 
     @Override
@@ -137,6 +132,9 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         add(function);
         function.appendDCommandsOn(this);
         function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+        setName(function.toString());
+        interpreter.setInterpreterState(Interpreter.STOP);
+        interpreter.setMainFunction(function);
     }
 
     @Override
@@ -222,6 +220,9 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                             c.addBefore(tmp);
                         }
 
+                        if (c instanceof DummyBlock){
+                            removeGraphicResources(c);
+                        }
 
                         function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
 //                    function.wire(fj, fk, fIx, fIy, fsi);
@@ -239,7 +240,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         for (Command c : selection) {
-            if (c instanceof GraphicResource) {
+            if (c instanceof GraphicResource && c.getParent() != null) {
                 Drawable d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
                     g.setColor(Color.red);
@@ -352,6 +353,8 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     }
 
     private void removeGraphicResources(Command c) {
+        if (c == null) return;
+        
         if (c instanceof Block) {
             Command it = ((Block) c).getStart();
             while (it != null) {
@@ -362,12 +365,13 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
             removeGraphicResources(((If) c).getBlockTrue());
             removeGraphicResources(((If) c).getBlockFalse());
         }
+        
         super.remove(c.getDrawableResource());
 
         if (c.getParent() instanceof Block && c == ((Block) c.getParent()).getStart()) {
             ((Block) c.getParent()).shiftStart();
         }
-
+        
         c.remove();
     }
 

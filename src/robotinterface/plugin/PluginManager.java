@@ -44,9 +44,8 @@ public class PluginManager {
 //        public void refresh() {
 //        }
 //    }
-    
     @Deprecated
-    public static ArrayList<Class> getPluginsAlpha(String listFile) {
+    public static ArrayList<Class> getPluginsAlpha(String listFile, Class type) {
         ArrayList<Class> ret = new ArrayList<>();
 //        PluginPolicy p = new PluginPolicy();
         ArrayList<String> pluginNames = new ArrayList<>();
@@ -55,12 +54,16 @@ public class PluginManager {
             BufferedReader reader = new BufferedReader(new InputStreamReader(loader.getResourceAsStream(listFile)));
             String line;
             while ((line = reader.readLine()) != null) {
-                pluginNames.add(line);
+                if (!line.startsWith("#") && !line.trim().isEmpty()) {
+                    pluginNames.add(line);
+                }
             }
             reader.close();
             for (String pName : pluginNames) {
                 Class c = loader.loadClass(pName);
-                ret.add(c);
+                if (type.isAssignableFrom(c)) {
+                    ret.add(c);
+                }
             }
 
         } catch (Exception ex) {
@@ -78,7 +81,9 @@ public class PluginManager {
             BufferedReader reader = new BufferedReader(new InputStreamReader(loader.getResourceAsStream("list.txt")));
             String line;
             while ((line = reader.readLine()) != null) {
-                pluginNames.add(line);
+                if (!line.startsWith("#") && !line.trim().isEmpty()) {
+                    pluginNames.add(line);
+                }
             }
             reader.close();
             for (String pName : pluginNames) {

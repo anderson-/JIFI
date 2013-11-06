@@ -40,8 +40,13 @@ public class Project {
     }
 
     public Project(String name, ArrayList<Function> functions) {
-        this.functions = functions;
+        functions = new ArrayList<>();
+        this.functions.addAll(functions);
     }
+    
+    public Collection<Function> getFunctions (){
+        return functions;
+    }    
 
     public void setJTree(JTree tree) {
         tree.setEditable(true);
@@ -206,9 +211,5 @@ public class Project {
         importZip(path, p.functions);
 
         return p;
-    }
-
-    public Collection<Function> getFunctions() {
-        return functions;
     }
 }

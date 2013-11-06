@@ -14,6 +14,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -48,6 +50,15 @@ public class GUI extends javax.swing.JFrame {
     private static GUI INSTANCE = null;
     private ArrayList<Robot> robots;
     private Project mainProject = new Project();
+    private ArrayList<CodeEditorPanel> mapCE = new ArrayList<>();
+    private ArrayList<FlowchartPanel> mapFC = new ArrayList<>();
+    private ImageIcon codeIcon;
+    private ImageIcon flowchartIcon;
+
+    {
+        codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
+        flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
+    }
 
     private GUI() {
         initComponents();
@@ -90,13 +101,13 @@ public class GUI extends javax.swing.JFrame {
 
         jScrollPane3.setViewportView(new RobotManager());
 
-        mainProject.importFile("teste.zip");
-
-        for (Function f : mainProject.getFunctions()) {
-            add(new CodeEditorPanel(f), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
-//            System.out.println(Parser.encode(f));
-        }
+//        mainProject.importFile("teste.zip");
+//
+//        for (Function f : mainProject.getFunctions()) {
+//            add(new CodeEditorPanel(f), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+//            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+////            System.out.println(Parser.encode(f));
+//        }
     }
 
     public static GUI getInstance() {
@@ -132,6 +143,9 @@ public class GUI extends javax.swing.JFrame {
         openButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
         closeProjectButton = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        closeProjectButton1 = new javax.swing.JButton();
+        closeProjectButton2 = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         runButton1 = new javax.swing.JButton();
         jComboBox1 = new javax.swing.JComboBox();
@@ -142,6 +156,9 @@ public class GUI extends javax.swing.JFrame {
         pauseButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
         abortButton = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        switchCodeButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -200,6 +217,21 @@ public class GUI extends javax.swing.JFrame {
         closeProjectButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         closeProjectButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(closeProjectButton);
+        toolBar.add(jSeparator2);
+
+        closeProjectButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-undo.png"))); // NOI18N
+        closeProjectButton1.setToolTipText("Fechar Projeto");
+        closeProjectButton1.setFocusable(false);
+        closeProjectButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        closeProjectButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(closeProjectButton1);
+
+        closeProjectButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-redo.png"))); // NOI18N
+        closeProjectButton2.setToolTipText("Fechar Projeto");
+        closeProjectButton2.setFocusable(false);
+        closeProjectButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        closeProjectButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(closeProjectButton2);
         toolBar.add(jSeparator1);
 
         runButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/list-add.png"))); // NOI18N
@@ -281,6 +313,31 @@ public class GUI extends javax.swing.JFrame {
             }
         });
         toolBar.add(abortButton);
+        toolBar.add(jSeparator3);
+
+        switchCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"))); // NOI18N
+        switchCodeButton.setToolTipText("Fechar Projeto");
+        switchCodeButton.setFocusable(false);
+        switchCodeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        switchCodeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        switchCodeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                switchCodeButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(switchCodeButton);
+
+        deleteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/tab-remove.png"))); // NOI18N
+        deleteButton.setToolTipText("Fechar Projeto");
+        deleteButton.setFocusable(false);
+        deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        deleteButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(deleteButton);
 
         primarySplitPane.setDividerLocation(180);
         primarySplitPane.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -299,11 +356,11 @@ public class GUI extends javax.swing.JFrame {
         addNewCodePanel.setLayout(addNewCodePanelLayout);
         addNewCodePanelLayout.setHorizontalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 659, Short.MAX_VALUE)
+            .addGap(0, 742, Short.MAX_VALUE)
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 499, Short.MAX_VALUE)
+            .addGap(0, 535, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -333,7 +390,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 243, Short.MAX_VALUE)
+            .addGap(0, 279, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -360,7 +417,7 @@ public class GUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(primarySplitPane)
+            .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 936, Short.MAX_VALUE)
             .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -375,7 +432,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 573, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -398,7 +455,12 @@ public class GUI extends javax.swing.JFrame {
         }
 
         if (c == addNewCodePanel) {
-            add(new FlowchartPanel(Interpreter.bubbleSort(10, true)), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+            //adicionando uma nova aba
+            FlowchartPanel fp = new FlowchartPanel(new Function());
+            mainProject.getFunctions().add(fp.getFunction());
+            mapFC.add(fp);
+            add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
         } else {
             if (c instanceof TabController) {
@@ -436,6 +498,12 @@ public class GUI extends javax.swing.JFrame {
                 removeComponentListener(l);
             }
             addComponentListener((ComponentListener) cmp);
+        }
+
+        if (cmp instanceof FlowchartPanel) {
+            switchCodeButton.setIcon(codeIcon);
+        } else if (cmp instanceof CodeEditorPanel) {
+            switchCodeButton.setIcon(flowchartIcon);
         }
 
         dynamicToolBar.updateUI();
@@ -491,7 +559,22 @@ public class GUI extends javax.swing.JFrame {
             mainProject.importFile(file.getAbsolutePath());
         }
 
+        loadLoop:
         for (Function f : mainProject.getFunctions()) {
+            for (Component c : mainTabbedPane.getComponents()) {
+                if (c instanceof FlowchartPanel) {
+                    if (((FlowchartPanel) c).getFunction() == f) {
+                        continue loadLoop;
+                    }
+                } else if (c instanceof CodeEditorPanel) {
+                    int i = mapCE.indexOf(c);
+                    if (i != -1 && i < mapFC.size()) {
+                        if (mapFC.get(i).getFunction() == f) {
+                            continue loadLoop;
+                        }
+                    }
+                }
+            }
             add(new FlowchartPanel(f), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
         }
@@ -515,6 +598,76 @@ public class GUI extends javax.swing.JFrame {
             mainProject.save(file.getAbsolutePath());
         }
     }//GEN-LAST:event_saveButtonActionPerformed
+
+    private void switchCodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchCodeButtonActionPerformed
+        Component cmp = mainTabbedPane.getSelectedComponent();
+
+        if (cmp instanceof FlowchartPanel) {
+            FlowchartPanel fcp = (FlowchartPanel) cmp;
+            CodeEditorPanel cep;
+
+            int i = mapFC.indexOf(cmp);
+            if (i != -1 && i < mapCE.size()) {
+                cep = mapCE.get(i);
+            } else {
+                cep = new CodeEditorPanel(fcp.getFunction());
+                mapCE.add(cep);
+            }
+
+            add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            mainTabbedPane.remove(fcp);
+//            switchCodeButton.setIcon(codeIcon);
+
+        } else if (cmp instanceof CodeEditorPanel) {
+            CodeEditorPanel cep = (CodeEditorPanel) cmp;
+            //int returnVal = JOptionPane.showConfirmDialog(this, "Durante a conversão erros podem ocorrer, deseja prosseguir?", "Converter Código", JOptionPane.YES_NO_OPTION);
+
+            if (true /*returnVal == JOptionPane.YES_OPTION*/) {
+                FlowchartPanel fcp;
+                Function f = null;
+                int i = mapCE.indexOf(cmp);
+
+                try {
+                    f = Parser.decode(cep.getTextArea().getText());
+                } catch (Exception ex) {
+                    System.out.println("ERRO!!! D:");
+                    ex.printStackTrace();
+                    return;
+                }
+
+                if (i != -1 && i < mapFC.size()) {
+                    fcp = mapFC.get(i);
+                    mainProject.getFunctions().remove(fcp.getFunction());
+                    fcp.setFunction(f);
+                } else {
+                    fcp = new FlowchartPanel(f);
+                    mapFC.add(fcp);
+                }
+
+                mainProject.getFunctions().add(f);
+
+                add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+                mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+                mainTabbedPane.remove(cep);
+//                switchCodeButton.setIcon(flowchartIcon);
+            }
+        }
+    }//GEN-LAST:event_switchCodeButtonActionPerformed
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+
+        int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir?", "Excluir", JOptionPane.YES_NO_OPTION);
+
+        if (returnVal == JOptionPane.YES_OPTION) {
+            Component cmp = mainTabbedPane.getSelectedComponent();
+
+            if (cmp instanceof FlowchartPanel) {
+            } else if (cmp instanceof CodeEditorPanel) {
+            }
+
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
 
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
@@ -576,13 +729,18 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton abortButton;
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton closeProjectButton;
+    private javax.swing.JButton closeProjectButton1;
+    private javax.swing.JButton closeProjectButton2;
     private javax.swing.JPanel consolePanel;
+    private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTree jTree1;
@@ -603,6 +761,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JTabbedPane staticTabbedPane;
     private javax.swing.JButton stepButton;
     private javax.swing.JButton stopButton;
+    private javax.swing.JButton switchCodeButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
 }

@@ -107,7 +107,7 @@ public class Function extends Block implements Drawable {
     public Function() {
         args = new ArrayList<>();
     }
-    
+
     public Function(String name, List<String> args) {
         this.name = name;
         this.args = new ArrayList<>();
@@ -699,6 +699,12 @@ public class Function extends Block implements Drawable {
         return Function.find(p, this);
     }
 
+    DrawingPanel d = null;
+    
+    public DrawingPanel getD(){
+        return d;
+    }
+    
     public static void appendDCommandsOn(Command c, DrawingPanel p) {
         if (c instanceof GraphicResource) {
 //            System.out.println("Adicionado: " + c.getCommandName());
@@ -720,8 +726,10 @@ public class Function extends Block implements Drawable {
     }
 
     public void appendDCommandsOn(DrawingPanel p) {
+        d = p;
         appendDCommandsOn(this, p);
     }
+    
     Rectangle2D.Double shape = new Rectangle2D.Double();
     static ArrayList<Rectangle2D.Double> tmpBounds = new ArrayList<>();
     static ArrayList<String> tmpBoundsName = new ArrayList<>();
@@ -761,27 +769,27 @@ public class Function extends Block implements Drawable {
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        if (in.isKeyPressed(KeyEvent.VK_1)) {
-            ident(0, 0, 10, 100, 1, 0, true);
-            wire(50, 50, 0, 1, true);
-        } else if (in.isKeyPressed(KeyEvent.VK_2)) {
-            System.out.println(myLines.size());
-            ident(0, 0, 10, 100, 0, 1, true);
-            System.out.println(myLines.size());
-            wire(50, 50, 0, 1, true);
-            System.out.println(myLines.size() + "*");
-        } else if (in.isKeyPressed(KeyEvent.VK_3)) {
-            ident(0, 0, 10, 100, 1, 0, false);
-            wire(50, 50, 0, 1, true);
-        }
+//        if (in.isKeyPressed(KeyEvent.VK_1)) {
+//            ident(0, 0, 10, 100, 1, 0, true);
+//            wire(50, 50, 0, 1, true);
+//        } else if (in.isKeyPressed(KeyEvent.VK_2)) {
+//            System.out.println(myLines.size());
+//            ident(0, 0, 10, 100, 0, 1, true);
+//            System.out.println(myLines.size());
+//            wire(50, 50, 0, 1, true);
+//            System.out.println(myLines.size() + "*");
+//        } else if (in.isKeyPressed(KeyEvent.VK_3)) {
+//            ident(0, 0, 10, 100, 1, 0, false);
+//            wire(50, 50, 0, 1, true);
+//        }
 
         ident(200, 0, 10, 100, 0, 1, true);
 
 //        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
-        g.setColor(Color.BLUE);
-
-        g.setStroke(new BasicStroke(2));//dashedStroke);
+//        g.setColor(Color.BLUE);
+//
+//        g.setStroke(new BasicStroke(2));//dashedStroke);
 
 //        for (int i = 1; i < myLines.size(); i++) {
 ////            g.draw(smothConer(myLines.get(i-1),myLines.get(i),.5));
@@ -800,49 +808,49 @@ public class Function extends Block implements Drawable {
 //            }
 //        }
 
-        float w = 0 + W;
-        W -= .0005;
-        int j = 0 + (int) (W * 100);
-        for (Shape s : myLines) {
-            if (j == 1) {
-                g.setColor(Color.cyan);
-            } else {
-                g.setColor(Color.gray);
-            }
-            //g.setColor(Color.getHSBColor(w, 1, 1));
-            g.draw(s);
-
-            if (s instanceof GeneralPath) {
-                GeneralPath gp = (GeneralPath) s;
-                //gp.
-            }
-
-            j++;
-        }
-        if ((W * 100) < -40) {
-            W = 0;
-        }
-
-        g.setColor(Color.gray);
-
-        for (Command c : teste.keySet()) {
-            g.setColor(Color.MAGENTA);
-            Rectangle2D.Double r = teste.get(c);
-            g.draw(r);
-            g.drawString(c.getCommandName(), (int) r.getCenterX(), (int) r.getCenterY());
-        }
-
-        for (int i = 0; i < tmpBoundsName.size(); i++) {
-            g.setColor(Color.BLUE);
-            Rectangle2D.Double r = tmpBounds.get(i);
-            g.draw(r);
-            g.drawString(tmpBoundsName.get(i), (int) r.getCenterX(), (int) r.getCenterY());
-        }
-
-        for (Rectangle2D.Double r : tmpBounds) {
-            g.setColor(Color.BLUE);
-            g.draw(r);
-        }
+//        float w = 0 + W;
+//        W -= .0005;
+//        int j = 0 + (int) (W * 100);
+//        for (Shape s : myLines) {
+//            if (j == 1) {
+//                g.setColor(Color.cyan);
+//            } else {
+//                g.setColor(Color.gray);
+//            }
+//            //g.setColor(Color.getHSBColor(w, 1, 1));
+//            g.draw(s);
+//
+//            if (s instanceof GeneralPath) {
+//                GeneralPath gp = (GeneralPath) s;
+//                //gp.
+//            }
+//
+//            j++;
+//        }
+//        if ((W * 100) < -40) {
+//            W = 0;
+//        }
+//
+//        g.setColor(Color.gray);
+//
+//        for (Command c : teste.keySet()) {
+//            g.setColor(Color.MAGENTA);
+//            Rectangle2D.Double r = teste.get(c);
+//            g.draw(r);
+//            g.drawString(c.getCommandName(), (int) r.getCenterX(), (int) r.getCenterY());
+//        }
+//
+//        for (int i = 0; i < tmpBoundsName.size(); i++) {
+//            g.setColor(Color.BLUE);
+//            Rectangle2D.Double r = tmpBounds.get(i);
+//            g.draw(r);
+//            g.drawString(tmpBoundsName.get(i), (int) r.getCenterX(), (int) r.getCenterY());
+//        }
+//
+//        for (Rectangle2D.Double r : tmpBounds) {
+//            g.setColor(Color.BLUE);
+//            g.draw(r);
+//        }
 
 //        g.setColor(Color.RED);
 //        
@@ -878,7 +886,7 @@ public class Function extends Block implements Drawable {
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
-    
+
     @Override
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
@@ -893,8 +901,8 @@ public class Function extends Block implements Drawable {
 
         return p;
     }
-    
-    public Function copy(){
+
+    public Function copy() {
         return (Function) copy((Procedure) new Function());
     }
 

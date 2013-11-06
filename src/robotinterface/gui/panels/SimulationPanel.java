@@ -64,7 +64,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
     public static final Item ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 5), Color.decode("#9B68C0"));
     public static final Item ITEM_CILINDER = new Item("Cilindro", new Ellipse2D.Double(0, 0, 20, 20), Color.decode("#9B68C0"));
     public static final Item ITEM_REMOVE_LINE = new Item("Remover", new Rectangle(0, 0, 20, 20), Color.decode("#D24545"));
-    private static final int MAX_ARRAY = 500;
+    private static final int MAX_ARRAY = 5000;
     private final ArrayList<Robot> robots = new ArrayList<>();
     private final ArrayList<Point> rpos = new ArrayList<>();
     private final ArrayList<Point> obstacle = new ArrayList<>();
@@ -116,8 +116,8 @@ SidePanel sp;
                         }
                     }
                     if (this.getCount() % 20 == 0) {
-                        robot.setRightWheelSpeed(Math.random() * 100);
-                        robot.setLeftWheelSpeed(Math.random() * 100);
+//                        robot.setRightWheelSpeed(Math.random() * 100);
+//                        robot.setLeftWheelSpeed(Math.random() * 100);
                     }
                 }
             }
@@ -315,14 +315,14 @@ SidePanel sp;
     public static void main(String[] args) {
         SimulationPanel p = new SimulationPanel();
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-        p.addRobot(new Robot());
-        p.addRobot(new Robot());
+//        p.addRobot(new Robot());
+//        p.addRobot(new Robot());
     }
 
     @Override
     public void update(Device device, Robot robot) {
         if (device instanceof IRProximitySensor) {
-            addObstacle(robot, ((IRProximitySensor) device).getDist() * 2);
+            addObstacle(robot, ((IRProximitySensor) device).getDist() * 2 + Robot.size/2);
         }
         if (device instanceof Compass) {
             robot.setTheta(Math.toRadians(((Compass) device).getAlpha()));

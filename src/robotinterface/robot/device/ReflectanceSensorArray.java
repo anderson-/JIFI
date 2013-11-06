@@ -25,19 +25,24 @@ public class ReflectanceSensorArray extends Device implements Drawable {
 
     @Override
     public void setState(ByteBuffer data) {
+        System.out.println("R:" + data.remaining());
+        byte b = data.get();
         for (int i = 0; i < 5; i++) {
-            values[i] = data.getChar();
+            values[4 - i] = (b >> i) & 1;
         }
+        
+        
+        System.out.println(b);
     }
 
     @Override
     public String stateToString() {
-        return "[" + values[0] + "," + values[1] + "]";
+        return "[" + values[0] + "," + values[1]+ "," + values[2]+ "," + values[3]+ "," + values[4] + "]";
     }
 
     @Override
     public int getClassID() {
-        return 5;//??
+        return 4;
     }
 
     /*
@@ -73,7 +78,6 @@ public class ReflectanceSensorArray extends Device implements Drawable {
 
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
     }
 
     @Override
@@ -86,7 +90,7 @@ public class ReflectanceSensorArray extends Device implements Drawable {
         t2.rotate(-3 * Math.PI / 12);
         g.setTransform(t2);
         for (int si = 0; si < 5; si++) {
-            g.setColor(Color.getHSBColor(.0f, 1, 1-(float)(values[si]/1024f)));
+            g.setColor(Color.getHSBColor(.0f, 1, 1 - (float) (values[si])));
             t2.rotate(Math.PI / 12);
             g.setTransform(t2);
             g.fillOval(sx, sy, sw, sw);
@@ -96,6 +100,5 @@ public class ReflectanceSensorArray extends Device implements Drawable {
 
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
     }
 }

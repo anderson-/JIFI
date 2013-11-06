@@ -50,7 +50,6 @@ import robotinterface.util.trafficsimulator.Clock;
 public abstract class Command implements GraphicResource, GraphicFlowchart {
 
     public static final String identChar = "\t";
-    public static final String endChar = ";";
     private Command prev;
     private Command next;
     private Command parent;
@@ -126,6 +125,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
     }
 
     public void remove() {
+        parent = null;
         if (prev != null) {
             prev.next = next;
         }

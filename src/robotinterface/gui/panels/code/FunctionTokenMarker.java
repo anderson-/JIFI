@@ -20,26 +20,26 @@ public class FunctionTokenMarker extends CTokenMarker {
     }
 
     public static KeywordMap getKeywords() {
-        if (javaKeywords == null) {
-            javaKeywords = new KeywordMap(false);
-            javaKeywords.add("var", Token.KEYWORD1);
-            javaKeywords.add("func", Token.KEYWORD3);
+        if (keywords == null) {
+            keywords = new KeywordMap(false);
             
-            javaKeywords.add("do", Token.KEYWORD1);
-            javaKeywords.add("else", Token.KEYWORD1);
-            javaKeywords.add("for", Token.KEYWORD1);
-            javaKeywords.add("if", Token.KEYWORD1);
-            javaKeywords.add("return", Token.KEYWORD1);
-            javaKeywords.add("while", Token.KEYWORD1);
+            keywords.add("do", Token.KEYWORD1);
+            keywords.add("else", Token.KEYWORD1);
+            keywords.add("for", Token.KEYWORD1);
+            keywords.add("if", Token.KEYWORD1);
+            keywords.add("return", Token.KEYWORD1);
+            keywords.add("while", Token.KEYWORD1);
             
-            javaKeywords.add("break", Token.KEYWORD1);
-            javaKeywords.add("continue", Token.KEYWORD1);
+            keywords.add("break", Token.KEYWORD1);
+            keywords.add("continue", Token.KEYWORD1);
             
-            javaKeywords.add("print", Token.LITERAL2);
-            javaKeywords.add("false", Token.LITERAL2);
+            keywords.add("var", Token.KEYWORD2);
+            keywords.add("func", Token.KEYWORD3);
+            
+            keywords.add("&", Token.OPERATOR);
         }
-        return javaKeywords;
+        return keywords;
     }
     // private members
-    private static KeywordMap javaKeywords;
+    private static KeywordMap keywords;
 }

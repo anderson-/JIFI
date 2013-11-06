@@ -12,37 +12,40 @@ import java.nio.ByteBuffer;
  * @author antunes
  */
 public abstract class Device {
-    
+
     /*
      * Cada dispositivo deve implementar suas proprias funções para
      * enviar comandos para o robô. Veja as funções implementadas em 
      * HBridge.
      */
-    
     public class TimeoutException extends Exception {
-        
     }
-    
-    public static final long TIMEOUT = 1000;
+    public static long TIMEOUT = 25; //alterado para 25 se utilizar librxtxSerial.so recompilado
+    public static long PING = 0;
+    public static int NMSG = 0;
     private byte id;
     private static Connection connection;
-    private boolean received;
+    private boolean received = false;
     private long startReadingTime;
-    
+
     @Deprecated
-    public final void markUnread(){ //só usado por Robot.update(...)
+    public final void markUnread() { //só usado por Robot.update(...)
         received = true;
     }
-    
-    public final void setWaiting(){
+
+    public final void setWaiting() {
         startReadingTime = System.currentTimeMillis();
         received = false;
     }
-    
-    public final boolean isValidRead() throws TimeoutException{
-        if (received){
+
+    public final boolean isValidRead() throws TimeoutException {
+        if (received) {
+            NMSG++;
+            PING += (System.currentTimeMillis() - startReadingTime);
+//            PING = PING*.9f + (System.currentTimeMillis() - startReadingTime)*.1f;
+            System.out.println("PING: ~" + PING/NMSG);
             return true;
-        } else if (System.currentTimeMillis() - startReadingTime >= TIMEOUT ){
+        } else if (System.currentTimeMillis() - startReadingTime >= TIMEOUT) {
             throw new TimeoutException();
         } else {
             return false;
@@ -52,46 +55,45 @@ public abstract class Device {
     public static void setConnection(Connection connection) {
         Device.connection = connection;
     }
-    
-    public void setID(int id){
+
+    public void setID(int id) {
         this.id = (byte) id;
     }
-    
-    public byte getID(){
+
+    public byte getID() {
         return id;
     }
-    
+
     public abstract int getClassID();
 
     public abstract void setState(ByteBuffer data);
-    
-    public abstract String stateToString ();
-    
+
+    public abstract String stateToString();
+
     /**
      * Define a mensagem padrão a ser enviada para o comando GET.
-     * 
+     *
      * @param msg Mensagem a ser enviada
      */
-    public byte[] defaultGetMessage(){
-        return new byte []{};
+    public byte[] defaultGetMessage() {
+        return new byte[]{};
     }
-    
+
     /**
      * Envia uma mensagem pela interface de comunicação padrão do robô.
-     * 
+     *
      * @param msg Mensagem a ser enviada
      */
-    protected final void send (ByteBuffer msg){
+    protected final void send(ByteBuffer msg) {
         connection.send(msg);
     }
-    
+
     /**
      * Envia uma mensagem pela interface de comunicação padrão do robô.
-     * 
+     *
      * @param msg Mensagem a ser enviada
      */
-    protected final void send (byte [] msg){
+    protected final void send(byte[] msg) {
         connection.send(msg);
     }
-    
 }

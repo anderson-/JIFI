@@ -74,6 +74,7 @@ public class Block extends Procedure {
             resetVariableScope();
             return begin;
         }
+        
 //        @Override
 //        public Drawable getDrawableResource() {
 //            return null;
@@ -134,6 +135,7 @@ public class Block extends Procedure {
         } else {
             start = c;
         }
+        
         return true;
     }
 
@@ -155,16 +157,16 @@ public class Block extends Procedure {
         //pega o elemento antes do ultimo
         Command begin = x;
 
-        Command end = c;
-        while (end.getNext() != x) {
-            end = end.getNext();
+        Command it = c;
+        while (it != null && it.getNext() != x) {
+            it = it.getNext();
         }
 
         //begin<->c<->...<->end<->begin.next
 
-        if (end != null && begin.getNext() != null) {
-            end.setNext(begin.getNext());
-            begin.getNext().setPrevious(end);
+        if (it != null && begin.getNext() != null) {
+            it.setNext(begin.getNext());
+            begin.getNext().setPrevious(it);
 
             begin.setNext(c);
             c.setPrevious(begin);
@@ -415,6 +417,27 @@ public class Block extends Procedure {
             x += Ix * (cw + xj);
             y += Iy * (ch + yj);
         }
+        
+        if (size() == 1){
+            DummyBlock db = new DummyBlock();
+            db.setNext(end);
+            db.setParent(this);
+            db.setPrevious(null);
+            end.setPrevious(db);
+            end.setNext(null);
+            start = db;
+            
+            Command it = this;
+            while (it.getParent() != null){
+                it = it.getParent();
+            }
+            
+            if (it instanceof Function){
+                ((Function)it).getD().add(db.getDrawableResource());
+            }
+            
+            System.out.println("addded dummy");
+        }
 
         start.ident(x, y, j, k, Ix, Iy, a);
 
@@ -449,11 +472,19 @@ public class Block extends Procedure {
 
         return p;
     }
+    
+    @Deprecated
+    protected Drawable getDrawableResourceOLD() {
+        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
+        sc.setColor(Color.red);
+        return sc;
+    }
 
     @Override
     public Drawable getDrawableResource() {
         SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
         sc.setColor(Color.red);
         return sc;
+//        return null;
     }
 }

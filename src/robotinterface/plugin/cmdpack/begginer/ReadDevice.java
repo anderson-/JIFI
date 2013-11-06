@@ -42,6 +42,8 @@ import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
@@ -55,6 +57,7 @@ import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.robot.device.Device.TimeoutException;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
 
@@ -138,8 +141,8 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 this.bounds.height = 100;
                 g.setColor(Color.BLACK);
                 g.drawString("use o combobox:", 10, 10);
-                double x = bounds.x + bounds.width/2;
-                double y = bounds.y ;
+                double x = bounds.x + bounds.width / 2;
+                double y = bounds.y;
                 ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
             }
 
@@ -154,8 +157,8 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 } else {
                     g.drawString("Selecione a variável...", 10, 30);
                 }
-                double x = bounds.x + bounds.width/2;
-                double y = bounds.y ;
+                double x = bounds.x + bounds.width / 2;
+                double y = bounds.y;
                 ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
             }
         };
@@ -197,6 +200,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 msg = new byte[]{Robot.CMD_GET, device.getID(), 0};
                 robot.getMainConnection().send(msg);
             }
+            device.setWaiting();
         }
         timer.reset();
         clock.addTimer(timer);
@@ -204,16 +208,30 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     @Override
     public boolean perform(Robot r, Clock clock) throws ExecutionException {
-        if (timer.isConsumed()) { //espera 200ms antes de ler o valor do dispositivo
-            if (device != null) {
+        try {
+            if (device != null && device.isValidRead()) {
                 String deviceState = device.stateToString();
                 if (!deviceState.isEmpty()) {
                     execute(var + " = " + deviceState);
                 }
+                return true;
             }
-            return true;
+        } catch (TimeoutException ex) {
+            System.err.println("RE-ENVIANDO");
+            begin(r, clock);
         }
         return false;
+
+//        if (timer.isConsumed()) { //espera 200ms antes de ler o valor do dispositivo
+//            if (device != null) {
+//                String deviceState = device.stateToString();
+//                if (!deviceState.isEmpty()) {
+//                    execute(var + " = " + deviceState);
+//                }
+//            }
+//            return true;
+//        }
+//        return false;
     }
 
     @Override
@@ -267,7 +285,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 //
 //        QuickFrame.drawTest(rd.getDrawableResource());
 //    }
-
     @Override
     public String toString() {
         if (var != null && type != null) {

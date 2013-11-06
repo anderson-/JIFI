@@ -356,7 +356,7 @@ public class TextAreaPainter extends JComponent implements TabExpander
 	 * Repaints the text.
 	 * @param g The graphics context
 	 */
-	public void paint(Graphics gfx)
+        public void paint(Graphics gfx)
 	{
             ((Graphics2D)gfx).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             

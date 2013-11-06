@@ -89,7 +89,7 @@ public class IRProximitySensor extends Device implements Drawable {
         g.setTransform(t2);
         
         g.setColor(new Color(.1f, 1f, .1f, 0.5f));
-        g.fillRect(30, -5, (int)(Math.random()*100), 10);
+        g.fillRect(30, -5, (int)(dist*2), 10);
         
         g.setTransform(t);
     }

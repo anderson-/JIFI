@@ -26,14 +26,25 @@
 package robotinterface.algorithm.procedure;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
+import robotinterface.drawable.DWidgetContainer;
 import robotinterface.drawable.Drawable;
+import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
@@ -52,12 +63,63 @@ public class If extends Procedure {
     //blocos para a divisão de fluxo
     private BlockTrue blockTrue;
     private BlockFalse blockFalse;
+    
+    private DWidgetContainer sContainer;
+    
+    private String var;
+    private Polygon p;
+    private ArrayList<Comparacao> comparacoes;
+
 
     public If() {
-        blockTrue = new BlockTrue();
+        this.comparacoes = new ArrayList<>();
+        comparacoes.add(new Comparacao(this));
+         blockTrue = new BlockTrue();
         blockFalse = new BlockFalse();
         blockTrue.setParent(this);
         blockFalse.setParent(this);
+        p = (Polygon) SimpleContainer.createDiamond(new Rectangle(0,0,400,100));
+        //cria um Losango (usar em IF)
+        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
+        Color c = Color.getHSBColor(.5f, .3f, .7f);
+        sContainer = new SimpleContainer(p, c) {
+            //re
+            @Override
+            protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                //escreve coisas quando os jcomponets estão visiveis
+                g.setColor(Color.BLACK);
+                g.drawString("Se:", 190, 10);
+                
+            }
+
+            @Override
+            protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+                //escreve coisas quando os jcomponets não estão visiveis
+                g.setColor(Color.BLACK);
+                //if (var != null && type != null) {
+                //if(selecao =! null){
+                if(false){
+                    //g.drawString(selecao, 10, 30);
+                } else {
+                    g.drawString(getProcedure(), 50, 50);
+                }
+            }
+        };
+        insertJComponents();
+    }
+    
+    private void insertJComponents(){
+        for(int i = 0; i < comparacoes.size(); i++){
+            Comparacao co = comparacoes.get(i);
+            co.primeiro.setBounds(75, 37 + i*50, 100, 25);
+            sContainer.addJComponent(co.primeiro);
+            co.comparacao.setBounds(180, 37 + i*50, 50, 25);
+            sContainer.addJComponent(co.comparacao);
+            co.segundo.setBounds(235, 37 + i*50, 100, 25);
+            sContainer.addJComponent(co.segundo);
+            co.proximo.setBounds(180, 65 + i*50, 50, 25);
+            sContainer.addJComponent(co.proximo);
+        }
     }
 
     public If(String procedure) {
@@ -108,6 +170,46 @@ public class If extends Procedure {
         } else {
             sb.append("\n");
         }
+    }
+    
+    
+    //width 400 height 50+50*i
+    private void changePolygon(){
+        p.reset();
+        int n = comparacoes.size();
+        p.addPoint(200, 0);
+        p.addPoint(400, 50);
+        p.addPoint(400, 50*n);
+        p.addPoint(200, 50 + 50*n);
+        p.addPoint(0, 50*n);
+        p.addPoint(0, 50);
+    }
+    
+    public void addMore(JComboBox jcb){
+        int select = jcb.getSelectedIndex();
+        int encontrado = 0;
+        for(int i = 0; i < comparacoes.size(); i++){
+            if(comparacoes.get(i).proximo == jcb){
+                encontrado = i;
+                break;
+            }
+        }
+        if(select == 0){//delete below selections
+            for(int i = encontrado+1; i < comparacoes.size(); i++){
+                comparacoes.get(i).comparacao.setVisible(false);
+                comparacoes.get(i).primeiro.setVisible(false);
+                comparacoes.get(i).segundo.setVisible(false);
+                comparacoes.get(i).proximo.setVisible(false);
+                //[TODO] delete comparacoes.get(i).JTextField and JComboBox
+            }
+        }else{//selecionou 
+            if(encontrado == comparacoes.size() -1){
+                comparacoes.add(new Comparacao(this));
+                this.changePolygon();
+                this.insertJComponents();
+            }
+        }
+        
     }
 
     @Override
@@ -227,10 +329,36 @@ public class If extends Procedure {
 
     @Override
     public Drawable getDrawableResource() {
-        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
-        sc.setColor(Color.yellow);
-        return sc;
+        return sContainer;
     }
     
+    public static void main(String args[]){
+        If iiff = new If();
+        QuickFrame.drawTest(iiff.getDrawableResource());
+
+    }
     
+}
+
+class Comparacao implements ActionListener{
+    If iiff;
+    JTextField primeiro, segundo;
+    JComboBox comparacao, proximo;
+    
+    private static final String[] comparadores = {"=", "!=", "<", "<=", ">", ">="};
+    private static final String[] proximos = {" ", "e", "ou"};
+    
+    public Comparacao(If iiff){
+        primeiro = new JTextField();
+        segundo = new JTextField();
+        comparacao = new JComboBox(comparadores);
+        proximo = new JComboBox(proximos);
+        proximo.addActionListener(this);
+        this.iiff = iiff;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        iiff.addMore(proximo);
+    }
 }

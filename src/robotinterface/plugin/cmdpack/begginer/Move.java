@@ -29,6 +29,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.RoundRectangle2D;
 import robotinterface.algorithm.Command;
+import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
@@ -36,20 +37,21 @@ import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
+import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Command implements GraphicResource, Classifiable{
+public class Move extends Command implements GraphicResource, Classifiable, FunctionToken<Move> {
 
     private byte m1, m2;
+    private HBridge hBridge = null;
 
     public Move() {
-        
     }
-    
+
     public Move(int m1, int m2) {
         super();
         this.m1 = (byte) m1;
@@ -58,13 +60,32 @@ public class Move extends Command implements GraphicResource, Classifiable{
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-        HBridge hb = robot.getDevice(HBridge.class);
-        hb.setFullState(m1, m2);
-        hb.setWaiting();
+        hBridge = robot.getDevice(HBridge.class);
+        if (hBridge != null) {
+            hBridge.setFullState(m1, m2);
+            hBridge.setWaiting();
+        }
     }
 
-    private SimpleContainer dResource = new SimpleContainer(new Rectangle(0,0,40,20),Color.CYAN);
-    
+    @Override
+    public boolean perform(Robot r, Clock clock) throws ExecutionException {
+        try {
+            if (hBridge != null && hBridge.isValidRead()) {
+//                String deviceState = device.stateToString();
+//                if (!deviceState.isEmpty()) {
+//                    execute(var + " = " + deviceState);
+//                }
+                System.out.println("FIm");
+                return true;
+            }
+        } catch (Device.TimeoutException ex) {
+            System.err.println("RE-ENVIANDO hBridge");
+            begin(r, clock);
+        }
+        return false;
+    }
+    private SimpleContainer dResource = new SimpleContainer(new Rectangle(0, 0, 40, 20), Color.CYAN);
+
     @Override
     public Drawable getDrawableResource() {
         return dResource;
@@ -77,6 +98,16 @@ public class Move extends Command implements GraphicResource, Classifiable{
 
     @Override
     public Object createInstance() {
-        return new Move(10,10);
+        return new Move(10, 10);
+    }
+
+    @Override
+    public String getToken() {
+        return "move";
+    }
+
+    @Override
+    public Move createInstance(String args) {
+        return new Move();
     }
 }

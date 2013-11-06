@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import robotinterface.util.observable.Observer;
 import robotinterface.interpreter.Interpreter;
+import robotinterface.robot.connection.Serial1;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.robot.device.ReflectanceSensorArray;
 import robotinterface.util.observable.Observable;
@@ -76,6 +77,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     private ArrayList<Device> devices;
     private ArrayList<Connection> connections;
     private int freeRam = 0;
+    public static final byte CMD_END = 0;
     public static final byte CMD_STOP = 1;
     public static final byte CMD_ECHO = 2;
     public static final byte CMD_PRINT = 3;
@@ -97,8 +99,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         devices = new ArrayList<>();
         connections = new ArrayList<>();
         add(new InternalClock());
-        add(new IRProximitySensor());
-        add(new ReflectanceSensorArray());
+//        add(new IRProximitySensor());
+//        add(new ReflectanceSensorArray());
 
         x = 0;
         y = 0;
@@ -196,6 +198,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     public final void update(ByteBuffer message, Connection connection) {
         message.order(ByteOrder.LITTLE_ENDIAN);
         try {
+            loop:
             while (message.remaining() > 0) {
                 byte cmd = message.get();
                 switch (cmd) {
@@ -258,6 +261,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                             Device d = getDevice(id);
                             if (d != null) {
                                 d.setState(tmp);
+                                d.markUnread();
                                 updateObservers(d);
                             }
                         }
@@ -293,6 +297,20 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                                     System.out.println("cmd end:" + id);
                                 }
                             }
+                        } else if (cmdDone == CMD_RESET) {
+                            switch (id) {
+                                case XTRA_ALL:
+                                    System.out.println("Dispositivos e funções resetados...");
+                                    break;
+                                case XTRA_SYSTEM:
+                                    System.out.println("Sistema resetado...");
+                                    break;
+                                default:
+                                    Device d = getDevice(id);
+                                    System.out.println("Dispositivo [" + d + "] resetado...");
+                                    break;
+                            }
+
                         } else {
                             message.get(); //tamanho da mensagem rebida pelo robô e não
                             //o tamanho da mensagem a ser lida agora.
@@ -312,9 +330,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                         break;
                     }
 
+
+
                     case CMD_NO_OP: {
                         break;
                     }
+
+                    case CMD_END: {
+                        break loop;
+                    }
+
                     default:
                         if (cmd != 0) {
                             System.err.println("Erro: Comando invalido: " + cmd);
@@ -323,7 +348,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
             }
         } catch (BufferUnderflowException e) {
             System.err.println("mensagem pela metade");
-            return;
         }
     }
 
@@ -434,16 +458,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
 
         g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
-        
-        for (Device d : devices){
-            if (d instanceof Drawable){
-                ((Drawable)d).draw(g, ga, in);
+
+        for (Device d : devices) {
+            if (d instanceof Drawable) {
+                ((Drawable) d).draw(g, ga, in);
             }
         }
-        
+
         g.setTransform(o);
-        
-        
+
+
 //        int sw = (int) (Robot.size / 15);
 //        int sx = (int) (Robot.size * .8 / 2);
 //        int sy = -sw / 2;
