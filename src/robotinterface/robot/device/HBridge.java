@@ -5,8 +5,8 @@
 package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
-import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
+import robotinterface.robot.simulation.VirtualDevice;
 
 /**
  *

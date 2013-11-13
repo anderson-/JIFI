@@ -50,6 +50,8 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
     private HBridge hBridge = null;
 
     public Move() {
+        this.m1 = 20;
+        this.m2 = 20;
     }
 
     public Move(int m1, int m2) {
@@ -62,8 +64,8 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
     public void begin(Robot robot, Clock clock) throws ExecutionException {
         hBridge = robot.getDevice(HBridge.class);
         if (hBridge != null) {
-            hBridge.setFullState(m1, m2);
             hBridge.setWaiting();
+            hBridge.setFullState(m1, m2);
         }
     }
 

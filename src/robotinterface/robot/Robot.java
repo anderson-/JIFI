@@ -271,6 +271,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                             freeRam = tmp.getChar();
                             System.out.println("FreeRam: " + freeRam);
                         } else {
+                            System.out.println("id:" + id);
                             Device d = getDevice(id);
                             if (d != null) {
                                 if (d instanceof VirtualDevice) {
@@ -278,6 +279,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                                 } else {
                                     d.setState(tmp);
                                 }
+                                System.out.println(d);
+                                d.updateRobot(this);
                                 d.markUnread();
                                 updateObservers(d);
                             }

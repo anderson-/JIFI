@@ -182,6 +182,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         if (device != null) {
             //mensagem get padrão 
             byte[] msg = device.defaultGetMessage();
+            device.setWaiting();
             if (msg.length > 0) {
                 //cria um buffer para a mensagem
                 ByteBuffer GETmessage = ByteBuffer.allocate(64);
@@ -200,7 +201,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 msg = new byte[]{Robot.CMD_GET, device.getID(), 0};
                 robot.getMainConnection().send(msg);
             }
-            device.setWaiting();
         }
         timer.reset();
         clock.addTimer(timer);
