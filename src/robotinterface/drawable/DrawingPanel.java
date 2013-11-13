@@ -53,7 +53,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DWidgetContainer.Widget;
+import robotinterface.drawable.WidgetContainer.Widget;
 import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -64,7 +64,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Painel para desenho de componentes desenháveis.
  */
-public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, Drawable {
+public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, GraphicObject {
 
     public final double MIN_ZOOM = 0.1;
     public final double MAX_ZOOM = 10.0;
@@ -202,16 +202,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             synchronized (objects) {
                 objects.add(0, d);
             }
-            if (d instanceof DWidgetContainer) {
-                ((DWidgetContainer) d).appendTo(this);
+            if (d instanceof WidgetContainer) {
+                ((WidgetContainer) d).appendTo(this);
             }
         }
     }
 
     public final void remove(Drawable d) {
-        if (d instanceof DWidgetContainer){
-            //((DWidgetContainer) d).widgetVisible = false;
-            for (Widget w : ((DWidgetContainer) d)){
+        if (d instanceof WidgetContainer) {
+            //((WidgetContainer) d).widgetVisible = false;
+            for (Widget w : ((WidgetContainer) d)) {
                 super.remove(w.getJComponent());
             }
         }
@@ -263,7 +263,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 g2.setTransform(currentTransform);
                 currentTransform.translate(globalX, globalY);
                 currentTransform.scale(zoom, zoom);
-                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                currentTransform.translate(d.getPosX(), d.getPosY());
                 g2.setTransform(currentTransform);
                 d.drawBackground(g2, currentGraphicAtributes, currentInputState);
             }
@@ -272,30 +272,32 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         //desenha coisas
         for (Drawable d : objectsTmp) {
-//            System.out.println(d);
             currentObject = d;
             if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
                 currentTransform.setTransform(originalTransform);
                 g2.setTransform(currentTransform);
                 currentTransform.translate(globalX, globalY);
                 currentTransform.scale(zoom, zoom);
-                currentBounds = currentTransform.createTransformedShape(d.getObjectShape());
-                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                if (d instanceof GraphicObject) {
+                    currentBounds = currentTransform.createTransformedShape(((GraphicObject) d).getObjectShape());
+                }
+                currentTransform.translate(d.getPosX(), d.getPosY());
                 //g2.setClip(currentBounds); usar limite de pintura
                 g2.setTransform(currentTransform);
                 d.draw(g2, currentGraphicAtributes, currentInputState);
             }
             currentObject = null;
         }
-//            System.err.println("FIM");
 
         //desenha primeiro plano (sem posição global e zoom)
         for (Drawable d : objectsTmp) {
             currentObject = d;
             if ((d.getDrawableLayer() & TOP_LAYER) != 0) {
                 currentTransform.setTransform(originalTransform);
-                currentBounds = d.getObjectBouds();
-                currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                if (d instanceof GraphicObject) {
+                    currentBounds = ((GraphicObject) d).getObjectBouds();
+                }
+                currentTransform.translate(d.getPosX(), d.getPosY());
                 g2.setTransform(currentTransform);
                 d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
             }
@@ -308,8 +310,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         //redefine o tamanho e a posição dos componentes swing
         for (Drawable d : objectsTmp) {
-            if (d instanceof DWidgetContainer) {
-                DWidgetContainer dwc = (DWidgetContainer) d;
+            if (d instanceof WidgetContainer) {
+                WidgetContainer dwc = (WidgetContainer) d;
                 for (Widget c : dwc) {
                     if (!dwc.isWidgetVisible() && !c.isStatic()) {
                         c.getJComponent().setVisible(false);
@@ -326,7 +328,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     currentTransform.setToIdentity();
                     currentTransform.translate(globalX, globalY);
                     currentTransform.scale(zoom, zoom);
-                    currentTransform.translate(d.getObjectBouds().x, d.getObjectBouds().y);
+                    currentTransform.translate(d.getPosX(), d.getPosY());
                     c.getJComponent().setBounds(currentTransform.createTransformedShape(c.getBounds()).getBounds());
                 }
             }
@@ -632,7 +634,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     @Override
-    public void setObjectLocation(double x, double y) {
+    public void setLocation(double x, double y) {
         bounds.x = x;
         bounds.y = y;
     }
@@ -643,6 +645,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         bounds.y = y;
         bounds.width = width;
         bounds.height = height;
+    }
+
+    @Override
+    public double getPosX() {
+        return bounds.x;
+    }
+
+    @Override
+    public double getPosY() {
+        return bounds.y;
     }
 
     public class GraphicAttributes {
@@ -715,8 +727,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 return keys.contains(key);
             }
         }
-        
-        public int keysPressed (){
+
+        public int keysPressed() {
             synchronized (keys) {
                 return keys.size();
             }
@@ -744,14 +756,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 tmp = (ArrayList<Drawable>) objects.clone();
             }
             for (Drawable d : tmp) {
-                if (d != this) {
-                    if ((d.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
-                        if (d.getObjectShape().contains(DrawingPanel.this.getMouse(mouse))) {
-                            return d;
+                if (d != this && d instanceof GraphicObject) {
+                    GraphicObject o = (GraphicObject) d;
+                    if ((o.getDrawableLayer() & Drawable.DEFAULT_LAYER) != 0) {
+                        if (o.getObjectShape().contains(DrawingPanel.this.getMouse(mouse))) {
+                            return o;
                         }
                     } else {
-                        if (d.getObjectShape().contains(mouse)) {
-                            return d;
+                        if (o.getObjectShape().contains(mouse)) {
+                            return o;
                         }
                     }
                 }
@@ -785,8 +798,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             synchronized (mouse) {
                 Point p = new Point(mouse);
 //                System.out.println(currentObject.getObjectBouds());
-                p.x -= (int) currentObject.getObjectBouds().x;
-                p.y -= (int) currentObject.getObjectBouds().y;
+                p.x -= (int) currentObject.getPosX();
+                p.y -= (int) currentObject.getPosY();
                 return p;
             }
         }

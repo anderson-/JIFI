@@ -32,7 +32,7 @@ import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
 import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -76,7 +76,7 @@ public class Block extends Procedure {
         }
         
 //        @Override
-//        public Drawable getDrawableResource() {
+//        public GraphicObject getDrawableResource() {
 //            return null;
 //        }
     }
@@ -348,7 +348,7 @@ public class Block extends Procedure {
         while (it != null) {
             p = it.getBounds(p, j, k, Ix, Iy, a);
 //            if (it instanceof GraphicResource) {
-//                Drawable d = ((GraphicResource) it).getDrawableResource();
+//                GraphicObject d = ((GraphicResource) it).getDrawableResource();
 //
 //                if (d != null) {
 //                    p = (Rectangle2D.Double) d.getObjectBouds();
@@ -391,7 +391,7 @@ public class Block extends Procedure {
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) this).getDrawableResource();
+            GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
             if (d != null) {
                 t = (Rectangle2D.Double) d.getObjectBouds();
@@ -406,10 +406,10 @@ public class Block extends Procedure {
             double py = y - Ix * (ch / 2);
 
             if (this instanceof GraphicResource) {
-                Drawable d = ((GraphicResource) this).getDrawableResource();
+                GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
                 if (d != null) {
-                    d.setObjectLocation(px, py);
+                    d.setLocation(px, py);
 //                    System.out.println(this + " [" + px + "," + py + "]");
                 }
             }
@@ -472,19 +472,9 @@ public class Block extends Procedure {
 
         return p;
     }
-    
-    @Deprecated
-    protected Drawable getDrawableResourceOLD() {
-        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
-        sc.setColor(Color.red);
-        return sc;
-    }
 
     @Override
-    public Drawable getDrawableResource() {
-        SimpleContainer sc = (SimpleContainer) super.getDrawableResource();
-        sc.setColor(Color.red);
-        return sc;
-//        return null;
+    public GraphicObject getDrawableResource() {
+        return super.getDrawableResource();
     }
 }

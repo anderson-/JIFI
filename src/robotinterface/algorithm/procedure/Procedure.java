@@ -40,12 +40,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
-import robotinterface.drawable.DWidgetContainer;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
+import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.drawable.util.QuickFrame;
@@ -229,290 +234,154 @@ public class Procedure extends Command implements Expression, Classifiable {
     public Object createInstance() {
         return new Procedure("<insire um comando>");
     }
-    private Drawable d = null;
-    private static Font font = new Font("Dialog", Font.BOLD, 12);
 
+    private GraphicObject resource = null;
+    
     @Override
-    public Drawable getDrawableResource() {
-        if (d == null) {
-            Shape s = new Rectangle2D.Double(0, 0, 150, 60);
-            //cria um Losango (usar em IF)
-            //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
-            Color c = Color.decode("#69CD87");
-
-            SimpleContainer sContainer = new SimpleContainer(s, c) {
-                private ArrayList<Widget> wFields = new ArrayList<>();
-                private Widget addButton;
-                private Widget remButton;
-                private boolean updateFields = false;
-
-                {
-                    createTextFields();
-
-                    JButton b = new JButton("+");
-
-                    b.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            addTextField("");
-                            if (wFields.size() > 1) {
-                                JButton btn = (JButton) remButton.getJComponent();
-                                btn.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    addButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-
-                    b = new JButton("-");
-
-                    b.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            Widget w = wFields.get(wFields.size() - 1);
-                            removeJComponent(w);
-                            wFields.remove(w);
-                            if (wFields.size() < 2) {
-                                JButton btn = (JButton) remButton.getJComponent();
-                                btn.setEnabled(false);
-                            }
-                        }
-                    });
-
-                    remButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-
-                }
-
-                private void addTextField(String str) {
-                    JTextField textField = new JTextField(str);
-
-                    textField.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            updateProcedure();
-                        }
-                    });
-
-                    wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                }
-
-//                private void addTextFieldHTML(String str) {
-//                    JTextPane textField = new JTextPane();
-//                    textField.setContentType("text/html");
-//                    textField.setText("<html><font color=red>The program performs</font></html>");
-//
-//                    textField.getDocument().addDocumentListener(new DocumentListener() {
-//
-//                        @Override
-//                        public void insertUpdate(DocumentEvent e) {
-//                            System.out.println("insert");
-//                            try {
-//                                e.getDocument().remove(0, e.getLength());
-//                            } catch (BadLocationException ex) {
-//                                System.out.println(":/");
-//                            }
-//                            
-//                        }
-//
-//                        @Override
-//                        public void removeUpdate(DocumentEvent e) {
-//                            System.out.println("remove");
-//                        }
-//
-//                        @Override
-//                        public void changedUpdate(DocumentEvent e) {
-//                            System.out.println("change");
-//                        }
-//                       
-//                    });
-//
-////                    textField.addActionListener(new ActionListener() {
-////                        @Override
-////                        public void actionPerformed(ActionEvent e) {
-////                            updateProcedure();
-////                        }
-////                    });
-//
-//                    wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-//                }
-                private void updateProcedure() {
-                    StringBuilder sb = new StringBuilder();
-
-                    for (Widget w : wFields) {
-                        JTextField tf = (JTextField) w.getJComponent();
-                        String str = tf.getText();
-                        sb.append(str);
-                        if (!str.isEmpty() && !str.endsWith(";")) {
-                            //APENAS ANTES DOS BLOCOS IF E WHILE ESTIVEREM PRONTOS!
-                            if (Procedure.this instanceof While || Procedure.this instanceof If){
-                                // NÂO USAR
-                            } else {
-                                sb.append(";");
-                            }
-                        }
-                    }
-
-                    procedure = sb.toString();
-                }
-
-                private void createTextFields() {
-                    for (Iterator<DWidgetContainer.Widget> it = wFields.iterator(); it.hasNext();) {
-                        Widget w = it.next();
-                        removeJComponent(w);
-                        it.remove();
-                    }
-
-                    for (String str : procedure.split(";")) {
-                        addTextField(str);
-                    }
-                }
-
-                private void drawLine(Graphics2D g) {
-                    Command c = getNext();
-                    if (c instanceof GraphicResource) {
-                        Drawable d = ((GraphicResource) c).getDrawableResource();
-                        if (d != null) {
-                            Rectangle2D.Double bThis = getObjectBouds();
-                            Rectangle2D.Double bNext = d.getObjectBouds();
-                            Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bNext.getCenterX(), bNext.getMinY());
-                            g.setStroke(new BasicStroke(2));
-                            g.setColor(Color.red);
-                            g.draw(l);
-                        }
-                    }
-                }
-
-                @Override
-                protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                    //escreve coisas quando os jcomponets estão visiveis
-                    if (updateFields) {
-                        createTextFields();
-                        updateFields = false;
-                    }
-
-                    String str = "Procedimento:";
-
-                    g.setFont(font);
-                    FontMetrics fm = g.getFontMetrics();
-
-                    double x;
-                    double y;
-
-                    double totalWidth = 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH + 4 * INSET_X;
-
-                    double width = fm.stringWidth(str);
-                    double height = fm.getHeight();
-
-                    x = (totalWidth - width) / 2;
-                    y = INSET_Y + fm.getAscent();
-
-                    g.setColor(Color.black);
-                    g.translate(x, y);
-                    g.drawString(str, 0, 0);
-                    g.translate(-x, -y);
-
-                    x = BUTTON_WIDTH + 2 * INSET_X;
-
-                    for (Widget w : wFields) {
-                        y += INSET_Y;
-                        w.setLocation((int) x, (int) y);
-                        y += TEXTFIELD_HEIGHT;
-                    }
-
-                    ((Rectangle2D.Double) shape).width = totalWidth;
-                    ((Rectangle2D.Double) shape).height = y + INSET_Y;
-                    ((Rectangle2D.Double) bounds).width = totalWidth;
-                    ((Rectangle2D.Double) bounds).height = y + INSET_Y;
-
-                    y -= TEXTFIELD_HEIGHT;
-                    x = INSET_X;
-
-                    remButton.setLocation((int) x, (int) y);
-                    addButton.setLocation((int) x + BUTTON_WIDTH + TEXTFIELD_WIDTH + 2 * INSET_X, (int) y);
-
-
-
-//                    AffineTransform o = g.getTransform();
-//                    System.out.println(o);
-//                    ga.removeRelativePosition(o);
-//                    ga.applyGlobalPosition(o);
-//                    //ga.removeZoom(o);
-//                    g.setTransform(o);
-
-
-                    g.translate(-bounds.x, -bounds.y);
-                    drawLine(g);
-                }
-
-                @Override
-                protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                    //escreve coisas quando os jcomponets não estão visiveis
-
-                    if (!updateFields) {
-                        updateProcedure();
-                        updateFields = true;
-                    }
-
-
-                    g.setFont(font);
-                    FontMetrics fm = g.getFontMetrics();
-
-                    double x = INSET_X;
-                    double y = INSET_Y;
-
-                    double width = 0;
-                    double tmpWidth;
-
-                    g.setColor(Color.black);
-
-                    g.translate(x, 0);
-                    for (String str : procedure.split(";")) {
-                        str += ";";
-                        str = str.trim();
-                        tmpWidth = fm.stringWidth(str);
-                        if (tmpWidth > width) {
-                            width = tmpWidth;
-                        }
-                        y += fm.getAscent();
-
-                        g.translate(0, y);
-                        g.drawString(str, 0, 0);
-                        g.translate(0, -y);
-
-                    }
-                    g.translate(-x, 0);
-
-                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
-                    ((Rectangle2D.Double) shape).height = y + 2 * INSET_Y;
-                    ((Rectangle2D.Double) bounds).width = width + 2 * INSET_X;
-                    ((Rectangle2D.Double) bounds).height = y + 2 * INSET_Y;
-
-                    g.translate(-bounds.x, -bounds.y);
-                    drawLine(g);
-
-//                    double width = fm.stringWidth(procedure);
-//                    double height = fm.getHeight();
-//
-//                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
-//                    ((Rectangle2D.Double) shape).height = height + 2 * INSET_Y;
-//
-//                    double x;
-//                    double y;
-//
-//                    x = INSET_X;
-//                    y = (((Rectangle2D.Double) shape).height - height) / 2 + fm.getAscent();
-//
-//                    g.setColor(Color.black);
-//                    g.translate(x, y);
-//                    g.drawString(procedure, 0, 0);
-//                    g.translate(-x, -y);
-
-                }
-            };
-
-            d = sContainer;
+    public GraphicObject getDrawableResource() {
+        if (resource == null){
+            resource = createDrawableProcedure(this);
         }
-        return d;
+        return resource;
+    }
+    
+    public static MutableWidgetContainer createDrawableProcedure(final Procedure p) {
+
+        final int TEXTFIELD_WIDTH = 110;
+        final int TEXTFIELD_HEIGHT = 25;
+        final int BUTTON_WIDTH = 25;
+        final int INSET_X = 5;
+        final int INSET_Y = 5;
+
+        //HEADER LINE
+
+        final WidgetLine headerLine = new WidgetLine(20) {
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+                labels.add(new TextLabel("Procedimento:", 20, true));
+            }
+        };
+
+        //TEXTFIELD LINES
+
+        int textFieldLineWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+        int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
+        final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+                JTextField textField = new JTextField((String) data);
+
+                textField.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+//                            updateProcedure();
+                    }
+                });
+
+                int textFieldX = 2 * INSET_X + BUTTON_WIDTH;
+                widgets.add(new Widget(textField, textFieldX, INSET_Y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+            }
+
+            @Override
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+                if (widgets.size() > 0) {
+                    Widget widget = widgets.iterator().next();
+                    JComponent jComponent = widget.getJComponent();
+                    if (jComponent instanceof JTextField) {
+                        String str = ((JTextField) jComponent).getText();
+                        if (!str.endsWith(";")){
+                            str += ";";
+                        }
+                        return str;
+                    }
+                }
+                return "";
+            }
+        };
+
+        //END LINE
+
+        final WidgetLine endLine = new WidgetLine(true) {
+            private Widget addButton;
+            private Widget remButton;
+
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+                JButton bTmp = new JButton("+");
+
+                bTmp.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        container.addLine(textFieldLine, "");
+                        //desconta headerLine e endLine
+                        int size = container.getSize() - 2;
+                        if (size > 1) {
+                            JButton btn = (JButton) remButton.getJComponent();
+                            btn.setEnabled(true);
+                        }
+                    }
+                });
+
+                addButton = new Widget(bTmp, INSET_X, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+
+                bTmp = new JButton("-");
+
+                bTmp.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        //desconta headerLine e endLine
+                        int size = container.getSize() - 2;
+                        if (size > 1) {
+                            container.removeLine(size);
+                        }
+                        if (size - 1 == 1) {
+                            JButton btn = (JButton) remButton.getJComponent();
+                            btn.setEnabled(false);
+                        }
+                    }
+                });
+
+                int remButtonX = 3 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH;
+                remButton = new Widget(bTmp, remButtonX, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(addButton);
+                widgets.add(remButton);
+            }
+        };
+
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#69CD87")) {
+            
+            {
+                string = p.getProcedure();
+                updateLines();
+            }
+            
+            @Override
+            public void updateLines() {
+                clear();
+
+                addLine(headerLine, null);
+
+                boolean empty = true;
+                for (String str : string.split(";")) {
+                    addLine(textFieldLine, str);
+                    empty = false;
+                }
+
+                if (empty) {
+                    addLine(textFieldLine, "");
+                }
+
+                addLine(endLine, null);
+            }
+
+            @Override
+            public String getString() {
+                String str = super.getString();
+                return str;
+            }
+        };
+
+        return mwc;
     }
 
     public Procedure copy(Procedure copy) {

@@ -21,7 +21,7 @@ import static robotinterface.algorithm.procedure.Procedure.INSET_X;
 import static robotinterface.algorithm.procedure.Procedure.INSET_Y;
 import static robotinterface.algorithm.procedure.Procedure.TEXTFIELD_HEIGHT;
 import static robotinterface.algorithm.procedure.Procedure.TEXTFIELD_WIDTH;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
@@ -88,11 +88,11 @@ public class FunctionBlock extends Procedure {
     public Object createInstance() {
         return new FunctionBlock();
     }
-    private Drawable d = null;
+    private GraphicObject d = null;
     private static Font font = new Font("Dialog", Font.BOLD, 12);
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         if (d == null) {
             Shape s = new Rectangle2D.Double(0, 0, 150, 60);
             //cria um Losango (usar em IF)
@@ -108,7 +108,7 @@ public class FunctionBlock extends Procedure {
 
                     cb = new JComboBox();
 
-                    wcb = addJComponent(cb, 0, 0, 150, TEXTFIELD_HEIGHT);
+                    wcb = addWidget(cb, 0, 0, 150, TEXTFIELD_HEIGHT);
 
                     cb.addActionListener(new ActionListener() {
                         @Override
@@ -124,7 +124,7 @@ public class FunctionBlock extends Procedure {
                 private void drawLine(Graphics2D g) {
                     Command c = getNext();
                     if (c instanceof GraphicResource) {
-                        Drawable d = ((GraphicResource) c).getDrawableResource();
+                        GraphicObject d = ((GraphicResource) c).getDrawableResource();
                         if (d != null) {
                             Rectangle2D.Double bThis = getObjectBouds();
                             Rectangle2D.Double bNext = d.getObjectBouds();

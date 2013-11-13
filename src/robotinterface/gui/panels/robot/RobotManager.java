@@ -4,26 +4,26 @@
  */
 package robotinterface.gui.panels.robot;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.BoxLayout;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import robotinterface.gui.GUI;
 
 /**
  *
  * @author antunes
  */
-public class RobotManager extends JPanel {
+public class RobotManager extends JPanel implements Iterable<RobotControlPanel> {
 
+    private ArrayList<RobotControlPanel> panels = new ArrayList<>();
     private JButton btnAddRobot;
 
-    public RobotManager() {
+    public RobotManager(final GUI gui) {
 //        super.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         super.setLayout(new GridBagLayout());
         final GridBagConstraints cons = new GridBagConstraints();
@@ -38,12 +38,25 @@ public class RobotManager extends JPanel {
         btnAddRobot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RobotManager.this.add(new RobotControlPanel(RobotManager.this), cons);
+                RobotControlPanel p = new RobotControlPanel(RobotManager.this);
+                panels.add(p);
+                RobotManager.this.add(p, cons);
                 RobotManager.this.remove(btnAddRobot);
                 RobotManager.this.add(btnAddRobot, cons);
+                gui.updateRobotList();
             }
         });
 
         super.add(btnAddRobot, cons);
+    }
+
+    public void remove(RobotControlPanel robotControlPanel) {
+        panels.remove(robotControlPanel);
+        super.remove(robotControlPanel);
+    }
+
+    @Override
+    public Iterator<RobotControlPanel> iterator() {
+        return panels.iterator();
     }
 }

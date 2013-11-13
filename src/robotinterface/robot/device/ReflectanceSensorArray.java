@@ -6,12 +6,10 @@ package robotinterface.robot.device;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.nio.ByteBuffer;
 import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.robot.Robot;
 
@@ -22,6 +20,7 @@ import robotinterface.robot.Robot;
 public class ReflectanceSensorArray extends Device implements Drawable {
 
     private int values[] = new int[5];
+    private double x, y;
 
     @Override
     public void setState(ByteBuffer data) {
@@ -31,49 +30,38 @@ public class ReflectanceSensorArray extends Device implements Drawable {
             values[4 - i] = (b >> i) & 1;
         }
         
-        
         System.out.println(b);
     }
 
     @Override
     public String stateToString() {
-        return "[" + values[0] + "," + values[1]+ "," + values[2]+ "," + values[3]+ "," + values[4] + "]";
+        return "[" + values[0] + "," + values[1] + "," + values[2] + "," + values[3] + "," + values[4] + "]";
     }
 
     @Override
     public int getClassID() {
         return 4;
     }
-
-    /*
-     * Desenho:
-     */
-    private Rectangle2D.Double shape = new Rectangle.Double(0, 0, Robot.size, Robot.size);
-
+    
     @Override
-    public Shape getObjectShape() {
-        return shape;
+    public void setLocation(double x, double y) {
+        this.x = x;
+        this.y = y;
     }
 
     @Override
-    public Rectangle2D.Double getObjectBouds() {
-        return shape;
+    public double getPosX() {
+        return x;
     }
 
     @Override
-    public void setObjectBounds(double x, double y, double width, double height) {
-        shape.setRect(x, y, width, height);
-    }
-
-    @Override
-    public void setObjectLocation(double x, double y) {
-        shape.x = x;
-        shape.y = y;
+    public double getPosY() {
+        return y;
     }
 
     @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER;
+        return GraphicObject.DEFAULT_LAYER;
     }
 
     @Override

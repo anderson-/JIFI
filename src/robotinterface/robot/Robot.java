@@ -6,7 +6,7 @@ package robotinterface.robot;
 
 import robotinterface.robot.device.Device;
 import robotinterface.robot.connection.Connection;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -21,36 +21,42 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import robotinterface.drawable.Drawable;
 import robotinterface.util.observable.Observer;
-import robotinterface.interpreter.Interpreter;
-import robotinterface.robot.connection.Serial1;
-import robotinterface.robot.device.IRProximitySensor;
-import robotinterface.robot.device.ReflectanceSensorArray;
+import robotinterface.robot.simulation.Environment;
+import robotinterface.robot.simulation.Perception;
+import robotinterface.robot.simulation.VirtualConnection;
+import robotinterface.robot.simulation.VirtualDevice;
 import robotinterface.util.observable.Observable;
 
 /**
  *
  * @author antunes
  */
-public class Robot implements Observer<ByteBuffer, Connection>, Observable<Device, Robot>, Drawable {
+public class Robot implements Observer<ByteBuffer, Connection>, Observable<Device, Robot>, GraphicObject {
 
     public static final double SIZE_CM = 20;
     public static final double size = 60;
-    private double x, y;
-    private double theta;
-    private double rightWheelSpeed, leftWheelSpeed;
-    private Rectangle2D.Double bounds = new Rectangle.Double();
-    private ArrayList<Observer<Device, Robot>> observers = new ArrayList<>();
+    public static final byte CMD_END = 0;
+    public static final byte CMD_STOP = 1;
+    public static final byte CMD_ECHO = 2;
+    public static final byte CMD_PRINT = 3;
+    public static final byte CMD_GET = 4;
+    public static final byte CMD_SET = 5;
+    public static final byte CMD_ADD = 6;
+    public static final byte CMD_RESET = 7;
+    public static final byte CMD_DONE = 8;
+    public static final byte CMD_RUN = 9;
+    public static final byte CMD_NO_OP = 10;
+    public static final byte CMD_FAIL = 11;
+    public static final byte XTRA_ALL = (byte) 222;
+    public static final byte XTRA_FREE_RAM = (byte) 223;
+    public static final byte XTRA_SYSTEM = (byte) 224;
+    public static final byte XTRA_BEGIN = (byte) 225;
+    public static final byte XTRA_END = (byte) 226;
 
-    @Override
-    public void attach(Observer<Device, Robot> observer) {
-        observers.add(observer);
-    }
-
-    public void updateObservers(Device d) {
-        for (Observer<Device, Robot> o : observers) {
-            o.update(d, this);
-        }
+    public void updatePerception() {
+        perception.addPathPoint(x, y);
     }
 
     public class InternalClock extends Device {
@@ -73,34 +79,24 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
             return 0;
         }
     }
-    private Interpreter interpreter;
+    
+    private Environment environment;
+    private Perception perception;
     private ArrayList<Device> devices;
     private ArrayList<Connection> connections;
     private int freeRam = 0;
-    public static final byte CMD_END = 0;
-    public static final byte CMD_STOP = 1;
-    public static final byte CMD_ECHO = 2;
-    public static final byte CMD_PRINT = 3;
-    public static final byte CMD_GET = 4;
-    public static final byte CMD_SET = 5;
-    public static final byte CMD_ADD = 6;
-    public static final byte CMD_RESET = 7;
-    public static final byte CMD_DONE = 8;
-    public static final byte CMD_RUN = 9;
-    public static final byte CMD_NO_OP = 10;
-    public static final byte CMD_FAIL = 11;
-    public static final byte XTRA_ALL = (byte) 222;
-    public static final byte XTRA_FREE_RAM = (byte) 223;
-    public static final byte XTRA_SYSTEM = (byte) 224;
-    public static final byte XTRA_BEGIN = (byte) 225;
-    public static final byte XTRA_END = (byte) 226;
+    private double x, y;
+    private double theta;
+    private double rightWheelSpeed, leftWheelSpeed;
+    private Rectangle2D.Double bounds = new Rectangle.Double();
+    private ArrayList<Observer<Device, Robot>> observers = new ArrayList<>();
+    private ByteBuffer buffer = ByteBuffer.allocate(256);
 
     public Robot() {
         devices = new ArrayList<>();
         connections = new ArrayList<>();
+        perception = new Perception();
         add(new InternalClock());
-//        add(new IRProximitySensor());
-//        add(new ReflectanceSensorArray());
 
         x = 0;
         y = 0;
@@ -108,6 +104,17 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
 
+    }
+
+    @Override
+    public void attach(Observer<Device, Robot> observer) {
+        observers.add(observer);
+    }
+
+    public void updateObservers(Device d) {
+        for (Observer<Device, Robot> o : observers) {
+            o.update(d, this);
+        }
     }
 
     public final int getFreeRam() {
@@ -182,18 +189,187 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         return connections.size();
     }
 
-    public final Interpreter getInterpreter() {
-        return interpreter;
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
     }
 
-//    public final void begin (){
-//        Connection c = getMainConnection();
-//        if (c != null){
-//            for (Device d : devices){
-//                
-//            }
-//        }
-//    }
+    public Environment getEnvironment() {
+        return environment;
+    }
+    
+    public Perception getPerception() {
+        return perception;
+    }
+
+    public final void virtualRobot(ByteBuffer message, Connection connection) {
+        try {
+            loop:
+            while (message.remaining() > 0) {
+                buffer.clear();
+                byte cmd = message.get();
+                switch (cmd) {
+//                    case CMD_STOP: {
+//                        //skip bytes
+//                        message.get();
+//                        break;
+//                    }
+//
+//                    case CMD_ECHO: {
+//                        byte length = message.get();
+//                        byte[] bytestr = new byte[length];
+//                        message.get(bytestr);
+//                        connection.send(bytestr);
+//                        break;
+//                    }
+//
+//                    case CMD_PRINT: {
+//                        byte connectionID = message.get();
+//                        byte length = message.get();
+//                        byte[] bytestr = new byte[length];
+//                        System.out.println("receiving:" + length);
+//                        message.get(bytestr);
+//                        System.out.println(new String(bytestr)); //TODO: stdout
+////                    if (connectionID == XTRA_ALL) {
+////                        for (Connection c : getConnections()) {
+////                            if (c != null) {
+////                                c.send(bytestr);
+////                            }
+////                        }
+////                    } else {
+////                        Connection c = getConnection(connectionID);
+////                        if (c != null) {
+////                            c.send(bytestr);
+////                        }
+////                    }
+//                        break;
+//                    }
+
+                    case CMD_GET: {
+                        byte id = message.get();
+                        byte length = message.get();
+                        byte[] args = new byte[length];
+                        message.get(args);
+
+                        Device d = getDevice(id);
+                        if (d != null && d instanceof VirtualDevice) {
+                            buffer.put(CMD_SET);
+                            buffer.put(id);
+                            ((VirtualDevice) d).getState(buffer, this);
+                        }
+
+                        break;
+                    }
+
+                    case CMD_SET: {
+                        byte id = message.get();
+                        byte length = message.get();
+                        byte[] args = new byte[length];
+                        message.get(args);
+                        ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
+                        tmp.order(ByteOrder.LITTLE_ENDIAN);
+                        if (id == XTRA_FREE_RAM) {
+                            freeRam = tmp.getChar();
+                            System.out.println("FreeRam: " + freeRam);
+                        } else {
+                            Device d = getDevice(id);
+                            if (d != null) {
+                                if (d instanceof VirtualDevice) {
+                                    ((VirtualDevice) d).setState(tmp, this);
+                                } else {
+                                    d.setState(tmp);
+                                }
+                                d.markUnread();
+                                updateObservers(d);
+                            }
+                        }
+                        break;
+                    }
+//
+//                    case CMD_ADD: {
+//                        //skip bytes
+//                        message.get();
+//                        byte length = message.get();
+//                        byte[] args = new byte[length];
+//                        message.get(args);
+//                        break;
+//                    }
+//
+//                    case CMD_RESET: {
+//                        //skip bytes
+//                        message.get();
+//                        break;
+//                    }
+//
+//                    case CMD_DONE: {
+//                        byte cmdDone = message.get();
+//                        byte id = message.get();
+//                        if (cmdDone == CMD_RUN) {
+//                            byte len = message.get();
+//                            byte[] status = new byte[len];
+//                            message.get(status);
+//                            if (len > 0) {
+//                                if (status[0] == XTRA_BEGIN) {
+//                                    System.out.println("cmd begin:" + id);
+//                                } else if (status[0] == XTRA_END) {
+//                                    System.out.println("cmd end:" + id);
+//                                }
+//                            }
+//                        } else if (cmdDone == CMD_RESET) {
+//                            switch (id) {
+//                                case XTRA_ALL:
+//                                    System.out.println("Dispositivos e funções resetados...");
+//                                    break;
+//                                case XTRA_SYSTEM:
+//                                    System.out.println("Sistema resetado...");
+//                                    break;
+//                                default:
+//                                    Device d = getDevice(id);
+//                                    System.out.println("Dispositivo [" + d + "] resetado...");
+//                                    break;
+//                            }
+//
+//                        } else {
+//                            message.get(); //tamanho da mensagem rebida pelo robô e não
+//                            //o tamanho da mensagem a ser lida agora.
+//                            switch (cmdDone) {
+//                                case CMD_SET: {
+//                                    Device d = getDevice(id);
+//                                    if (d != null) {
+//                                        //define que o valor do dispositivo é novo
+//                                        //e ainda não foi lido
+//                                        d.markUnread();
+//                                    }
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        //TODO: confirmação do comando enviado
+//                        break;
+//                    }
+//
+//
+//
+//                    case CMD_NO_OP: {
+//                        break;
+//                    }
+//
+//                    case CMD_END: {
+//                        break loop;
+//                    }
+
+                    default:
+                        if (cmd != 0) {
+                            System.err.println("Erro: Comando invalido: " + cmd);
+                        }
+                }
+                buffer.flip();
+                update(buffer, connection);
+            }
+        } catch (BufferUnderflowException e) {
+            System.err.println("mensagem pela metade");
+        }
+    }
+
     @Override
     public final void update(ByteBuffer message, Connection connection) {
         message.order(ByteOrder.LITTLE_ENDIAN);
@@ -260,8 +436,18 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                         } else {
                             Device d = getDevice(id);
                             if (d != null) {
-                                d.setState(tmp);
+                                if (connection instanceof VirtualConnection
+                                        && d instanceof VirtualDevice
+                                        && ((VirtualConnection) connection).serial()) {
+                                    //robo real com ambiente virtual
+                                    System.out.println("ASSDADASAS");
+                                    ((VirtualDevice) d).setState(tmp, this);
+                                } else {
+                                    //robo real (sem ambiente virtual) ou somente virtual
+                                    d.setState(tmp);
+                                }
                                 d.markUnread();
+                                d.updateRobot(this);
                                 updateObservers(d);
                             }
                         }
@@ -342,7 +528,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
 
                     default:
                         if (cmd != 0) {
-                            System.err.println("Erro: Comando invalido: " + cmd);
+                            System.err.println("Erro1: Comando invalido: " + cmd);
                         }
                 }
             }
@@ -409,9 +595,19 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     }
 
     @Override
-    public void setObjectLocation(double x, double y) {
+    public void setLocation(double x, double y) {
         bounds.x = x;
         bounds.y = y;
+    }
+
+    @Override
+    public double getPosX() {
+        return x;
+    }
+
+    @Override
+    public double getPosY() {
+        return y;
     }
 
     @Override
@@ -438,6 +634,15 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
 
         AffineTransform o = g.getTransform();
         AffineTransform t = new AffineTransform(o);
+
+        AffineTransform w = new AffineTransform();
+        ga.applyGlobalPosition(w);
+        ga.applyZoom(w);
+        g.setTransform(w);
+        perception.draw(g);
+
+        g.setTransform(t);
+
         //t.translate(x, y); DrawingPanel se encarrega de definir a posiçãos
         t.rotate(theta);
         g.setTransform(t);

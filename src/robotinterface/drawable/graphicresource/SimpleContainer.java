@@ -32,15 +32,15 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import robotinterface.drawable.DWidgetContainer;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 
 /**
- * Implementação de DWidgetContainer para facilitar o desenho de objetos
+ * Implementação de WidgetContainer para facilitar o desenho de objetos
  * gráficos.
  */
-public class SimpleContainer extends DWidgetContainer {
+public class SimpleContainer extends WidgetContainer {
 
     private Color color;
 
@@ -60,7 +60,7 @@ public class SimpleContainer extends DWidgetContainer {
     
     @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER;
+        return GraphicObject.DEFAULT_LAYER;
     }
 
     @Override

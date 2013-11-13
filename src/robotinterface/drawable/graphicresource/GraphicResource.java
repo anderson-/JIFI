@@ -25,18 +25,18 @@
  */
 package robotinterface.drawable.graphicresource;
 
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 
 /**
  * Interface para possibilitar objetos serem desenhados por outra classe.
  *
  * Interface para possibilitar classes (ex: {@link Command}/{@link Procedure})
- * retornar uma implementação (possivelmente anônima) de {@link Drawable} ou
+ * retornar uma implementação (possivelmente anônima) de {@link GraphicObject} ou
  * {@link DWidgetContainer}.
  *
  * @see ReadDevice
  */
 public interface GraphicResource {
 
-    public Drawable getDrawableResource();
+    public GraphicObject getDrawableResource();
 }

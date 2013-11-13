@@ -26,12 +26,16 @@
 package robotinterface.interpreter;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
+import org.nfunk.jep.Node;
+import org.nfunk.jep.ParseException;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.drawable.util.QuickFrame;
@@ -65,11 +69,18 @@ public class Interpreter extends Thread {
     private Clock clock = new Clock();
     private int timestep = 0;
 
-    public Interpreter(Robot r) {
-        super("Interpreter::" + r.toString());
+    public Interpreter() {
+        super("Interpreter");
         parser = new JEP();
-        robot = r;
         state = WAITING;
+    }
+
+    public Robot getRobot() {
+        return robot;
+    }
+
+    public void setRobot(Robot robot) {
+        this.robot = robot;
     }
 
     public void reset() {
@@ -86,7 +97,6 @@ public class Interpreter extends Thread {
         parser.initSymTab(); // clear the contents of the symbol table
         parser.addStandardConstants();
         parser.setAllowAssignment(true);
-//        parser.setAllowUndeclared(true);
     }
 
     public Function getMainFunction() {
@@ -175,7 +185,8 @@ public class Interpreter extends Thread {
         r.add(new HBridge(1));
         r.add(new Compass());
         r.add(new Serial(57600));
-        Interpreter i = new Interpreter(r);
+        Interpreter i = new Interpreter();
+        i.setRobot(r);
 
 
 //        f.add(new Cmd("a"));
@@ -299,7 +310,7 @@ public class Interpreter extends Thread {
         
         SimulationPanel p = new SimulationPanel();
         p.addRobot(r);
-        r.attach(p);
+        r.setEnvironment(p.getEnv());
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
         
         //executa

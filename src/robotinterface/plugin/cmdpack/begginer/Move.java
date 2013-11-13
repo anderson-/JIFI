@@ -30,7 +30,7 @@ import java.awt.Rectangle;
 import java.awt.geom.RoundRectangle2D;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -41,7 +41,7 @@ import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.util.trafficsimulator.Clock;
 
-/**
+/** 
  * Procedimento de mover o robô.
  */
 public class Move extends Command implements GraphicResource, Classifiable, FunctionToken<Move> {
@@ -87,7 +87,7 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
     private SimpleContainer dResource = new SimpleContainer(new Rectangle(0, 0, 40, 20), Color.CYAN);
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         return dResource;
     }
 

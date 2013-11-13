@@ -29,19 +29,28 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
-import robotinterface.drawable.DWidgetContainer;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
+import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.drawable.util.QuickFrame;
@@ -63,63 +72,14 @@ public class If extends Procedure {
     //blocos para a divisão de fluxo
     private BlockTrue blockTrue;
     private BlockFalse blockFalse;
-    
-    private DWidgetContainer sContainer;
-    
+    private GraphicObject resource = null;
     private String var;
-    private Polygon p;
-    private ArrayList<Comparacao> comparacoes;
-
 
     public If() {
-        this.comparacoes = new ArrayList<>();
-        comparacoes.add(new Comparacao(this));
-         blockTrue = new BlockTrue();
+        blockTrue = new BlockTrue();
         blockFalse = new BlockFalse();
         blockTrue.setParent(this);
         blockFalse.setParent(this);
-        p = (Polygon) SimpleContainer.createDiamond(new Rectangle(0,0,400,100));
-        //cria um Losango (usar em IF)
-        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
-        Color c = Color.getHSBColor(.5f, .3f, .7f);
-        sContainer = new SimpleContainer(p, c) {
-            //re
-            @Override
-            protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                //escreve coisas quando os jcomponets estão visiveis
-                g.setColor(Color.BLACK);
-                g.drawString("Se:", 190, 10);
-                
-            }
-
-            @Override
-            protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                //escreve coisas quando os jcomponets não estão visiveis
-                g.setColor(Color.BLACK);
-                //if (var != null && type != null) {
-                //if(selecao =! null){
-                if(false){
-                    //g.drawString(selecao, 10, 30);
-                } else {
-                    g.drawString(getProcedure(), 50, 50);
-                }
-            }
-        };
-        insertJComponents();
-    }
-    
-    private void insertJComponents(){
-        for(int i = 0; i < comparacoes.size(); i++){
-            Comparacao co = comparacoes.get(i);
-            co.primeiro.setBounds(75, 37 + i*50, 100, 25);
-            sContainer.addJComponent(co.primeiro);
-            co.comparacao.setBounds(180, 37 + i*50, 50, 25);
-            sContainer.addJComponent(co.comparacao);
-            co.segundo.setBounds(235, 37 + i*50, 100, 25);
-            sContainer.addJComponent(co.segundo);
-            co.proximo.setBounds(180, 65 + i*50, 50, 25);
-            sContainer.addJComponent(co.proximo);
-        }
     }
 
     public If(String procedure) {
@@ -142,7 +102,7 @@ public class If extends Procedure {
     public Block getBlockFalse() {
         return blockFalse;
     }
-    
+
     @Override
     public boolean perform(Robot robot, Clock clock) throws ExecutionException {
         return true;
@@ -171,46 +131,6 @@ public class If extends Procedure {
             sb.append("\n");
         }
     }
-    
-    
-    //width 400 height 50+50*i
-    private void changePolygon(){
-        p.reset();
-        int n = comparacoes.size();
-        p.addPoint(200, 0);
-        p.addPoint(400, 50);
-        p.addPoint(400, 50*n);
-        p.addPoint(200, 50 + 50*n);
-        p.addPoint(0, 50*n);
-        p.addPoint(0, 50);
-    }
-    
-    public void addMore(JComboBox jcb){
-        int select = jcb.getSelectedIndex();
-        int encontrado = 0;
-        for(int i = 0; i < comparacoes.size(); i++){
-            if(comparacoes.get(i).proximo == jcb){
-                encontrado = i;
-                break;
-            }
-        }
-        if(select == 0){//delete below selections
-            for(int i = encontrado+1; i < comparacoes.size(); i++){
-                comparacoes.get(i).comparacao.setVisible(false);
-                comparacoes.get(i).primeiro.setVisible(false);
-                comparacoes.get(i).segundo.setVisible(false);
-                comparacoes.get(i).proximo.setVisible(false);
-                //[TODO] delete comparacoes.get(i).JTextField and JComboBox
-            }
-        }else{//selecionou 
-            if(encontrado == comparacoes.size() -1){
-                comparacoes.add(new Comparacao(this));
-                this.changePolygon();
-                this.insertJComponents();
-            }
-        }
-        
-    }
 
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
@@ -238,10 +158,10 @@ public class If extends Procedure {
         double pbty;
         double pbfx;
         double pbfy;
-        
+
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) this).getDrawableResource();
+            GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
             if (d != null) {
                 t = (Rectangle2D.Double) d.getObjectBouds();
@@ -256,10 +176,10 @@ public class If extends Procedure {
             double py = y - Ix * (ch / 2);
 
             if (this instanceof GraphicResource) {
-                Drawable d = ((GraphicResource) this).getDrawableResource();
+                GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
                 if (d != null) {
-                    d.setObjectLocation(px, py);
+                    d.setLocation(px, py);
 //                    System.out.println(this + " [" + px + "," + py + "]");
                 }
             }
@@ -300,22 +220,21 @@ public class If extends Procedure {
             getNext().ident(x, y, j, k, Ix, Iy, a);
         }
     }
-    
-     @Override
+
+    @Override
     public Item getItem() {
-        return super.getItem(); //To change body of generated methods, choose Tools | Templates.
+        return new Item("Condicional", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#FFA500"));
     }
 
     @Override
     public Object createInstance() {
         return new If();
     }
-    
-    
+
     @Override
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
-        
+
         if (copy instanceof If) {
             blockTrue.copy(((If) copy).blockTrue);
             blockFalse.copy(((If) copy).blockFalse);
@@ -323,42 +242,296 @@ public class If extends Procedure {
             System.out.println("Erro ao copiar: ");
             print();
         }
-        
+
         return p;
     }
 
-    @Override
-    public Drawable getDrawableResource() {
-        return sContainer;
+    public static MutableWidgetContainer createDrawableIf(final If i) {
+
+        final String[] comparadores = {"==", "!=", "<", "<=", ">", ">="};
+        final String[] proximos = {" ", "&&", "||"};
+        final int TEXTFIELD_WIDTH = 80;
+        final int TEXTFIELD_HEIGHT = 25;
+        final int COMBOBOX_WIDTH = 55;
+        final int COMBOBOX_HEIGHT = 25;
+        final int BUTTON_WIDTH = 25;
+        //HEADER LINE
+        final WidgetLine headerLine = new WidgetLine(20) {
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+                labels.add(new TextLabel("If:", 20, true));
+            }
+        };
+        //LINES
+        int textFieldLineWidth = 4 * INSET_X + 2 * TEXTFIELD_WIDTH + COMBOBOX_WIDTH;
+        int textFieldLineHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + COMBOBOX_HEIGHT;
+        final WidgetLine conditionalLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+                JTextField primeiro = new JTextField();
+                JTextField segundo = new JTextField();
+                JComboBox comparacao = new JComboBox(comparadores);
+                JComboBox proximo = new JComboBox(proximos);
+
+                if (data instanceof Object[]) {
+                    if (((Object[]) data)[0] instanceof String[]) {
+                        String[] strArray = (String[]) ((Object[]) data)[0];
+                        if (strArray.length == 1) {
+                            primeiro.setText(strArray[0]);
+                        } else if (strArray.length == 2) {
+                            primeiro.setText(strArray[0]);
+                            segundo.setText(strArray[1]);
+                        }
+                    }
+                    if (((Object[]) data)[1] instanceof Integer) {
+                        int cmp = (Integer) ((Object[]) data)[1];
+                        if (cmp >= 0) {
+                            comparacao.setSelectedIndex(cmp);
+                        }
+                    }
+                    if (((Object[]) data)[2] instanceof Integer) {
+                        int op = (Integer) ((Object[]) data)[2];
+                        if (op >= 0) {
+                            proximo.setSelectedIndex(op);
+                        }
+                    }
+                }
+
+                final WidgetLine thisConditionalLine = this;
+
+                proximo.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        container.addLine(thisConditionalLine, "");
+                    }
+                });
+
+                int x = INSET_X;
+                int y = INSET_Y;
+
+                widgets.add(new Widget(primeiro, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                x += TEXTFIELD_WIDTH + INSET_X;
+                widgets.add(new Widget(comparacao, x, y, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
+                x += COMBOBOX_WIDTH + INSET_X;
+                widgets.add(new Widget(segundo, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                x = TEXTFIELD_WIDTH + 2 * INSET_X;
+                y += COMBOBOX_HEIGHT + INSET_Y;
+                widgets.add(new Widget(proximo, x, y, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
+            }
+
+            @Override
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+                System.out.println("PARSING");
+                if (widgets.size() >= 4) {
+                    try {
+                        StringBuilder sb = new StringBuilder();
+                        Iterator<Widget> iterator = widgets.iterator();
+                        String str;
+                        Widget tmpWidget;
+                        JComponent jComponent;
+                        //JTextField 1
+                        tmpWidget = iterator.next();
+                        jComponent = tmpWidget.getJComponent();
+                        if (jComponent instanceof JTextField) {
+                            str = ((JTextField) jComponent).getText();
+                            if (!str.isEmpty()) {
+                                sb.append(" ");
+                                sb.append(str);
+                                sb.append(" ");
+                            }
+                        }
+                        //JComboBox 1
+                        tmpWidget = iterator.next();
+                        jComponent = tmpWidget.getJComponent();
+                        if (jComponent instanceof JComboBox) {
+                            str = ((JComboBox) jComponent).getSelectedItem().toString();
+                            if (!str.isEmpty()) {
+                                sb.append(str);
+                                sb.append(" ");
+                            }
+                        }
+                        //JTextField 2
+                        tmpWidget = iterator.next();
+                        jComponent = tmpWidget.getJComponent();
+                        if (jComponent instanceof JTextField) {
+                            str = ((JTextField) jComponent).getText();
+                            if (!str.isEmpty()) {
+                                sb.append(str);
+                                sb.append(" ");
+                            }
+                        }
+                        //JComboBox 2
+                        tmpWidget = iterator.next();
+                        jComponent = tmpWidget.getJComponent();
+                        if (jComponent instanceof JComboBox) {
+                            str = ((JComboBox) jComponent).getSelectedItem().toString();
+                            if (!str.isEmpty()) {
+                                sb.append(str);
+                            }
+                        }
+                        System.out.println(sb.toString());
+                        return sb.toString();
+                    } catch (NoSuchElementException e) {
+                        System.out.println("ERROR!");
+                    }
+                }
+                return "";
+            }
+        };
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FFA500")) { //While: #1281BD
+            private Polygon myShape = new Polygon();
+            public static final int EXTENDED_HEIGHT = 15;
+            public static final int SIMPLE_HEIGHT = 20;
+            public static final int SIMPLE_WIDTH = 20;
+
+            {
+                string = i.getProcedure();
+                updateLines();
+                center = true;
+            }
+
+            @Override
+            public void updateLines() {
+                //exclui todas as linhas
+                clear();
+
+                //adiciona cabeçalho
+                addLine(headerLine, null);
+
+                //tenta decodificar string
+                try {
+                    //aqui é onde vai ser armazendado os dados de cada linha
+                    Object[] data = null;
+                    int op = -1;
+                    int cmp = -1;
+                    String[] expressions;
+                    boolean and;
+                    boolean andEnd;
+                    boolean or;
+                    boolean orEnd;
+
+                    for (String str0 : string.split("&&")) {
+                        and = (str0.length() == string.length());
+                        andEnd = string.endsWith(str0);
+                        for (String str : str0.split("\\|\\|")) {
+                            or = (str.length() == str0.length());
+                            orEnd = str0.endsWith(str);
+
+                            System.out.println(str);
+
+                            if (!or && !orEnd) {
+                                // ||
+                                op = 2;
+                            } else if (!and && !andEnd) {
+                                // &&
+                                op = 1;
+                            } else if (andEnd && orEnd) {
+                                // ??
+                                op = 0;
+                            } else {
+                                System.err.println("IF parse Error!");
+                            }
+
+                            for (int i = 0; i < comparadores.length; i++) {
+                                if (str.contains(comparadores[i])) {
+                                    cmp = i;
+                                }
+                            }
+
+                            expressions = str.split(comparadores[cmp]);
+
+                            data = new Object[]{expressions, cmp, op};
+                            //adiciona uma nova linha com dados
+                            addLine(conditionalLine, data);
+                        }
+                    }
+                    return;
+                } catch (Exception e) {
+                }
+
+                //adiciona uma nova linha sem dados
+                addLine(conditionalLine, null);
+            }
+
+            @Override
+            public Shape updateShape(Rectangle2D bounds) {
+                myShape.reset();
+
+                if (widgetVisible) {
+                    shapeStartX = 0;
+                    shapeStartY = EXTENDED_HEIGHT;
+                    myShape.addPoint((int) bounds.getCenterX(), 0);
+                    myShape.addPoint((int) bounds.getMaxX(), EXTENDED_HEIGHT);
+                    myShape.addPoint((int) bounds.getMaxX(), (int) bounds.getMaxY() + EXTENDED_HEIGHT);
+                    myShape.addPoint((int) bounds.getCenterX(), (int) bounds.getMaxY() + 2 * EXTENDED_HEIGHT);
+                    myShape.addPoint(0, (int) bounds.getMaxY() + EXTENDED_HEIGHT);
+                    myShape.addPoint(0, EXTENDED_HEIGHT);
+                } else {
+                    shapeStartX = SIMPLE_WIDTH;
+                    shapeStartY = SIMPLE_HEIGHT;
+
+                    myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, 0);
+                    myShape.addPoint((int) bounds.getMaxX() + 2 * SIMPLE_WIDTH, (int) bounds.getCenterY() + SIMPLE_HEIGHT);
+                    myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, (int) bounds.getMaxY() + 2 * SIMPLE_HEIGHT);
+                    myShape.addPoint(0, (int) bounds.getCenterY() + SIMPLE_HEIGHT);
+                }
+                return myShape; //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public String getString() {
+                String str = super.getString();
+                return str;
+            }
+
+            @Override
+            public void splitString(String original, Collection<String> splitted) {
+                //TODO:
+//                String[] split = original.split("&&|\\|\\|");
+//                splitted.add("if");
+//                for (String str : split) {
+//                    str = str.trim();
+//                    splitted.add(str);
+//                }
+//                splitted.add(")");
+
+                boolean and;
+                boolean andEnd;
+                boolean or;
+                boolean orEnd;
+
+                for (String str0 : string.split("&&")) {
+                    and = (str0.length() == string.length());
+                    andEnd = string.endsWith(str0);
+                    for (String str : str0.split("\\|\\|")) {
+                        or = (str.length() == str0.length());
+                        orEnd = str0.endsWith(str);
+                        str = str.trim();
+                        splitted.add(str);
+
+                        if (!or && !orEnd) {
+                            splitted.add("||");
+                        } else if (!and && !andEnd) {
+                            splitted.add("&&");
+                        }
+                    }
+                }
+            }
+        };
+        return mwc;
     }
-    
-    public static void main(String args[]){
+
+    @Override
+    public GraphicObject getDrawableResource() {
+        if (resource == null) {
+            resource = createDrawableIf(this);
+        }
+        return resource;
+    }
+
+    public static void main(String args[]) {
         If iiff = new If();
         QuickFrame.drawTest(iiff.getDrawableResource());
 
-    }
-    
-}
-
-class Comparacao implements ActionListener{
-    If iiff;
-    JTextField primeiro, segundo;
-    JComboBox comparacao, proximo;
-    
-    private static final String[] comparadores = {"=", "!=", "<", "<=", ">", ">="};
-    private static final String[] proximos = {" ", "e", "ou"};
-    
-    public Comparacao(If iiff){
-        primeiro = new JTextField();
-        segundo = new JTextField();
-        comparacao = new JComboBox(comparadores);
-        proximo = new JComboBox(proximos);
-        proximo.addActionListener(this);
-        this.iiff = iiff;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent ae) {
-        iiff.addMore(proximo);
     }
 }

@@ -45,7 +45,7 @@ import java.util.Random;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.panels.SimulationPanel;
@@ -53,7 +53,7 @@ import robotinterface.gui.panels.SimulationPanel;
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
  */
-public class Function extends Block implements Drawable {
+public class Function extends Block implements GraphicObject {
 
     public static class Wiring {
 
@@ -241,10 +241,10 @@ public class Function extends Block implements Drawable {
             double py = y - Ix * (ch / 2);
 
             if (b instanceof GraphicResource) {
-                Drawable d = ((GraphicResource) b).getDrawableResource();
+                GraphicObject d = ((GraphicResource) b).getDrawableResource();
 
                 if (d != null) {
-                    d.setObjectLocation(px, py);
+                    d.setLocation(px, py);
                 } else {
                     t.x = px;
                     t.y = py;
@@ -270,10 +270,10 @@ public class Function extends Block implements Drawable {
                 double py = y - Ix * (ch / 2);
 
                 if (it instanceof GraphicResource) {
-                    Drawable d = ((GraphicResource) it).getDrawableResource();
+                    GraphicObject d = ((GraphicResource) it).getDrawableResource();
 
                     if (d != null) {
-                        d.setObjectLocation(px, py);
+                        d.setLocation(px, py);
 //                        System.out.println(ch);
                     } else {
                         t.x = px;
@@ -345,7 +345,7 @@ public class Function extends Block implements Drawable {
     @Deprecated //função de teste
     private static Rectangle2D.Double getObjectBounds(Command c) {
         if (c instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) c).getDrawableResource();
+            GraphicObject d = ((GraphicResource) c).getDrawableResource();
 
             if (d != null) {
                 if (teste.containsKey(c)) {
@@ -637,9 +637,9 @@ public class Function extends Block implements Drawable {
                     gp.moveTo(dBounds.getCenterX(), dBounds.getMaxY());
                 } else {
                     gp.moveTo(dBounds.getCenterX(), dBounds.getMaxY());
-//                    gp.quadTo(gp.getCurrentPoint().getX(), gp.getCurrentPoint().getY(), dBounds.getCenterX(), dBounds.getMaxY());
+//                    gp.quadTo(gp.getCurrentPoint().getPosX(), gp.getCurrentPoint().getPosY(), dBounds.getCenterX(), dBounds.getMaxY());
                 }
-//                gp.quadTo(gp.getCurrentPoint().getX(), gp.getCurrentPoint().getY(), dBounds.getCenterX(), dBounds.getMaxY()+ j);
+//                gp.quadTo(gp.getCurrentPoint().getPosX(), gp.getCurrentPoint().getPosY(), dBounds.getCenterX(), dBounds.getMaxY()+ j);
                 gp.lineTo(dBounds.getCenterX(), dBounds.getMaxY() + j);
                 lines.add(gp);
                 gp = new GeneralPath();
@@ -662,7 +662,7 @@ public class Function extends Block implements Drawable {
         while (it != null) {
 
             if (it instanceof GraphicResource) {
-                Drawable d = ((GraphicResource) it).getDrawableResource();
+                GraphicObject d = ((GraphicResource) it).getDrawableResource();
                 if (d != null) {
                     if (d.getObjectShape().contains(p)) {
                         return it;
@@ -749,12 +749,22 @@ public class Function extends Block implements Drawable {
     }
 
     @Override
-    public void setObjectLocation(double x, double y) {
+    public void setLocation(double x, double y) {
+    }
+    
+    @Override
+    public double getPosX() {
+        return getObjectBouds().x;
     }
 
     @Override
+    public double getPosY() {
+        return getObjectBouds().y;
+    }
+    
+    @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER;
+        return GraphicObject.DEFAULT_LAYER;
     }
 
     @Override

@@ -12,8 +12,8 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.UIManager;
-import robotinterface.drawable.DWidgetContainer;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.plugin.Pluggable;
 
@@ -21,7 +21,7 @@ import robotinterface.plugin.Pluggable;
  *
  * @author antunes
  */
-public class SidePanel extends DWidgetContainer {
+public class SidePanel extends WidgetContainer {
 
     private int panelWidth = 100;
     private int panelItensHeight = 0;
@@ -61,7 +61,7 @@ public class SidePanel extends DWidgetContainer {
 
     @Override
     public int getDrawableLayer() {
-        return Drawable.TOP_LAYER;
+        return GraphicObject.TOP_LAYER;
     }
 
     @Override
@@ -120,7 +120,7 @@ public class SidePanel extends DWidgetContainer {
         }
 
         g.fillRect(0, 0, panelWidth, ga.getHeight());
-        //super.setObjectLocation(0, x);
+        //super.setLocation(0, x);
         if (in.isKeyPressed(KeyEvent.VK_1)) {
             animOpen = true;
         } else if (in.isKeyPressed(KeyEvent.VK_2)) {
@@ -130,7 +130,7 @@ public class SidePanel extends DWidgetContainer {
         int x = 10, y = 10 + panelItensY;
         ArrayList<Item> itensTmp = (ArrayList<Item>) itens.clone();
         for (Item i : itensTmp) {
-            i.setObjectLocation(x, y);
+            i.setLocation(x, y);
 //                g.setColor(Color.GREEN);
 //                g.draw(i.getObjectShape());
             i.draw(g, ga, in);

@@ -7,7 +7,7 @@ package robotinterface.algorithm.procedure;
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
@@ -20,7 +20,7 @@ import robotinterface.util.trafficsimulator.Clock;
 public class DummyBlock extends Procedure {
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         setProcedure("<VAZIO>");
         return super.getDrawableResource();
     }

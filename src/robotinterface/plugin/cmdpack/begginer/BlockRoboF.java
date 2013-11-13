@@ -25,8 +25,8 @@ package robotinterface.plugin.cmdpack.begginer;
 
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DWidgetContainer;
+import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.WidgetContainer;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -73,7 +73,7 @@ public class BlockRoboF extends Procedure implements GraphicResource {
     private Class<?> type2;
     private int valorParam1;
     private int valorParam2;
-    private DWidgetContainer sContainer;
+    private WidgetContainer sContainer;
     private DrawableRobot drobot;
 
     public BlockRoboF(ArrayList<Class<? extends Device>> devices) {
@@ -267,9 +267,9 @@ public class BlockRoboF extends Procedure implements GraphicResource {
         //rlabel.setBounds(0, 0, 30, 120);
         
         //adiciona os jcompoents no SimpleContainer
-        sContainer.addJComponent(fpanel, 125, 10, 115, 100);
-        sContainer.addJComponent(drobot, 25, 20, 80, 80);
-        sContainer.addJComponent(rlabel, 0, 0, 22, 120);
+        sContainer.addWidget(fpanel, 125, 10, 115, 100);
+        sContainer.addWidget(drobot, 25, 20, 80, 80);
+        sContainer.addWidget(rlabel, 0, 0, 22, 120);
         sContainer.setJComponentStatic(1, true);
         sContainer.setJComponentStatic(2, true);
         drobot.removeMouseMotionListener(null);
@@ -292,7 +292,7 @@ public class BlockRoboF extends Procedure implements GraphicResource {
     }
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         //retorna a classe responsável por desenhar esse comando.
         return sContainer;
     }

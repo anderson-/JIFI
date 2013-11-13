@@ -27,7 +27,7 @@ package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -52,13 +52,15 @@ import robotinterface.gui.panels.sidepanel.SidePanel;
 import robotinterface.plugin.PluginManager;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.robot.simulation.Environment;
+import robotinterface.robot.simulation.Perception;
 import robotinterface.util.LineIterator;
 import robotinterface.util.observable.Observer;
 
 /**
  * Painel da simulação do robô. <### EM DESENVOLVIMENTO ###>
  */
-public class SimulationPanel extends DrawingPanel implements Serializable, Observer<Device, Robot> {
+public class SimulationPanel extends DrawingPanel implements Serializable {
 
     public static final Item ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 5), Color.DARK_GRAY);
     public static final Item ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 5), Color.decode("#9B68C0"));
@@ -66,16 +68,12 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
     public static final Item ITEM_REMOVE_LINE = new Item("Remover", new Rectangle(0, 0, 20, 20), Color.decode("#D24545"));
     private static final int MAX_ARRAY = 5000;
     private final ArrayList<Robot> robots = new ArrayList<>();
-    private final ArrayList<Point> rpos = new ArrayList<>();
-    private final ArrayList<Point> obstacle = new ArrayList<>();
-    private final ArrayList<Shape> obstacles = new ArrayList<>();
+    private Environment env = new Environment();
     private Item itemSelected;
     private Point2D.Double point = null;
-SidePanel sp;
-    public SimulationPanel() {
-//        robot.setRightWheelSpeed(50);
-//        robot.setLeftWheelSpeed(50);
+    SidePanel sp;
 
+    public SimulationPanel() {
 
         sp = new SidePanel() {
             @Override
@@ -107,15 +105,11 @@ SidePanel sp;
                 }
 
                 for (Robot robot : tmpBots) {
+                    robot.updatePerception();
 
-                    //posição
-                    synchronized (rpos) {
-                        rpos.add(new Point((int) robot.getObjectBouds().x, (int) robot.getObjectBouds().y));
-                        while (rpos.size() > MAX_ARRAY) {
-                            rpos.remove(0);
-                        }
-                    }
                     if (this.getCount() % 20 == 0) {
+//                        robot.setRightWheelSpeed(30);
+//                        robot.setLeftWheelSpeed(30);
 //                        robot.setRightWheelSpeed(Math.random() * 100);
 //                        robot.setLeftWheelSpeed(Math.random() * 100);
                     }
@@ -127,37 +121,51 @@ SidePanel sp;
         clock.setPaused(false);
     }
 
+    private SimulationPanel(Environment e) {
+        env = e;
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+    
     public void addRobot(Robot robot) {
         synchronized (robots) {
             robots.add(robot);
         }
-        robot.attach(this);
         add(robot);
     }
-
-    private void addObstacle(Robot robot, double d) {
-        double tx = robot.getObjectBouds().x + d * cos(robot.getTheta());
-        double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
-        synchronized (obstacle) {
-            obstacle.add(new Point((int) tx, (int) ty));
-            while (obstacle.size() > MAX_ARRAY) {
-                obstacle.remove(0);
-            }
-        }
+    
+    public ArrayList<Robot> getRobots() {
+        return robots;
     }
 
+//    private void addObstacle(Robot robot, double d) {
+//        double tx = robot.getObjectBouds().x + d * cos(robot.getTheta());
+//        double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
+//        synchronized (obstacle) {
+//            obstacle.add(new Point((int) tx, (int) ty));
+//            while (obstacle.size() > MAX_ARRAY) {
+//                obstacle.remove(0);
+//            }
+//        }
+//    }
 //    public final void add(Robot r) {
-//        add((Drawable) r);
+//        add((GraphicObject) r);
 //        for (Device d : r.getDevices()) {
-//            if (d instanceof Drawable) {
-//                add((Drawable) d);
+//            if (d instanceof GraphicObject) {
+//                add((GraphicObject) d);
 //            }
 //        }
 //        for (Connection c : r.getConnections()) {
-//            add((Drawable) c);
+//            add((GraphicObject) c);
 //        }
 //    }
-    public static void paintPoints(Graphics2D g, List<Point> points, int size) {
+    private void paintPoints(Graphics2D g, List<Point> points, int size) {
         for (Point p : points) {
             g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
         }
@@ -171,11 +179,12 @@ SidePanel sp;
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
         super.drawBackground(g, ga, in);
+        env.draw(g);
     }
 
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
-        if (sp.getObjectBouds().contains(in.getMouse())){
+        if (sp.getObjectBouds().contains(in.getMouse())) {
             return;
         }
         if (itemSelected != null) {
@@ -186,10 +195,29 @@ SidePanel sp;
                             Line2D.Double line = new Line2D.Double(point, in.getTransformedMouse());
 
                             if (itemSelected == ITEM_LINE) {
+                                env.addFollowLine(line);
                             } else if (itemSelected == ITEM_OBSTACLE_LINE) {
-                                obstacles.add(line);
+                                env.addObstacle(line);
                             } else if (itemSelected == ITEM_REMOVE_LINE) {
-                                for (Iterator<Shape> it = obstacles.iterator(); it.hasNext();) {
+                                for (Iterator<Shape> it = env.linesIterator(); it.hasNext();) {
+                                    Shape s = it.next();
+                                    if (s instanceof Line2D.Double) {
+                                        if (((Line2D.Double) s).intersectsLine(line)) {
+                                            it.remove();
+                                        }
+                                    } else {
+                                        Point2D p;
+                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
+                                            p = iter.next();
+                                            if (s.contains(p)) {
+                                                it.remove();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                for (Iterator<Shape> it = env.obstaclesIterator(); it.hasNext();) {
                                     Shape s = it.next();
                                     if (s instanceof Line2D.Double) {
                                         if (((Line2D.Double) s).intersectsLine(line)) {
@@ -224,7 +252,7 @@ SidePanel sp;
                             double x = point.x - r;
                             double y = point.y - r;
                             r *= 2;
-                            obstacles.add(new Ellipse2D.Double(x, y, r, r));
+                            env.addObstacle(new Ellipse2D.Double(x, y, r, r));
                             point = null;
                             return;
                         }
@@ -247,6 +275,7 @@ SidePanel sp;
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+                
         synchronized (robots) {
             for (Robot robot : robots) {
                 double v1 = robot.getLeftWheelSpeed();
@@ -280,15 +309,17 @@ SidePanel sp;
                 }
             }
         }
-        g.setColor(Color.red);
-        synchronized (rpos) {
-            paintPoints(g, rpos, 5);
-        }
-        g.setColor(Color.GREEN.brighter());
-        synchronized (obstacle) {
-            paintPoints(g, obstacle, 5);
-        }
 
+//        g.setColor(Color.red);
+//        synchronized (rpos) {
+//            paintPoints(g, rpos, 5);
+//        }
+//        g.setColor(Color.GREEN.brighter());
+//        synchronized (obstacle) {
+//            paintPoints(g, obstacle, 5);
+//        }
+
+//        per.draw(g);
 
         g.setStroke(new BasicStroke(5));
 
@@ -304,28 +335,28 @@ SidePanel sp;
             }
         }
 
-        g.setColor(Color.BLACK);
-        for (Shape s : obstacles) {
-            g.draw(s);
-        }
-        
+//        g.setColor(Color.BLACK);
+//        for (Shape s : obstacles) {
+//            g.draw(s);
+//        }
+
         g.setStroke(defaultStroke);
     }
 
     public static void main(String[] args) {
+        
         SimulationPanel p = new SimulationPanel();
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-//        p.addRobot(new Robot());
-//        p.addRobot(new Robot());
+
+        Robot r = new Robot();
+        r.add(new IRProximitySensor());
+        r.setEnvironment(p.getEnv());
+        p.addRobot(r);
+        
+        r = new Robot();
+        r.add(new IRProximitySensor());
+        r.setEnvironment(p.getEnv());
+        p.addRobot(r);
     }
 
-    @Override
-    public void update(Device device, Robot robot) {
-        if (device instanceof IRProximitySensor) {
-            addObstacle(robot, ((IRProximitySensor) device).getDist() * 2 + Robot.size/2);
-        }
-        if (device instanceof Compass) {
-            robot.setTheta(Math.toRadians(((Compass) device).getAlpha()));
-        }
-    }
 }

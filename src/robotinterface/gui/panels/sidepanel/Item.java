@@ -12,10 +12,10 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 
-public class Item implements Drawable {
+public class Item implements GraphicObject {
 
     private static Font font = null;
     private static double maxHeight = 0;
@@ -112,14 +112,24 @@ public class Item implements Drawable {
     }
 
     @Override
-    public void setObjectLocation(double x, double y) {
+    public void setLocation(double x, double y) {
         shape.x = x;
         shape.y = y;
     }
 
     @Override
+    public double getPosX() {
+        return shape.x;
+    }
+
+    @Override
+    public double getPosY() {
+        return shape.y;
+    }
+
+    @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER;
+        return GraphicObject.DEFAULT_LAYER;
     }
 
     @Override

@@ -37,7 +37,7 @@ import robotinterface.algorithm.procedure.Block;
 import static robotinterface.algorithm.procedure.Function.getBounds;
 import static robotinterface.algorithm.procedure.Function.ident;
 import robotinterface.algorithm.procedure.If;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.robot.Robot;
@@ -174,12 +174,12 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
     public String toString() {
         return name;
     }
-    private Drawable d = null;
+    private GraphicObject d = null;
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         if (d == null) {
-            d = new Drawable.SimpleDrawableObject(new Rectangle2D.Double(0, 0, 30, 30)) {
+            d = new GraphicObject.SimpleDrawableObject(new Rectangle2D.Double(0, 0, 30, 30)) {
                 @Override
                 public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
                     g.setColor(Color.lightGray);
@@ -219,7 +219,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) this).getDrawableResource();
+            GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
             if (d != null) {
                 t = (Rectangle2D.Double) d.getObjectBouds();
@@ -234,10 +234,10 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
             double py = y - Ix * (ch / 2);
 
             if (this instanceof GraphicResource) {
-                Drawable d = ((GraphicResource) this).getDrawableResource();
+                GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
                 if (d != null) {
-                    d.setObjectLocation(px, py);
+                    d.setLocation(px, py);
                 }
             }
 
@@ -254,7 +254,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) this).getDrawableResource();
+            GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
             if (d != null) {
                 t = (Rectangle2D.Double) d.getObjectBouds();

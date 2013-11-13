@@ -34,24 +34,31 @@ import java.util.Iterator;
 import javax.swing.JComponent;
 import robotinterface.drawable.DrawingPanel.GraphicAttributes;
 import robotinterface.drawable.DrawingPanel.InputState;
-import robotinterface.drawable.DWidgetContainer.Widget;
+import robotinterface.drawable.WidgetContainer.Widget;
 import java.awt.geom.Rectangle2D;
 
 /**
  * Container desenhável com suporte a componentes Swing.
  */
-public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
+public abstract class WidgetContainer implements GraphicObject, Iterable<Widget> {
 
-    public class Widget {
+    public static class Widget {
 
         private JComponent widget;
         private Rectangle bounds;
+        private Rectangle tmpRect;
         private boolean isStatic;
+        private int x, y;
 
         public Widget(JComponent widget, Rectangle bounds) {
+            tmpRect = new Rectangle();
             this.widget = widget;
             this.bounds = bounds;
             isStatic = false;
+        }
+        
+        public Widget(JComponent widget,  int x, int y, int width, int height) {
+            this(widget, new Rectangle(x, y, width, height));
         }
 
         public JComponent getJComponent() {
@@ -59,15 +66,18 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         }
 
         public Rectangle getBounds() {
-            return bounds;
+            tmpRect.setBounds(bounds);
+            tmpRect.x += x;
+            tmpRect.y += y;
+            return tmpRect;
         }
 
         public int getX() {
-            return bounds.x;
+            return bounds.x + x;
         }
 
         public int getY() {
-            return bounds.y;
+            return bounds.y + y;
         }
 
         public boolean isStatic() {
@@ -80,6 +90,12 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
 
         public void setLocation(int x, int y) {
             bounds.setLocation(x, y);
+            updateBounds();
+        }
+
+        public void setTempLocation(int x, int y) {
+            this.x = x;
+            this.y = y;
             updateBounds();
         }
 
@@ -99,25 +115,30 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         }
 
         public void updateBounds() {
-            widget.setBounds(bounds);
+            widget.setBounds(getBounds());
         }
+    }
+    private static boolean hideAllWidgets = false;
+
+    public static void hideAllWidgets(boolean hideAllWidgets) {
+        WidgetContainer.hideAllWidgets = hideAllWidgets;
     }
     private DrawingPanel parent;
     private ArrayList<Widget> widgets;
     private AffineTransform transform;
     protected Shape shape;
-    protected boolean widgetVisible = true;
+    protected boolean widgetVisible = false;
     protected Rectangle2D.Double bounds;
 
     public boolean isWidgetVisible() {
-        return widgetVisible;
+        return widgetVisible && !hideAllWidgets;
     }
 
     public void setWidgetVisible(boolean showSwing) {
         this.widgetVisible = showSwing;
     }
 
-    public DWidgetContainer() {
+    public WidgetContainer() {
         parent = null;
         widgets = new ArrayList<>();
         transform = new AffineTransform();
@@ -125,7 +146,7 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         bounds = new Rectangle2D.Double();
     }
 
-    public DWidgetContainer(Shape shape) {
+    public WidgetContainer(Shape shape) {
         parent = null;
         widgets = new ArrayList<>();
         transform = new AffineTransform();
@@ -140,7 +161,27 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         }
     }
 
-    public final Widget addJComponent(JComponent comp, int x, int y, int width, int height) {
+    public void cleanRemoved (){
+        if (parent != null) {
+            for (Widget dc : widgets) {
+                //remove possiveis duplicados
+                parent.remove(dc.widget);
+                dc.widget.removeMouseMotionListener(parent);
+                //adiciona componente swing
+                parent.add(dc.widget);
+                //permite receber ações de movimento do mouse no DrawingPanel
+                dc.widget.addMouseMotionListener(parent);
+            }
+        }
+    }
+    
+    public void addWidget(Widget w) {
+        widgets.add(w);
+        updateWidgets();
+        cleanRemoved();
+    }
+
+    public final Widget addWidget(JComponent comp, int x, int y, int width, int height) {
         Widget w = null;
         if (comp != null) {
             w = new Widget(comp, new Rectangle(x, y, width, height));
@@ -161,7 +202,25 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         return w;
     }
     
-    public final void removeJComponent(Widget w) {
+    public final Widget addWidget(JComponent comp, Rectangle bounds) {
+        Widget w = null;
+        if (comp != null) {
+             w = new Widget(comp, bounds);
+             addWidget(w);
+        }
+        return w;
+    }
+
+    public final Widget addWidget(JComponent comp) {
+         Widget w = null;
+        if (comp != null) {
+             w = new Widget(comp, comp.getBounds());
+             addWidget(w);
+        }
+        return w;
+    }
+    
+    public final void removeWidget(Widget w) {
         widgets.remove(w);
         updateWidgets();
         if (parent != null) {
@@ -170,19 +229,10 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
         }
     }
 
-    public final void addJComponent(JComponent comp, Rectangle bounds) {
-        addJComponent(comp, bounds.x, bounds.y, bounds.width, bounds.height);
-    }
-
-    public final void addJComponent(JComponent comp) {
-        Rectangle b = comp.getBounds();
-        addJComponent(comp, b.x, b.y, b.width, b.height);
-    }
-
-    public Drawable appendTo(DrawingPanel dp) {
+    public GraphicObject appendTo(DrawingPanel dp) {
         if (parent == null) {
             parent = dp;
-            addJComponent(null, 0, 0, 0, 0);
+            addWidget(null, 0, 0, 0, 0);
         }
         return this;
     }
@@ -208,9 +258,19 @@ public abstract class DWidgetContainer implements Drawable, Iterable<Widget> {
     }
 
     @Override
-    public void setObjectLocation(double x, double y) {
+    public void setLocation(double x, double y) {
         bounds.x = x;
         bounds.y = y;
+    }
+
+    @Override
+    public double getPosX() {
+        return bounds.x;
+    }
+
+    @Override
+    public double getPosY() {
+        return bounds.y;
     }
 
     @Override

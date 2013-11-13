@@ -30,7 +30,7 @@ import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.FunctionBlock;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
@@ -112,7 +112,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
         add(sp);
         
-        interpreter = new Interpreter(new Robot());
+        interpreter = new Interpreter();
         interpreter.start();
         setFunction(function);
     }
@@ -143,7 +143,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         Command cmd = interpreter.getCurrentCommand();
 //        System.out.println(cmd);
         if (cmd instanceof GraphicResource) {
-            Drawable d = ((GraphicResource) cmd).getDrawableResource();
+            GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
             if (d != null) {
                 AffineTransform o = g.getTransform();
                 AffineTransform n = (AffineTransform) o.clone();
@@ -190,7 +190,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                 if (tmpi == 2) {
                     if (c != null) {
                         if (c instanceof GraphicResource) {
-                            Drawable d = ((GraphicResource) c).getDrawableResource();
+                            GraphicObject d = ((GraphicResource) c).getDrawableResource();
                             if (d != null) {
                                 g.draw(d.getObjectShape());
 
@@ -205,7 +205,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                         }
                         Command n = tmp;
                         if (n instanceof GraphicResource) {
-                            Drawable d = ((GraphicResource) n).getDrawableResource();
+                            GraphicObject d = ((GraphicResource) n).getDrawableResource();
                             if (d != null) {
                                 this.add(d);
                             }
@@ -241,7 +241,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
 
         for (Command c : selection) {
             if (c instanceof GraphicResource && c.getParent() != null) {
-                Drawable d = ((GraphicResource) c).getDrawableResource();
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
                     g.setColor(Color.red);
                     g.draw(d.getObjectShape());
@@ -316,7 +316,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                             s.addAfter(c);
                             s = c;
                             if (c instanceof GraphicResource) {
-                                Drawable d = ((GraphicResource) c).getDrawableResource();
+                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
                                 if (d != null) {
                                     add(d);
                                 }
@@ -411,6 +411,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     }
 
     public static void main(String[] args) {
+        QuickFrame.applyLookAndFeel();
         FlowchartPanel p = new FlowchartPanel(Interpreter.bubbleSort(10, true));
         QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
     }

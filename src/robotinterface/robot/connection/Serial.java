@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +33,7 @@ import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.robot.device.ReflectanceSensorArray;
+import robotinterface.robot.simulation.VirtualConnection;
 import robotinterface.util.ByteCharset;
 
 /**
@@ -42,6 +44,7 @@ public class Serial implements Connection, SerialPortEventListener {
 
     private ArrayList<Observer<ByteBuffer, Connection>> observers;
     private SerialPort serialPort;
+    private String defaultPort = null;
     private boolean isConnected = false;
     private boolean available = false;
     private static final String PORT_NAMES[] = {
@@ -76,6 +79,14 @@ public class Serial implements Connection, SerialPortEventListener {
         observers = new ArrayList<>();
         this.dataRate = dataRate;
         buffer = ByteBuffer.allocate(256);
+    }
+
+    public String getDefaultPort() {
+        return defaultPort;
+    }
+
+    public void setDefaultPort(String defaultPort) {
+        this.defaultPort = defaultPort;
     }
 
     @Override
@@ -178,10 +189,8 @@ public class Serial implements Connection, SerialPortEventListener {
         return true;
     }
 
-    @Override
-    public boolean establishConnection() {
-
-        isConnected = false;
+    public Collection<String> getAvailableDevices() {
+        ArrayList<String> avaliableDevices = new ArrayList<>();
 
         for (String name : PORT_NAMES) {
             if (name.contains("#")) {
@@ -189,19 +198,55 @@ public class Serial implements Connection, SerialPortEventListener {
                     String device = name.replace("#", "" + i);
                     //adiciona portas ocultas e bloqueadas (Linux)
                     System.setProperty("gnu.io.rxtx.SerialPorts", device);
-//                    System.out.println("tentando: " + device);
-                    isConnected = tryConnect(device);
-
-                    if (isConnected) {
-                        System.out.println(device);
-                        try {
-                            Thread.sleep(1000); //espera 1s para a conexão funcionar
-                        } catch (InterruptedException ex) {
-                        }
-
-                        return true;
+                    if (tryConnect(device)) {
+                        avaliableDevices.add(device);
+                        closeConnection();
                     }
                 }
+            }
+        }
+        return avaliableDevices;
+    }
+
+    @Override
+    public boolean establishConnection() {
+
+        isConnected = false;
+
+        if (defaultPort == null) {
+
+            for (String name : PORT_NAMES) {
+                if (name.contains("#")) {
+                    for (int i = 0; i < PORT_SEARCH; i++) {
+                        String device = name.replace("#", "" + i);
+                        //adiciona portas ocultas e bloqueadas (Linux)
+                        System.setProperty("gnu.io.rxtx.SerialPorts", device);
+                        isConnected = tryConnect(device);
+
+                        if (isConnected) {
+                            System.out.println(device);
+                            try {
+                                Thread.sleep(1000); //espera 1s para a conexão funcionar
+                            } catch (InterruptedException ex) {
+                            }
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        } else {
+            //adiciona portas ocultas e bloqueadas (Linux)
+            System.setProperty("gnu.io.rxtx.SerialPorts", defaultPort);
+            isConnected = tryConnect(defaultPort);
+
+            if (isConnected) {
+                try {
+                    Thread.sleep(1000); //espera 1s para a conexão funcionar
+                } catch (InterruptedException ex) {
+                }
+
+                return true;
             }
         }
         return false;
@@ -215,7 +260,7 @@ public class Serial implements Connection, SerialPortEventListener {
         }
     }
     public int s = 0;
-    public int r = 0;
+    public static int r = 0;
 
     @Override
     public boolean isConnected() {
@@ -352,7 +397,10 @@ public class Serial implements Connection, SerialPortEventListener {
     }
 
     public static void main(String[] args) {
-        Serial s = new Serial(57600);
+        Connection s;
+        s = new Serial(57600);
+//        s = new VirtualConnection(s);
+//        s = new VirtualConnection();
 
         Robot r = new Robot();
         r.add(new HBridge(1));
@@ -360,6 +408,11 @@ public class Serial implements Connection, SerialPortEventListener {
         r.add(new IRProximitySensor());
         r.add(new ReflectanceSensorArray());
         s.attach(r);
+
+        if (s instanceof VirtualConnection) {
+            VirtualConnection v = (VirtualConnection) s;
+            v.setRobot(r);
+        }
 
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
@@ -420,9 +473,9 @@ public class Serial implements Connection, SerialPortEventListener {
         /* RESETA AS FUNÇÕES E PONTE H */
 
 //        testMessages.add(new byte[]{7, (byte) 222});//reset all
-        
+
         /* RESETA O SISTEMA (funcionando) */
-        
+
 //        testMessages.add(new byte[]{7, (byte) 224});//reset system
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 //        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
@@ -436,15 +489,15 @@ public class Serial implements Connection, SerialPortEventListener {
 
         testMessages.add(new byte[]{7, (byte) 224});//reset system
         testMessages.add(new byte[]{6, 5, 1, 17});//add dist
-        testMessages.add(new byte[]{6, 4, 6, 0, 16, 4, 3, 0, (byte) 250});//add reflet
-        testMessages.add(new byte[]{5, 1, 2, 0, 50, 5, 1, 2, 1, -50}); //rotaciona
+        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
+//        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
         for (int i = 0; i < 5000; i++) {
             testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
         }
 
         SimulationPanel p = new SimulationPanel();
         p.addRobot(r);
-        r.attach(p);
+        r.setEnvironment(p.getEnv());
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
 
 
@@ -473,12 +526,12 @@ public class Serial implements Connection, SerialPortEventListener {
                     try {
                         int w = 0;
                         loop:
-                        while (send != s.r) {
+                        while (send != Serial.r) {
                             //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             Thread.sleep(1); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             w++;
                             if (w >= 40) {
-                                s.send(message);
+//                                s.send(message);
                                 w = 0;
                                 break loop;
                             }

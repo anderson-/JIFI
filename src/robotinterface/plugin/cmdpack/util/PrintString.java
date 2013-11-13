@@ -26,8 +26,8 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
-import robotinterface.drawable.DWidgetContainer;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
@@ -38,7 +38,6 @@ import robotinterface.util.trafficsimulator.Clock;
 
 /**
  *
- * @author antunes
  */
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
@@ -117,7 +116,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         return new PrintString("Hello Worlld!");
     }
     private Color color = Color.decode("#6693BC");
-    private Drawable d = null;
+    private GraphicObject d = null;
     private static Font font = new Font("Dialog", Font.BOLD, 12);
 
     public static Shape createPrintShape(Rectangle2D r) {
@@ -138,16 +137,16 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     }
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         if (d == null) {
             Rectangle2D s = new Rectangle2D.Double(0, 0, 150, 60);
             //cria um Losango (usar em IF)
             //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
 
             SimpleContainer sContainer = new SimpleContainer(createPrintShape(s), color) {
-                private ArrayList<DWidgetContainer.Widget> wFields = new ArrayList<>();
-                private DWidgetContainer.Widget addButton;
-                private DWidgetContainer.Widget remButton;
+                private ArrayList<WidgetContainer.Widget> wFields = new ArrayList<>();
+                private WidgetContainer.Widget addButton;
+                private WidgetContainer.Widget remButton;
                 private boolean updateFields = false;
                 private boolean updateShape = false;
 
@@ -167,15 +166,15 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                         }
                     });
 
-                    addButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                    addButton = addWidget(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
                     b = new JButton("-");
 
                     b.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            DWidgetContainer.Widget w = wFields.get(wFields.size() - 1);
-                            removeJComponent(w);
+                            WidgetContainer.Widget w = wFields.get(wFields.size() - 1);
+                            removeWidget(w);
                             wFields.remove(w);
                             if (wFields.size() < 2) {
                                 JButton btn = (JButton) remButton.getJComponent();
@@ -184,7 +183,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                         }
                     });
 
-                    remButton = addJComponent(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                    remButton = addWidget(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
                 }
 
@@ -198,13 +197,13 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                         }
                     });
 
-                    wFields.add(addJComponent(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                    wFields.add(addWidget(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
                 }
 
                 private void updateProcedure() {
 //                    StringBuilder sb = new StringBuilder();
 //
-//                    for (DWidgetContainer.Widget w : wFields) {
+//                    for (WidgetContainer.Widget w : wFields) {
 //                        JTextField tf = (JTextField) w.getJComponent();
 //                        String str = tf.getText();
 //                        sb.append(str);
@@ -217,9 +216,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 }
 
                 private void createTextFields() {
-                    for (Iterator<DWidgetContainer.Widget> it = wFields.iterator(); it.hasNext();) {
-                        DWidgetContainer.Widget w = it.next();
-                        removeJComponent(w);
+                    for (Iterator<WidgetContainer.Widget> it = wFields.iterator(); it.hasNext();) {
+                        WidgetContainer.Widget w = it.next();
+                        removeWidget(w);
                         it.remove();
                     }
 
@@ -229,7 +228,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 private void drawLine(Graphics2D g) {
                     Command c = getNext();
                     if (c instanceof GraphicResource) {
-                        Drawable d = ((GraphicResource) c).getDrawableResource();
+                        GraphicObject d = ((GraphicResource) c).getDrawableResource();
                         if (d != null) {
                             Rectangle2D.Double bThis = getObjectBouds();
                             Rectangle2D.Double bNext = d.getObjectBouds();
@@ -272,7 +271,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
                     x = BUTTON_WIDTH + 2 * INSET_X;
 
-                    for (DWidgetContainer.Widget w : wFields) {
+                    for (WidgetContainer.Widget w : wFields) {
                         y += INSET_Y;
                         w.setLocation((int) x, (int) y);
                         y += TEXTFIELD_HEIGHT;

@@ -6,6 +6,7 @@ package robotinterface.robot.device;
 
 import robotinterface.robot.connection.Connection;
 import java.nio.ByteBuffer;
+import robotinterface.robot.Robot;
 
 /**
  *
@@ -96,4 +97,10 @@ public abstract class Device {
     protected final void send(byte[] msg) {
         connection.send(msg);
     }
+    
+    
+    public void updateRobot(Robot robot) {
+        
+    }
+
 }

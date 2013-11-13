@@ -3,3 +3,4 @@
 robotinterface.algorithm.procedure.Procedure
 robotinterface.algorithm.procedure.FunctionBlock
 robotinterface.algorithm.procedure.DummyBlock
+robotinterface.algorithm.procedure.If

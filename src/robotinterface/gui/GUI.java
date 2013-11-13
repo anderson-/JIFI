@@ -48,12 +48,12 @@ import robotinterface.robot.Robot;
 public class GUI extends javax.swing.JFrame {
 
     private static GUI INSTANCE = null;
-    private ArrayList<Robot> robots;
     private Project mainProject = new Project();
     private ArrayList<CodeEditorPanel> mapCE = new ArrayList<>();
     private ArrayList<FlowchartPanel> mapFC = new ArrayList<>();
     private ImageIcon codeIcon;
     private ImageIcon flowchartIcon;
+    private final RobotManager robotManager;
 
     {
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
@@ -69,8 +69,8 @@ public class GUI extends javax.swing.JFrame {
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
 
-        simulationPanel.addRobot(new Robot());
-        simulationPanel.addRobot(new Robot());
+//        simulationPanel.addRobot(new Robot());
+//        simulationPanel.addRobot(new Robot());
 
         mainTabbedPaneStateChanged(null);
 
@@ -99,7 +99,9 @@ public class GUI extends javax.swing.JFrame {
 
         //robot manager
 
-        jScrollPane3.setViewportView(new RobotManager());
+        robotManager = new RobotManager(this);
+        jScrollPane3.setViewportView(robotManager);
+        jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
 
 //        mainProject.importFile("teste.zip");
 //
@@ -108,6 +110,28 @@ public class GUI extends javax.swing.JFrame {
 //            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
 ////            System.out.println(Parser.encode(f));
 //        }
+        updateRobotList();
+    }
+
+    public void updateRobotList() {
+        //combobox
+        robotComboBox.removeAllItems();
+        ArrayList<Robot> simualtionRobotList = simulationPanel.getRobots();
+        for (RobotControlPanel panel : robotManager) {
+            robotComboBox.addItem(panel);
+            //simulation
+            if (!simualtionRobotList.contains(panel.getRobot())) {
+                simulationPanel.add(panel.getRobot());
+                panel.getRobot().setEnvironment(simulationPanel.getEnv());
+            }
+        }
+    }
+    
+    public void setDefaultRobot(Interpreter interpreter){
+        Object o = robotComboBox.getSelectedItem();
+        if (o instanceof RobotControlPanel) {
+            interpreter.setRobot(((RobotControlPanel) o).getRobot());
+        }
     }
 
     public static GUI getInstance() {
@@ -147,9 +171,7 @@ public class GUI extends javax.swing.JFrame {
         closeProjectButton1 = new javax.swing.JButton();
         closeProjectButton2 = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        runButton1 = new javax.swing.JButton();
-        jComboBox1 = new javax.swing.JComboBox();
-        runButton2 = new javax.swing.JButton();
+        robotComboBox = new javax.swing.JComboBox();
         runButton = new javax.swing.JButton();
         jSpinner1 = new javax.swing.JSpinner();
         stepButton = new javax.swing.JButton();
@@ -234,22 +256,9 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(closeProjectButton2);
         toolBar.add(jSeparator1);
 
-        runButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/list-add.png"))); // NOI18N
-        runButton1.setToolTipText("Adicionar Robô");
-        runButton1.setFocusable(false);
-        runButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        runButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(runButton1);
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        toolBar.add(jComboBox1);
-
-        runButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/list-remove.png"))); // NOI18N
-        runButton2.setToolTipText("Executar");
-        runButton2.setFocusable(false);
-        runButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        runButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(runButton2);
+        robotComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        robotComboBox.setPreferredSize(new java.awt.Dimension(100, 28));
+        toolBar.add(robotComboBox);
 
         runButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/media-playback-start.png"))); // NOI18N
         runButton.setToolTipText("Executar");
@@ -360,7 +369,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 535, Short.MAX_VALUE)
+            .addGap(0, 551, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -390,7 +399,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 279, Short.MAX_VALUE)
+            .addGap(0, 295, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -417,7 +426,7 @@ public class GUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 936, Short.MAX_VALUE)
+            .addComponent(primarySplitPane)
             .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -432,7 +441,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 573, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 589, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -513,6 +522,7 @@ public class GUI extends javax.swing.JFrame {
         Component cmp = mainTabbedPane.getSelectedComponent();
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+            setDefaultRobot(interpreter);
             interpreter.setInterpreterState(Interpreter.PLAY);
             updateControlBar(interpreter);
         }
@@ -522,6 +532,7 @@ public class GUI extends javax.swing.JFrame {
         Component cmp = mainTabbedPane.getSelectedComponent();
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+            setDefaultRobot(interpreter);
             interpreter.step();
             updateControlBar(interpreter);
         }
@@ -735,7 +746,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
-    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
@@ -752,9 +762,8 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton openButton;
     private javax.swing.JButton pauseButton;
     private javax.swing.JSplitPane primarySplitPane;
+    private javax.swing.JComboBox robotComboBox;
     private javax.swing.JButton runButton;
-    private javax.swing.JButton runButton1;
-    private javax.swing.JButton runButton2;
     private javax.swing.JButton saveButton;
     private javax.swing.JSplitPane secondarySplitPane;
     private robotinterface.gui.panels.SimulationPanel simulationPanel;

@@ -5,6 +5,7 @@
 package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
+import robotinterface.robot.Robot;
 
 /**
  *
@@ -18,6 +19,11 @@ public class Compass extends Device {
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
         System.out.println("Angulo:" + alpha);
+    }
+    
+    @Override
+    public void updateRobot(Robot robot) {
+        robot.setTheta(Math.toRadians(alpha));
     }
 
     @Override

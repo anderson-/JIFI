@@ -1,118 +1,34 @@
-/**
- * @file .java
- * @author Anderson Antunes <anderson.utf@gmail.com>
- *         *seu nome* <*seu email*>
- * @version 1.0
- *
- * @section LICENSE
- *
- * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
- *                       *seu nome* <*seu email*>
- *
- * RobotInterface is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * RobotInterface is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * RobotInterface. If not, see <http://www.gnu.org/licenses/>.
- *
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
  */
 package robotinterface.drawable;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import robotinterface.drawable.DrawingPanel.GraphicAttributes;
-import robotinterface.drawable.DrawingPanel.InputState;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 /**
- * Interface que torna uma classe desenhável por um {@link DrawingPanel}.
+ *
+ * @author antunes
  */
 public interface Drawable {
-
-    public static class SimpleDrawableObject implements Drawable {
-
-        private AffineTransform transform;
-        protected Shape shape;
-        protected Rectangle2D.Double bounds;
-
-        public SimpleDrawableObject(Shape shape) {
-            transform = new AffineTransform();
-            this.shape = shape;
-            bounds = new Rectangle2D.Double();
-            bounds.setRect(shape.getBounds2D());
-        }
-
-        @Override
-        public Shape getObjectShape() {
-            transform.setToIdentity();
-            transform.translate(bounds.x, bounds.y);
-            return transform.createTransformedShape(shape);
-        }
-
-        @Override
-        public Rectangle2D.Double getObjectBouds() {
-            return bounds;
-        }
-
-        @Override
-        public void setObjectBounds(double x, double y, double width, double height) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void setObjectLocation(double x, double y) {
-            bounds.x = x;
-            bounds.y = y;
-        }
-
-        @Override
-        public int getDrawableLayer() {
-            return Drawable.DEFAULT_LAYER;
-        }
-
-        @Override
-        public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-            
-        }
-
-        @Override
-        public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-            
-        }
-
-        @Override
-        public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
-            
-        }
-    }
     public static final int BACKGROUND_LAYER = 1;
     public static final int DEFAULT_LAYER = 2;
     public static final int TOP_LAYER = 4;
 
-    public Shape getObjectShape();
-
-    public Rectangle2D.Double getObjectBouds();
-
-    public void setObjectBounds(double x, double y, double width, double height);
-
-    public void setObjectLocation(double x, double y);
-
+    public void setLocation(double x, double y);
+    
+    public double getPosX();
+    
+    public double getPosY();
+    
     public int getDrawableLayer();
 
-    public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in);
+    public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in);
 
-    public void draw(Graphics2D g, GraphicAttributes ga, InputState in);
+    public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in);
 
-    public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in);
+    public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in);
 }

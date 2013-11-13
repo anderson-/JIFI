@@ -72,4 +72,10 @@ public class HBridge extends Device {
     public int getClassID() {
         return 2;
     }
+    
+    @Override
+    public void updateRobot(Robot robot) {
+        robot.setRightWheelSpeed(RightWheelSpeed);
+        robot.setLeftWheelSpeed(LeftWheelSpeed);
+    }
 }

@@ -30,8 +30,8 @@ import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DWidgetContainer;
+import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.WidgetContainer;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -72,7 +72,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     private Device device;
     private Class<? extends Device> type;
     private String var;
-    private DWidgetContainer sContainer;
+    private WidgetContainer sContainer;
 
     public ReadDevice() {
     }
@@ -163,8 +163,8 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             }
         };
         //adiciona os jcompoents no SimpleContainer
-        sContainer.addJComponent(combobDevice, 15, 8, 110, 20);
-        sContainer.addJComponent(combobVar, 15, 32, 110, 20);
+        sContainer.addWidget(combobDevice, 15, 8, 110, 20);
+        sContainer.addWidget(combobVar, 15, 32, 110, 20);
 
         //esse timer é outra coisa...
         timer = new Timer(200);
@@ -235,7 +235,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     }
 
     @Override
-    public Drawable getDrawableResource() {
+    public GraphicObject getDrawableResource() {
         //retorna a classe responsável por desenhar esse comando.
         return sContainer;
     }
