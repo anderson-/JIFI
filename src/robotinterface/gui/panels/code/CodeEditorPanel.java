@@ -110,7 +110,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 //        add(new JButton("sei lá..."));
         add(jsp);
 
-        textArea.setText("func MyFunc(){var x = 1; while (x == 1){move();wait();}}");
+        textArea.setText("func MyFunc(){var x = 1; while (x == 1){move(50,70);wait();}}");
         
         updateFunctionTokens();
 

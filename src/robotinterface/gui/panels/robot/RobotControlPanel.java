@@ -61,6 +61,50 @@ public class RobotControlPanel extends javax.swing.JPanel {
         }
     }
     
+    public void refresh(){
+        deviceComboBox.removeAllItems();
+        deviceComboBox.addItem(VIRTUAL_CONNECTION);
+        for (String str : serial.getAvailableDevices()) {
+            deviceComboBox.addItem(str);
+        }
+    }
+    
+    public void setConnection(int index){
+        deviceComboBox.setSelectedIndex(index);
+    }
+    
+    public boolean tryConnect (){
+        String str = (String) deviceComboBox.getSelectedItem();
+        if (str.equals(VIRTUAL_CONNECTION)){
+            connection = new VirtualConnection();
+        } else {
+            serial.setDefaultPort(str);
+            connection = new VirtualConnection(serial);
+        }
+        connected = connection.establishConnection();
+        statusLabel.setText("Conectando");
+        statusLabel.setForeground(Color.gray);
+        if (connected) {
+            statusLabel.setForeground(Color.green);
+            statusLabel.setText("Conectado");
+            
+            connectButton.setForeground(Color.red);
+            connectButton.setText("Desconectar");
+        } else {
+            statusLabel.setForeground(Color.red);
+            statusLabel.setText("Falha");
+            return false;
+        }
+        
+        robot.add(connection);
+        
+        if (connection instanceof VirtualConnection) {
+            VirtualConnection v = (VirtualConnection) connection;
+            v.setRobot(robot);
+        }
+        return true;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -179,41 +223,11 @@ public class RobotControlPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_removeButtonActionPerformed
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
-        String str = (String) deviceComboBox.getSelectedItem();
-        if (str.equals(VIRTUAL_CONNECTION)){
-            connection = new VirtualConnection();
-        } else {
-            serial.setDefaultPort(str);
-            connection = new VirtualConnection(serial);
-        }
-        connected = connection.establishConnection();
-        statusLabel.setText("Conectando");
-        statusLabel.setForeground(Color.gray);
-        if (connected) {
-            statusLabel.setForeground(Color.green);
-            statusLabel.setText("Conectado");
-            
-            connectButton.setForeground(Color.red);
-            connectButton.setText("Desconectar");
-        } else {
-            statusLabel.setForeground(Color.red);
-            statusLabel.setText("Falha");
-        }
         
-        robot.add(connection);
-        
-        if (connection instanceof VirtualConnection) {
-            VirtualConnection v = (VirtualConnection) connection;
-            v.setRobot(robot);
-        }
     }//GEN-LAST:event_connectButtonActionPerformed
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
-        deviceComboBox.removeAllItems();
-        deviceComboBox.addItem(VIRTUAL_CONNECTION);
-        for (String str : serial.getAvailableDevices()) {
-            deviceComboBox.addItem(str);
-        }
+        refresh();
     }//GEN-LAST:event_refreshButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connectButton;

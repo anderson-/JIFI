@@ -40,6 +40,7 @@ import robotinterface.gui.panels.robot.RobotManager;
 import robotinterface.interpreter.Interpreter;
 import robotinterface.project.Project;
 import robotinterface.robot.Robot;
+import robotinterface.robot.connection.Connection;
 
 /**
  *
@@ -121,17 +122,41 @@ public class GUI extends javax.swing.JFrame {
             robotComboBox.addItem(panel);
             //simulation
             if (!simualtionRobotList.contains(panel.getRobot())) {
-                simulationPanel.add(panel.getRobot());
+                simulationPanel.addRobot(panel.getRobot());
                 panel.getRobot().setEnvironment(simulationPanel.getEnv());
             }
         }
     }
-    
-    public void setDefaultRobot(Interpreter interpreter){
+
+    public boolean setDefaultRobot(Interpreter interpreter, boolean ask) {
         Object o = robotComboBox.getSelectedItem();
         if (o instanceof RobotControlPanel) {
-            interpreter.setRobot(((RobotControlPanel) o).getRobot());
+            RobotControlPanel rcp = (RobotControlPanel) o;
+            Robot r = rcp.getRobot();
+            Connection c = r.getMainConnection();
+            if (c == null || !c.isConnected()) {
+                if (ask) {
+                    int returnVal = JOptionPane.showConfirmDialog(this, "O Robô selecionado ainda não está conectado, \nquer que eu crie uma conexão virtual para você?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (returnVal == JOptionPane.NO_OPTION) {
+                        return false;
+                    }
+                }
+                rcp.refresh();
+                rcp.setConnection(0);
+                boolean connected = rcp.tryConnect();
+                if (connected) {
+                    interpreter.setRobot(r);
+                }
+                return connected;
+            }
+        } else if (o == null) {
+            int returnVal = JOptionPane.showConfirmDialog(this, "Nenhum robô está seleionado, quer que eu crie um?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (returnVal == JOptionPane.YES_OPTION) {
+                robotManager.createRobot(this);
+                setDefaultRobot(interpreter, false);
+            }
         }
+        return true;
     }
 
     public static GUI getInstance() {
@@ -522,8 +547,11 @@ public class GUI extends javax.swing.JFrame {
         Component cmp = mainTabbedPane.getSelectedComponent();
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
-            setDefaultRobot(interpreter);
-            interpreter.setInterpreterState(Interpreter.PLAY);
+            if (setDefaultRobot(interpreter, true)) {
+                interpreter.setInterpreterState(Interpreter.PLAY);
+            } else {
+                interpreter.setInterpreterState(Interpreter.STOP);
+            }
             updateControlBar(interpreter);
         }
     }//GEN-LAST:event_runButtonActionPerformed
@@ -532,8 +560,9 @@ public class GUI extends javax.swing.JFrame {
         Component cmp = mainTabbedPane.getSelectedComponent();
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
-            setDefaultRobot(interpreter);
-            interpreter.step();
+            if (setDefaultRobot(interpreter, true)) {
+                interpreter.step();
+            }
             updateControlBar(interpreter);
         }
     }//GEN-LAST:event_stepButtonActionPerformed

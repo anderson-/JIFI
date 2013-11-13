@@ -22,11 +22,12 @@ public class RobotManager extends JPanel implements Iterable<RobotControlPanel> 
 
     private ArrayList<RobotControlPanel> panels = new ArrayList<>();
     private JButton btnAddRobot;
+    private final GridBagConstraints cons;
 
     public RobotManager(final GUI gui) {
 //        super.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         super.setLayout(new GridBagLayout());
-        final GridBagConstraints cons = new GridBagConstraints();
+        cons = new GridBagConstraints();
         cons.fill = GridBagConstraints.HORIZONTAL;
         cons.weightx = 1;
         cons.gridx = 0;
@@ -38,16 +39,20 @@ public class RobotManager extends JPanel implements Iterable<RobotControlPanel> 
         btnAddRobot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RobotControlPanel p = new RobotControlPanel(RobotManager.this);
-                panels.add(p);
-                RobotManager.this.add(p, cons);
-                RobotManager.this.remove(btnAddRobot);
-                RobotManager.this.add(btnAddRobot, cons);
-                gui.updateRobotList();
+                createRobot(gui);
             }
         });
 
         super.add(btnAddRobot, cons);
+    }
+
+    public void createRobot(final GUI gui) {
+        RobotControlPanel p = new RobotControlPanel(RobotManager.this);
+        panels.add(p);
+        RobotManager.this.add(p, cons);
+        RobotManager.this.remove(btnAddRobot);
+        RobotManager.this.add(btnAddRobot, cons);
+        gui.updateRobotList();
     }
 
     public void remove(RobotControlPanel robotControlPanel) {

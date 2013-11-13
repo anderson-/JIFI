@@ -41,7 +41,7 @@ import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.util.trafficsimulator.Clock;
 
-/** 
+/**
  * Procedimento de mover o robô.
  */
 public class Move extends Command implements GraphicResource, Classifiable, FunctionToken<Move> {
@@ -50,8 +50,7 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
     private HBridge hBridge = null;
 
     public Move() {
-        this.m1 = 20;
-        this.m2 = 20;
+        m1 = m2 = 0;
     }
 
     public Move(int m1, int m2) {
@@ -77,7 +76,6 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
 //                if (!deviceState.isEmpty()) {
 //                    execute(var + " = " + deviceState);
 //                }
-                System.out.println("FIm");
                 return true;
             }
         } catch (Device.TimeoutException ex) {
@@ -100,7 +98,7 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
 
     @Override
     public Object createInstance() {
-        return new Move(10, 10);
+        return new Move();
     }
 
     @Override
@@ -110,6 +108,21 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
 
     @Override
     public Move createInstance(String args) {
-        return new Move();
+        if (args.isEmpty()) {
+            return new Move(0, 0);
+        } else {
+            String[] argv = args.split(",");
+            if (argv.length == 1) {
+                int v = Integer.parseInt(argv[0].trim());
+                return new Move(v, v);
+            } else if (argv.length == 2) {
+                int v0 = Integer.parseInt(argv[0].trim());
+                int v1 = Integer.parseInt(argv[1].trim());
+                return new Move(v0, v1);
+            }
+        }
+
+        return new Move(0, 0);
+        //return new ParseErrorProcedure(this, args);
     }
 }

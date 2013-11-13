@@ -788,6 +788,7 @@ public class Decoder implements DecoderConstants {
         {
           if (ftoken.getToken().equals(functionID.toString()))
           {
+            parameters = parameters.trim();
             block.add(ftoken.createInstance(parameters));
             error = false;
             break;
