@@ -99,7 +99,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     public Procedure(String procedure) {
         this();
-        this.procedure = procedure;
+        setProcedure(procedure);
     }
 
     protected final JEP getParser() {
@@ -117,6 +117,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     public final void setProcedure(String procedure) {
         this.procedure = procedure;
+        updateVariables();
     }
 
     @Override
@@ -125,17 +126,9 @@ public class Procedure extends Command implements Expression, Classifiable {
         return true;
     }
 
-    //usado pelos descendentes dessa classe para executar expressoes simples
-    protected final Object execute(String procedure) throws ExecutionException {
-        if (parser == null) {
-            throw new ExecutionException("Parser not found!");
-        }
-
-        Object o = null;
-
+    private void updateVariables() {
         for (String str : procedure.split(";")) {
             if (str.startsWith("var")) {
-                SymbolTable st = getParser().getSymbolTable();
                 str = str.replaceFirst("var ", "");
                 String varName;
                 Object varValue;
@@ -148,17 +141,42 @@ public class Procedure extends Command implements Expression, Classifiable {
                         varName = declaration.trim();
                         varValue = null;
                     }
-                    if (st.getVar(varName) != null && st.getVar(varName).hasValidValue()) {
-                        throw new ExecutionException("Variable already exists!");
-                    } else {
-                        if (!names.contains(varName)) {
-                            names.add(str);
-                            values.add(varValue);
-                        }
-                        st.makeVarIfNeeded(varName, varValue);
+                    if (!names.contains(varName)) {
+                        names.add(varName);
+                        values.add(varValue);
                     }
                 }
+            }
+        }
+    }
+
+    //usado pelos descendentes dessa classe para executar expressoes simples
+    protected final Object execute(String procedure) throws ExecutionException {
+        if (parser == null) {
+            throw new ExecutionException("Parser not found!");
+        }
+
+        Object o = null;
+
+        updateVariables();
+
+        SymbolTable st = getParser().getSymbolTable();
+        for (int i = 0; i < names.size(); i++) {
+            String varName = names.get(i);
+            Object varValue = values.get(i);
+            if (st.getVar(varName) != null && st.getVar(varName).hasValidValue()) {
+                throw new ExecutionException("Variable already exists!");
             } else {
+                if (!names.contains(varName)) {
+                    names.add(varName);
+                    values.add(varValue);
+                }
+                st.makeVarIfNeeded(varName, varValue);
+            }
+        }
+
+        for (String str : procedure.split(";")) {
+            if (!str.startsWith("var")) {
                 parser.parseExpression(str);
                 o = parser.getValueAsObject();
             }
@@ -217,7 +235,7 @@ public class Procedure extends Command implements Expression, Classifiable {
     @Override
     public void toString(String ident, StringBuilder sb) {
         if (!procedure.equals("0")) {
-            for (String p : procedure.split(";")){
+            for (String p : procedure.split(";")) {
                 sb.append(ident).append(p).append(";\n");
             }
         } else {
@@ -232,19 +250,18 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Object createInstance() {
-        return new Procedure("<insire um comando>");
+        return new Procedure(" ");
     }
-
     private GraphicObject resource = null;
-    
+
     @Override
     public GraphicObject getDrawableResource() {
-        if (resource == null){
+        if (resource == null) {
             resource = createDrawableProcedure(this);
         }
         return resource;
     }
-    
+
     public static MutableWidgetContainer createDrawableProcedure(final Procedure p) {
 
         final int TEXTFIELD_WIDTH = 110;
@@ -289,7 +306,7 @@ public class Procedure extends Command implements Expression, Classifiable {
                     JComponent jComponent = widget.getJComponent();
                     if (jComponent instanceof JTextField) {
                         String str = ((JTextField) jComponent).getText();
-                        if (!str.endsWith(";")){
+                        if (!str.endsWith(";")) {
                             str += ";";
                         }
                         return str;
@@ -349,12 +366,11 @@ public class Procedure extends Command implements Expression, Classifiable {
         };
 
         MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#69CD87")) {
-            
             {
                 string = p.getProcedure();
                 updateLines();
             }
-            
+
             @Override
             public void updateLines() {
                 clear();
@@ -438,7 +454,7 @@ public class Procedure extends Command implements Expression, Classifiable {
     }
 
     public void append(String string) {
-        if (procedure.endsWith(";")){
+        if (procedure.endsWith(";")) {
             procedure += string;
         } else {
             procedure += "; " + string;

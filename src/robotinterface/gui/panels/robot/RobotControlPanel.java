@@ -223,7 +223,7 @@ public class RobotControlPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_removeButtonActionPerformed
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
-        
+        tryConnect();
     }//GEN-LAST:event_connectButtonActionPerformed
 
     private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed

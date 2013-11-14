@@ -48,6 +48,7 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
         private Rectangle bounds;
         private Rectangle tmpRect;
         private boolean isStatic;
+        private boolean dynamic = false;
         private int x, y;
 
         public Widget(JComponent widget, Rectangle bounds) {
@@ -59,6 +60,14 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
         
         public Widget(JComponent widget,  int x, int y, int width, int height) {
             this(widget, new Rectangle(x, y, width, height));
+        }
+
+        public boolean isDynamic() {
+            return dynamic;
+        }
+
+        public void setDynamic(boolean dynamic) {
+            this.dynamic = dynamic;
         }
 
         public JComponent getJComponent() {
@@ -173,6 +182,10 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
                 dc.widget.addMouseMotionListener(parent);
             }
         }
+    }
+    
+    public boolean contains (Widget w){
+        return widgets.contains(w);
     }
     
     public void addWidget(Widget w) {

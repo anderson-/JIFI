@@ -4,33 +4,31 @@
  */
 package robotinterface.plugin.cmdpack.util;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Procedure;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
-import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
+import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.Robot;
@@ -41,15 +39,20 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
-    private String str;
+    private String format;
     private ArrayList<String> varNames;
 
     public PrintString() {
         varNames = new ArrayList<>();
-        str = "";
+        format = "";
     }
 
     public PrintString(String str, boolean b) {
+        updateVariables(str);
+        setProcedure(toString());
+    }
+
+    private void updateVariables(String str) {
         int l = str.lastIndexOf("\"");
 
         String w = str.substring(l + 1, str.length());
@@ -58,13 +61,29 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
         for (String var : w.split(",")) {
             String vart = var.trim();
+            if (vart.endsWith(")")) {
+                vart = vart.replace(")", "");
+            }
             if (!vart.isEmpty()) {
                 varNames.add(vart);
             }
         }
 
-        this.str = str.substring(1, l);
-        setProcedure(toString());
+        int s = str.indexOf("\"") + 1;
+
+        this.format = str.substring(s, l);
+    }
+
+    private void setFormat(String format) {
+        this.format = format;
+    }
+
+    private String getFormat() {
+        return format;
+    }
+
+    private ArrayList<String> getVariables() {
+        return varNames;
     }
 
     public PrintString(String str, String... vars) {
@@ -72,13 +91,13 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             varNames = new ArrayList<>();
             varNames.addAll(Arrays.asList(vars));
         }
-        this.str = str;
+        this.format = str;
         setProcedure(toString());
     }
 
     @Override
     public boolean perform(Robot r, Clock clock) {
-        String out = new String(str);
+        String out = new String(format);
         for (String varName : varNames) {
             Variable v = getParser().getSymbolTable().getVar(varName);
             if (v != null && v.hasValidValue()) {
@@ -96,7 +115,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("print(\"").append(str.replaceAll("\n", "/n")).append("\"");
+        sb.append("print(\"").append(format.replaceAll("\n", "/n")).append("\"");
 
         for (String s : varNames) {
             sb.append(", ").append(s);
@@ -116,283 +135,269 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         return new PrintString("Hello Worlld!");
     }
     private Color color = Color.decode("#6693BC");
-    private GraphicObject d = null;
-    private static Font font = new Font("Dialog", Font.BOLD, 12);
 
-    public static Shape createPrintShape(Rectangle2D r) {
-        GeneralPath gp = new GeneralPath();
-        double mx = r.getWidth();
-        double my = r.getHeight();
-        double a = 15;
-        double b = 20;
+    public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
 
-        gp.moveTo(a, 0);
-        gp.lineTo(mx + a, 0);
-        gp.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
-        gp.lineTo(a, my);
-        gp.lineTo(0, my / 2);
-        gp.closePath();
+        final int TEXTFIELD_WIDTH = 110;
+        final int TEXTFIELD_HEIGHT = 25;
+        final int BUTTON_WIDTH = 25;
+        final int BEGIN_X = 20;
+        final int INSET_X = 5;
+        final int INSET_Y = 5;
 
-        return gp;
+        //LINES
+
+        int varSelectiteonLineWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+        int varSelectiteonLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
+        final WidgetLine varSelectiteonLine = new WidgetLine(varSelectiteonLineWidth, varSelectiteonLineHeight) {
+            private String var;
+            private int varN = 0;
+
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+                JComboBox combobVar = new JComboBox();
+
+                MutableWidgetContainer.setAutoFillComboBox(combobVar, p);
+
+                if (data != null) {
+                    combobVar.setSelectedItem(data);
+                }
+
+//                combobVar.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        JComboBox cb = (JComboBox) e.getSource();
+//                        var = (String) cb.getSelectedItem();
+//                        if (var != nullvar.equals(RELOAD_VARS_ITEM)) {
+//                            cb.removeAllItems();
+//                            cb.addItem(RELOAD_VARS_ITEM);
+////                            for (String str : ReadDevice.super.getDeclaredVariables()) {
+////                                cb.addItem(str);
+////                            }
+//                        }
+//                    }
+//                });
+
+                int x = BEGIN_X + INSET_X;
+                int y = INSET_Y;
+
+                varN++;
+                labels.add(new TextLabel("v" + varN + ":", x, y + 18));
+                x += 25;
+                //x += 2 * INSET_X + BUTTON_WIDTH;
+                widgets.add(new Widget(combobVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+            }
+
+            @Override
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+                if (widgets.size() > 0) {
+                    Widget widget = widgets.iterator().next();
+                    JComponent jComponent = widget.getJComponent();
+                    if (jComponent instanceof JComboBox) {
+                        Object o = ((JComboBox) jComponent).getSelectedItem();
+                        if (o != null) {
+                            String varName = o.toString();
+                            p.getVariables().add(varName);
+                            return ", " + varName;
+                        }
+                    }
+                }
+                return "";
+            }
+        };
+
+        //HEADER LINE
+
+        int headerHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT + 20;
+        int headerWidth = BEGIN_X + 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+            @Override
+            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+                labels.add(new TextLabel("Exibir:", 20, true));
+                labels.add(new TextLabel("Formato:", BEGIN_X + INSET_X, 3 * INSET_Y + 28));
+                final JTextField tfName = new JTextField();
+
+                if (data != null) {
+                    tfName.setText(data.toString());
+                }
+
+                tfName.getDocument().addDocumentListener(new DocumentListener() {
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        container.setString(tfName.getText());
+//                        container.updateLines();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        container.setString(tfName.getText());
+//                        container.updateLines();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        container.setString(tfName.getText());
+//                        container.updateLines();
+                    }
+                });
+
+                widgets.add(new Widget(tfName, BEGIN_X + 2 * INSET_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                JButton bTmp = new JButton(">");
+
+                bTmp.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        container.setString(tfName.getText());
+                        container.updateLines();
+                    }
+                });
+
+                widgets.add(new Widget(bTmp, BEGIN_X + 3 * INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
+            }
+
+            @Override
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
+                if (widgets.size() > 0) {
+                    try {
+                        StringBuilder sb = new StringBuilder();
+                        Iterator<Widget> iterator = widgets.iterator();
+                        String str;
+                        Widget tmpWidget;
+                        JComponent jComponent;
+                        //JTextField 1
+                        tmpWidget = iterator.next();
+                        jComponent = tmpWidget.getJComponent();
+                        if (jComponent instanceof JTextField) {
+                            str = ((JTextField) jComponent).getText();
+                            if (!str.isEmpty()) {
+                                sb.append(str);
+                            }
+                        }
+                        p.setFormat(sb.toString());
+                        p.getVariables().clear();
+
+                        return "\"" + sb.toString() + "\"";
+                    } catch (NoSuchElementException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return "";
+            }
+        };
+
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#08B9AC")) {
+            private GeneralPath myShape = new GeneralPath();
+
+            {
+                string = p.getProcedure();
+                updateLines();
+
+                super.shapeStartX = 16;
+            }
+
+            @Override
+            public void updateLines() {
+
+                if (string.startsWith("print")) {
+                    p.updateVariables(string);
+
+                    clear();
+
+                    addLine(headerLine, p.getFormat());
+                    for (String str : p.getVariables()) {
+                        addLine(varSelectiteonLine, str);
+                    }
+                } else {
+                    if (getSize() < 1) {
+                        clear();
+
+                        addLine(headerLine, null);
+                    }
+
+                    String subStr = "%v";
+                    int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
+                    ocorrences -= getSize() - 1;
+                    for (int i = 0; i < ocorrences; i++) {
+                        addLine(varSelectiteonLine, null);
+                    }
+                }
+//
+////                System.out.println(super.getString());
+//
+//                String form = p.getFormat();
+////                if (form.startsWith("")){
+////                    form = form.substring(1, form.length()-1);
+////                }
+//
+//                System.out.println(form);
+//
+//                addLine(headerLine, form);
+//                for (String str : p.getVariables()) {
+//                    System.out.println(str + "*");
+//                    addLine(varSelectiteonLine, str);
+//                }
+//                
+//                
+//                if (getSize() < 1) {
+//                    clear();
+//
+//                    addLine(headerLine, null);
+//                }
+//
+//                String subStr = "%v";
+//                int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
+//                ocorrences -= getSize() - 1;
+//                for (int i = 0; i < ocorrences; i++) {
+//                    addLine(varSelectiteonLine, null);
+//                }
+
+            }
+
+            @Override
+            public Shape updateShape(Rectangle2D bounds) {
+                double mx = bounds.getWidth();
+                double my = bounds.getHeight();
+                double a = 15;
+                double b = 20;
+
+                myShape.reset();
+                myShape.moveTo(a, 0);
+                myShape.lineTo(mx + a, 0);
+                myShape.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
+                myShape.lineTo(a, my);
+                myShape.lineTo(0, my / 2);
+                myShape.closePath();
+
+                return myShape;
+            }
+
+            @Override
+            public String getString() {
+                String str = "print(" + super.getString() + ")";
+                return str;
+            }
+        };
+
+        return mwc;
     }
+    private GraphicObject resource = null;
 
     @Override
     public GraphicObject getDrawableResource() {
-        if (d == null) {
-            Rectangle2D s = new Rectangle2D.Double(0, 0, 150, 60);
-            //cria um Losango (usar em IF)
-            //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
-
-            SimpleContainer sContainer = new SimpleContainer(createPrintShape(s), color) {
-                private ArrayList<WidgetContainer.Widget> wFields = new ArrayList<>();
-                private WidgetContainer.Widget addButton;
-                private WidgetContainer.Widget remButton;
-                private boolean updateFields = false;
-                private boolean updateShape = false;
-
-                {
-                    createTextFields();
-
-                    JButton b = new JButton("+");
-
-                    b.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            addTextField("");
-                            if (wFields.size() > 1) {
-                                JButton btn = (JButton) remButton.getJComponent();
-                                btn.setEnabled(true);
-                            }
-                        }
-                    });
-
-                    addButton = addWidget(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-
-                    b = new JButton("-");
-
-                    b.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            WidgetContainer.Widget w = wFields.get(wFields.size() - 1);
-                            removeWidget(w);
-                            wFields.remove(w);
-                            if (wFields.size() < 2) {
-                                JButton btn = (JButton) remButton.getJComponent();
-                                btn.setEnabled(false);
-                            }
-                        }
-                    });
-
-                    remButton = addWidget(b, 0, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-
-                }
-
-                private void addTextField(String str) {
-                    JTextField textField = new JTextField(str);
-
-                    textField.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            updateProcedure();
-                        }
-                    });
-
-                    wFields.add(addWidget(textField, 0, 0, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                }
-
-                private void updateProcedure() {
-//                    StringBuilder sb = new StringBuilder();
-//
-//                    for (WidgetContainer.Widget w : wFields) {
-//                        JTextField tf = (JTextField) w.getJComponent();
-//                        String str = tf.getText();
-//                        sb.append(str);
-//                        if (!str.isEmpty() && !str.endsWith(";")) {
-//                            sb.append(";");
-//                        }
-//                    }
-//
-//                    procedure = sb.toString();
-                }
-
-                private void createTextFields() {
-                    for (Iterator<WidgetContainer.Widget> it = wFields.iterator(); it.hasNext();) {
-                        WidgetContainer.Widget w = it.next();
-                        removeWidget(w);
-                        it.remove();
-                    }
-
-                    addTextField(PrintString.this.toString());
-                }
-
-                private void drawLine(Graphics2D g) {
-                    Command c = getNext();
-                    if (c instanceof GraphicResource) {
-                        GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                        if (d != null) {
-                            Rectangle2D.Double bThis = getObjectBouds();
-                            Rectangle2D.Double bNext = d.getObjectBouds();
-                            Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bNext.getCenterX(), bNext.getMinY());
-                            g.setStroke(new BasicStroke(2));
-                            g.setColor(Color.red);
-                            g.draw(l);
-                        }
-                    }
-                }
-
-                @Override
-                protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                    //escreve coisas quando os jcomponets estão visiveis
-                    if (updateFields) {
-                        createTextFields();
-                        updateFields = false;
-                    }
-
-                    String str = "Procedimento:";
-
-                    g.setFont(font);
-                    FontMetrics fm = g.getFontMetrics();
-
-                    double x;
-                    double y;
-
-                    double totalWidth = 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH + 4 * INSET_X;
-
-                    double width = fm.stringWidth(str);
-                    double height = fm.getHeight();
-
-                    x = (totalWidth - width) / 2;
-                    y = INSET_Y + fm.getAscent();
-
-                    g.setColor(Color.black);
-                    g.translate(x, y);
-                    g.drawString(str, 0, 0);
-                    g.translate(-x, -y);
-
-                    x = BUTTON_WIDTH + 2 * INSET_X;
-
-                    for (WidgetContainer.Widget w : wFields) {
-                        y += INSET_Y;
-                        w.setLocation((int) x, (int) y);
-                        y += TEXTFIELD_HEIGHT;
-                    }
-
-//                    ((Rectangle2D.Double) shape).width = totalWidth;
-//                    ((Rectangle2D.Double) shape).height = y + INSET_Y;
-                    ((Rectangle2D.Double) bounds).width = totalWidth;
-                    ((Rectangle2D.Double) bounds).height = y + INSET_Y;
-//                    shape = createPrintShape(((Rectangle2D.Double) bounds));
-
-                    if (updateShape) {
-                        shape = createPrintShape(((Rectangle2D.Double) bounds));
-                        updateShape = false;
-                    }
-
-                    y -= TEXTFIELD_HEIGHT;
-                    x = INSET_X;
-
-                    remButton.setLocation((int) x, (int) y);
-                    addButton.setLocation((int) x + BUTTON_WIDTH + TEXTFIELD_WIDTH + 2 * INSET_X, (int) y);
-
-//                    AffineTransform o = g.getTransform();
-//                    System.out.println(o);
-//                    ga.removeRelativePosition(o);
-//                    ga.applyGlobalPosition(o);
-//                    //ga.removeZoom(o);
-//                    g.setTransform(o);
-
-
-                    g.translate(-bounds.x, -bounds.y);
-                    drawLine(g);
-                }
-
-                @Override
-                protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                    //escreve coisas quando os jcomponets não estão visiveis
-
-                    if (!updateFields) {
-                        updateProcedure();
-                        updateFields = true;
-                    }
-
-
-                    g.setFont(font);
-                    FontMetrics fm = g.getFontMetrics();
-
-                    double x = INSET_X + 15;
-                    double y = INSET_Y;
-
-                    double width = 0;
-                    double tmpWidth;
-
-                    g.setColor(Color.black);
-
-                    g.translate(x, 0);
-                    String www = PrintString.this.toString();
-                    for (String str : www.split(";")) {
-                        str += ";";
-                        str = str.trim();
-                        tmpWidth = fm.stringWidth(str);
-                        if (tmpWidth > width) {
-                            width = tmpWidth;
-                        }
-                        y += fm.getAscent();
-
-                        g.translate(0, y);
-                        g.drawString(str, 0, 0);
-                        g.translate(0, -y);
-
-                    }
-                    g.translate(-x, 0);
-
-//                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
-//                    ((Rectangle2D.Double) shape).height = y + 2 * INSET_Y;
-                    ((Rectangle2D.Double) bounds).width = width + 2 * INSET_X;
-                    ((Rectangle2D.Double) bounds).height = y + 2 * INSET_Y;
-//                    shape = createPrintShape(((Rectangle2D.Double) bounds));
-
-                    if (!updateShape) {
-                        shape = createPrintShape(((Rectangle2D.Double) bounds));
-                        updateShape = true;
-                    }
-
-                    g.translate(-bounds.x, -bounds.y);
-                    drawLine(g);
-
-//                    double width = fm.stringWidth(procedure);
-//                    double height = fm.getHeight();
-//
-//                    ((Rectangle2D.Double) shape).width = width + 2 * INSET_X;
-//                    ((Rectangle2D.Double) shape).height = height + 2 * INSET_Y;
-//
-//                    double x;
-//                    double y;
-//
-//                    x = INSET_X;
-//                    y = (((Rectangle2D.Double) shape).height - height) / 2 + fm.getAscent();
-//
-//                    g.setColor(Color.black);
-//                    g.translate(x, y);
-//                    g.drawString(procedure, 0, 0);
-//                    g.translate(-x, -y);
-
-                }
-            };
-
-            d = sContainer;
+        if (resource == null) {
+            resource = createDrawablePrintString(this);
         }
-        return d;
+        return resource;
     }
-    
+
     @Override
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
-        
-        if (copy instanceof PrintString){
-            ((PrintString)copy).str = str;
-            ((PrintString)copy).varNames.addAll(varNames);
+
+        if (copy instanceof PrintString) {
+            ((PrintString) copy).format = format;
+            ((PrintString) copy).varNames.addAll(varNames);
         } else {
-            
         }
 
         return p;

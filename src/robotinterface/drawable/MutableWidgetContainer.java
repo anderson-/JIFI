@@ -6,6 +6,7 @@ package robotinterface.drawable;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -14,6 +15,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
@@ -21,12 +24,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
 import static robotinterface.plugin.cmdpack.begginer.ReadDevice.RELOAD_VARS_ITEM;
@@ -97,6 +105,7 @@ public class MutableWidgetContainer extends WidgetContainer {
     protected int shapeStartX = 0;
     protected int shapeStartY = 0;
     protected boolean center = false;
+    private String name = "";
     private double stringWidth = 0;
     private int firstShapeUpdate = 2;
     private boolean updateLines = false;
@@ -119,12 +128,24 @@ public class MutableWidgetContainer extends WidgetContainer {
         this.color = color;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Color getColor() {
         return color;
     }
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public void setString(String string) {
+        this.string = string;
     }
 
     public String getString() {
@@ -168,7 +189,9 @@ public class MutableWidgetContainer extends WidgetContainer {
         rowLabels.add(index, newRowLabels);
 
         for (Widget w : newRowWidgets) {
-            super.addWidget(w);
+            if (!w.isDynamic()) {
+                super.addWidget(w);
+            }
         }
         updateHeight = true;
     }
@@ -217,7 +240,9 @@ public class MutableWidgetContainer extends WidgetContainer {
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if (in.mouseClicked() && in.getMouseClickCount() == 2) {
+
             super.widgetVisible = !super.widgetVisible;
+            shapeBounds.setRect(0, 0, 0, 0);
         }
 
 //        g.setColor(color);
@@ -398,6 +423,44 @@ public class MutableWidgetContainer extends WidgetContainer {
     @Override
     public int getDrawableLayer() {
         return GraphicObject.DEFAULT_LAYER;
+    }
+
+    public static void setAutoFillComboBox(final JComboBox cb, final Procedure p) {
+        MouseListener ml = new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                int i = cb.getSelectedIndex();
+                cb.removeAllItems();
+                for (String str : p.getDeclaredVariables()) {
+                    cb.addItem(str);
+                }
+                if (i != -1) {
+                    cb.setSelectedIndex(i);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        };
+
+        ml.mouseEntered(null);
+
+        for (Component c : cb.getComponents()) {
+            c.addMouseListener(ml);
+        }
     }
 
 //    public static MutableWidgetContainer createDrawableProcedure() {
@@ -802,8 +865,6 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        };
 //        return mwc;
 //    }
-    
-    
 //    public static MutableWidgetContainer createDrawableFunction() {
 //
 //        final int TEXTFIELD_WIDTH = 70;
@@ -995,7 +1056,6 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        };
 //        return mwc;
 //    }
-    
 //    public static MutableWidgetContainer createDrawablePrintString() {
 //
 //        final int TEXTFIELD_WIDTH = 110;
@@ -1153,9 +1213,128 @@ public class MutableWidgetContainer extends WidgetContainer {
 //
 //        return mwc;
 //    }
-
+//    public static MutableWidgetContainer createDrawableMove() {
+//
+//        final int TEXTFIELD_WIDTH = 80;
+//        final int TEXTFIELD_HEIGHT = 25;
+//        final int BUTTON_WIDTH = 25;
+//        final int INSET_X = 5;
+//        final int INSET_Y = 5;
+//
+//        //HEADER LINE
+//
+//        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
+//        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+//        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+//            @Override
+//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//                labels.add(new TextLabel("Mover:", 20, true));
+//
+//                final JSpinner spinner1 = new JSpinner();
+//                final JSpinner spinner2 = new JSpinner();
+//                spinner1.setModel(new SpinnerNumberModel(80, -128, 127, 2));
+//                spinner2.setModel(new SpinnerNumberModel(80, -128, 127, 2));
+//                JComboBox combobox1 = new JComboBox();
+//                JComboBox combobox2 = new JComboBox();
+//                
+//                MutableWidgetContainer.setAutoFillComboBox(combobox1, null);
+//                MutableWidgetContainer.setAutoFillComboBox(combobox2, null);
+//                
+//                final JButton changeButton1 = new JButton();
+//                final JButton changeButton2 = new JButton();
+//                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
+//                changeButton1.setIcon(icon);
+//                changeButton2.setIcon(icon);
+//
+//                changeButton1.setVisible(false);
+//                changeButton2.setVisible(false);
+//
+//                int x = INSET_X;
+//                int y = INSET_Y + 40;
+//                labels.add(new TextLabel("V1:", x + 5, y));
+//
+//                x += 26;
+//                y -= 18;
+//
+//                final Widget wspinner1 = new Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wcombobox1 = new Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                widgets.add(wspinner1);
+////                widgets.add(wcombobox1);
+//
+//                x += INSET_Y + TEXTFIELD_WIDTH;
+//
+//                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+//
+//                x -= INSET_Y + TEXTFIELD_WIDTH;
+//
+//                x -= 26;
+//                y += 50;
+//
+//                labels.add(new TextLabel("V2:", x + 5, y));
+//
+//                x += 26;
+//                y -= 18;
+//
+//                final Widget wspinner2 = new Widget(spinner2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wcombobox2 = new Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                widgets.add(wspinner2);
+////                widgets.add(wcombobox2);
+//
+//                x += INSET_Y + TEXTFIELD_WIDTH;
+//
+//                widgets.add(new Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+//
+//                x -= INSET_Y + TEXTFIELD_WIDTH;
+//
+//
+//                changeButton1.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        if (container.contains(wspinner1)) {
+//                            container.removeWidget(wspinner1);
+//                            container.addWidget(wcombobox1);
+//                        } else {
+//                            container.removeWidget(wcombobox1);
+//                            container.addWidget(wspinner1);
+//                        }
+//                    }
+//                });
+//                
+//                changeButton2.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        if (container.contains(wspinner2)) {
+//                            container.removeWidget(wspinner2);
+//                            container.addWidget(wcombobox2);
+//                        } else {
+//                            container.removeWidget(wcombobox2);
+//                            container.addWidget(wspinner2);
+//                        }
+//                    }
+//                });
+//            }
+//        };
+//
+//        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+//            @Override
+//            public void updateLines() {
+//                clear();
+//
+//                addLine(headerLine, null);
+//            }
+//
+//            @Override
+//            public String getString() {
+//                String str = super.getString();
+//                System.out.println(str);
+//                return str;
+//            }
+//        };
+//
+//        return mwc;
+//    }
     public static void main(String[] args) {
         QuickFrame.applyLookAndFeel();
-//        QuickFrame.drawTest(createDrawablePrintString());
+//        QuickFrame.drawTest(createDrawableMove());
     }
 }

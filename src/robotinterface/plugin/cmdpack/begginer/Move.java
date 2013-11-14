@@ -27,15 +27,31 @@ package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
+import java.util.Collection;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
@@ -44,7 +60,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Command implements GraphicResource, Classifiable, FunctionToken<Move> {
+public class Move extends Procedure implements GraphicResource, Classifiable, FunctionToken<Move> {
 
     private byte m1, m2;
     private HBridge hBridge = null;
@@ -57,6 +73,25 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
         super();
         this.m1 = (byte) m1;
         this.m2 = (byte) m2;
+        setProcedure("move(" + m1 + "," + m2 + ")");
+    }
+
+    public byte getM1() {
+        return m1;
+    }
+
+    public void setM1(byte m1) {
+        this.m1 = m1;
+        setProcedure("move(" + m1 + "," + m2 + ")");
+    }
+
+    public byte getM2() {
+        return m2;
+    }
+
+    public void setM2(byte m2) {
+        this.m2 = m2;
+        setProcedure("move(" + m1 + "," + m2 + ")");
     }
 
     @Override
@@ -84,11 +119,185 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
         }
         return false;
     }
-    private SimpleContainer dResource = new SimpleContainer(new Rectangle(0, 0, 40, 20), Color.CYAN);
+    private GraphicObject resource = null;
 
     @Override
     public GraphicObject getDrawableResource() {
-        return dResource;
+        if (resource == null) {
+            resource = createDrawableMove(this);
+        }
+        return resource;
+    }
+
+    public static MutableWidgetContainer createDrawableMove(final Move m) {
+
+        final int TEXTFIELD_WIDTH = 80;
+        final int TEXTFIELD_HEIGHT = 25;
+        final int BUTTON_WIDTH = 25;
+        final int INSET_X = 5;
+        final int INSET_Y = 5;
+
+        //HEADER LINE
+
+        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
+        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+            @Override
+            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+                labels.add(new TextLabel("Mover:", 20, true));
+
+                final JSpinner spinner1 = new JSpinner();
+                final JSpinner spinner2 = new JSpinner();
+                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
+                spinner2.setModel(new SpinnerNumberModel(0, -128, 127, 2));
+                JComboBox combobox1 = new JComboBox();
+                JComboBox combobox2 = new JComboBox();
+                
+                if (data != null){
+                    if (data instanceof Move){
+                        Move m = (Move) data;
+                        
+                        spinner1.setValue((int)m.m1);
+                        spinner2.setValue((int)m.m2);
+                    }
+                }
+
+                MutableWidgetContainer.setAutoFillComboBox(combobox1, m);
+                MutableWidgetContainer.setAutoFillComboBox(combobox2, m);
+
+                final JButton changeButton1 = new JButton();
+                final JButton changeButton2 = new JButton();
+                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
+                changeButton1.setIcon(icon);
+                changeButton2.setIcon(icon);
+
+                changeButton1.setEnabled(false);
+                changeButton2.setEnabled(false);
+
+                int x = INSET_X;
+                int y = INSET_Y + 40;
+                labels.add(new TextLabel("V1:", x + 5, y));
+
+                x += 26;
+                y -= 18;
+
+                final WidgetContainer.Widget wspinner1 = new WidgetContainer.Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final WidgetContainer.Widget wcombobox1 = new WidgetContainer.Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wspinner1);
+                widgets.add(wcombobox1);
+
+                x += INSET_Y + TEXTFIELD_WIDTH;
+
+                widgets.add(new WidgetContainer.Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+
+                x -= INSET_Y + TEXTFIELD_WIDTH;
+
+                x -= 26;
+                y += 50;
+
+                labels.add(new TextLabel("V2:", x + 5, y));
+
+                x += 26;
+                y -= 18;
+
+                final WidgetContainer.Widget wspinner2 = new WidgetContainer.Widget(spinner2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final WidgetContainer.Widget wcombobox2 = new WidgetContainer.Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wspinner2);
+                widgets.add(wcombobox2);
+
+                x += INSET_Y + TEXTFIELD_WIDTH;
+
+                widgets.add(new WidgetContainer.Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+
+                x -= INSET_Y + TEXTFIELD_WIDTH;
+
+
+                changeButton1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (container.contains(wspinner1)) {
+                            container.removeWidget(wspinner1);
+                            container.addWidget(wcombobox1);
+                        } else {
+                            container.removeWidget(wcombobox1);
+                            container.addWidget(wspinner1);
+                        }
+                    }
+                });
+
+                changeButton2.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (container.contains(wspinner2)) {
+                            container.removeWidget(wspinner2);
+                            container.addWidget(wcombobox2);
+                        } else {
+                            container.removeWidget(wcombobox2);
+                            container.addWidget(wspinner2);
+                        }
+                    }
+                });
+
+                wspinner1.setDynamic(true);
+                wcombobox1.setDynamic(true);
+                wspinner2.setDynamic(true);
+                wcombobox2.setDynamic(true);
+
+                container.addWidget(wspinner1);
+                container.addWidget(wspinner2);
+            }
+
+            @Override
+            public String getString(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
+
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("move(");
+
+                for (Widget w : widgets) {
+                    if (container.contains(w)) {
+                        JComponent jc = w.getJComponent();
+                        if (jc instanceof JComboBox) {
+                            JComboBox cb = (JComboBox) jc;
+                            Object o = cb.getSelectedItem();
+                            if (o != null) {
+                                sb.append(o.toString());
+                                sb.append(" ");
+                            }
+                        } else if (jc instanceof JSpinner) {
+                            JSpinner s = (JSpinner) jc;
+                            sb.append(s.getValue());
+                            sb.append(" ");
+                        }
+                    }
+                }
+
+                String str = sb.toString().trim().replace(" ", ",") + ")";
+                return str;
+            }
+        };
+
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+            {
+                string = m.getProcedure();
+                updateLines();
+            }
+
+            @Override
+            public void updateLines() {
+                clear();
+                if (string.isEmpty()) {
+                    addLine(headerLine, m);
+                } else {
+                    String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
+                    updateMove(str, m);
+                    addLine(headerLine, m);
+                }
+                string = getString();
+            }
+        };
+
+        return mwc;
     }
 
     @Override
@@ -106,23 +315,34 @@ public class Move extends Command implements GraphicResource, Classifiable, Func
         return "move";
     }
 
+    private static void updateMove(String str, Move m) {
+        String[] argv = str.split(",");
+        if (argv.length == 1) {
+            int v = Integer.parseInt(argv[0].trim());
+            m.setM1((byte) v);
+            m.setM2((byte) v);
+        } else if (argv.length == 2) {
+            int v0 = Integer.parseInt(argv[0].trim());
+            int v1 = Integer.parseInt(argv[1].trim());
+            m.setM1((byte) v0);
+            m.setM2((byte) v1);
+        }
+    }
+
     @Override
     public Move createInstance(String args) {
-        if (args.isEmpty()) {
-            return new Move(0, 0);
-        } else {
-            String[] argv = args.split(",");
-            if (argv.length == 1) {
-                int v = Integer.parseInt(argv[0].trim());
-                return new Move(v, v);
-            } else if (argv.length == 2) {
-                int v0 = Integer.parseInt(argv[0].trim());
-                int v1 = Integer.parseInt(argv[1].trim());
-                return new Move(v0, v1);
-            }
+        Move m = new Move(0, 0);
+        if (!args.isEmpty()) {
+            updateMove(args, m);
         }
 
-        return new Move(0, 0);
+        return m;
         //return new ParseErrorProcedure(this, args);
+    }
+
+    public static void main(String[] args) {
+        Procedure p = new Move();
+        QuickFrame.applyLookAndFeel();
+        QuickFrame.drawTest(p.getDrawableResource());
     }
 }

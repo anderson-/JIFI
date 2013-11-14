@@ -21,15 +21,15 @@ import robotinterface.util.trafficsimulator.Timer;
  *
  * @author antunes
  */
-public class Wait extends Command implements Classifiable, FunctionToken<Wait>{
-    
+public class Wait extends Command implements Classifiable, FunctionToken<Wait> {
+
     private Timer timer;
-    
-    public Wait (){
+
+    public Wait() {
         timer = new Timer(100);
     }
-    
-    public Wait (long ms){
+
+    public Wait(long ms) {
         timer = new Timer(ms);
     }
 
@@ -38,7 +38,7 @@ public class Wait extends Command implements Classifiable, FunctionToken<Wait>{
         timer.reset();
         clock.addTimer(timer);
     }
-    
+
     @Override
     public boolean perform(Robot robot, Clock clock) {
         return timer.isConsumed();
@@ -61,7 +61,10 @@ public class Wait extends Command implements Classifiable, FunctionToken<Wait>{
 
     @Override
     public Wait createInstance(String args) {
-        return new Wait();
+        if (args.trim().isEmpty()) {
+            return new Wait();
+        } else {
+            return new Wait(Integer.parseInt(args.trim()));
+        }
     }
-    
 }

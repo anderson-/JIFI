@@ -278,7 +278,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         
         synchronized (robots) {
             for (Robot robot : robots) {
-                System.out.println("eee");
+//                System.out.println("eee");
                 double v1 = robot.getLeftWheelSpeed();
                 double v2 = robot.getRightWheelSpeed();
 
@@ -307,7 +307,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     g.setStroke(defaultStroke); //fim da linha pontilhada
                     //desenha o centro
                     g.fillOval((int) (x - 3), (int) (y - 3), 6, 6);
-                    System.out.println("asd");
+//                    System.out.println("asd");
                 }
             }
         }

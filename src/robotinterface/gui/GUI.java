@@ -148,6 +148,9 @@ public class GUI extends javax.swing.JFrame {
                     interpreter.setRobot(r);
                 }
                 return connected;
+            } else {
+                //FAZER DIREITO
+                interpreter.setRobot(r);
             }
         } else if (o == null) {
             int returnVal = JOptionPane.showConfirmDialog(this, "Nenhum robô está seleionado, quer que eu crie um?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);

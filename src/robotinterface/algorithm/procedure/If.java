@@ -246,7 +246,7 @@ public class If extends Procedure {
         return p;
     }
 
-    public static MutableWidgetContainer createDrawableIf(final If i) {
+    public static MutableWidgetContainer createDrawableIf(final Procedure p) {
 
         final String[] comparadores = {"==", "!=", "<", "<=", ">", ">="};
         final String[] proximos = {" ", "&&", "||"};
@@ -259,7 +259,7 @@ public class If extends Procedure {
         final WidgetLine headerLine = new WidgetLine(20) {
             @Override
             protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("If:", 20, true));
+                labels.add(new TextLabel(container.getName() + ":", 20, true));
             }
         };
         //LINES
@@ -277,10 +277,10 @@ public class If extends Procedure {
                     if (((Object[]) data)[0] instanceof String[]) {
                         String[] strArray = (String[]) ((Object[]) data)[0];
                         if (strArray.length == 1) {
-                            primeiro.setText(strArray[0]);
+                            primeiro.setText(strArray[0].trim());
                         } else if (strArray.length == 2) {
-                            primeiro.setText(strArray[0]);
-                            segundo.setText(strArray[1]);
+                            primeiro.setText(strArray[0].trim());
+                            segundo.setText(strArray[1].trim());
                         }
                     }
                     if (((Object[]) data)[1] instanceof Integer) {
@@ -321,7 +321,6 @@ public class If extends Procedure {
 
             @Override
             public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                System.out.println("PARSING");
                 if (widgets.size() >= 4) {
                     try {
                         StringBuilder sb = new StringBuilder();
@@ -336,7 +335,7 @@ public class If extends Procedure {
                             str = ((JTextField) jComponent).getText();
                             if (!str.isEmpty()) {
                                 sb.append(" ");
-                                sb.append(str);
+                                sb.append(str.trim());
                                 sb.append(" ");
                             }
                         }
@@ -356,7 +355,7 @@ public class If extends Procedure {
                         if (jComponent instanceof JTextField) {
                             str = ((JTextField) jComponent).getText();
                             if (!str.isEmpty()) {
-                                sb.append(str);
+                                sb.append(str.trim());
                                 sb.append(" ");
                             }
                         }
@@ -369,7 +368,7 @@ public class If extends Procedure {
                                 sb.append(str);
                             }
                         }
-                        System.out.println(sb.toString());
+//                        System.out.println(sb.toString());
                         return sb.toString();
                     } catch (NoSuchElementException e) {
                         System.out.println("ERROR!");
@@ -378,14 +377,14 @@ public class If extends Procedure {
                 return "";
             }
         };
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FFA500")) { //While: #1281BD
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.gray) {
             private Polygon myShape = new Polygon();
             public static final int EXTENDED_HEIGHT = 15;
-            public static final int SIMPLE_HEIGHT = 20;
-            public static final int SIMPLE_WIDTH = 20;
+            public static final int SIMPLE_HEIGHT = 18;
+            public static final int SIMPLE_WIDTH = 22;
 
             {
-                string = i.getProcedure();
+                string = p.getProcedure();
                 updateLines();
                 center = true;
             }
@@ -416,8 +415,6 @@ public class If extends Procedure {
                         for (String str : str0.split("\\|\\|")) {
                             or = (str.length() == str0.length());
                             orEnd = str0.endsWith(str);
-
-                            System.out.println(str);
 
                             if (!or && !orEnd) {
                                 // ||
@@ -481,6 +478,9 @@ public class If extends Procedure {
             @Override
             public String getString() {
                 String str = super.getString();
+                if (str.trim().length() <= 2) {
+                    str = getName();
+                }
                 return str;
             }
 
@@ -524,7 +524,10 @@ public class If extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createDrawableIf(this);
+            MutableWidgetContainer mwc = If.createDrawableIf(this);
+            mwc.setName("If");
+            mwc.setColor(Color.decode("#FFA500"));
+            resource = mwc;
         }
         return resource;
     }

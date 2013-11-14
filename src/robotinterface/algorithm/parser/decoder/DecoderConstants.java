@@ -43,67 +43,65 @@ public interface DecoderConstants {
   /** RegularExpression Id. */
   int IDENTIFIER = 20;
   /** RegularExpression Id. */
-  int GENERIC = 21;
+  int LETTER = 21;
   /** RegularExpression Id. */
-  int LETTER = 22;
+  int DIGIT = 22;
   /** RegularExpression Id. */
-  int DIGIT = 23;
+  int ASSIGN = 23;
   /** RegularExpression Id. */
-  int ASSIGN = 24;
+  int GT = 24;
   /** RegularExpression Id. */
-  int GT = 25;
+  int LT = 25;
   /** RegularExpression Id. */
-  int LT = 26;
+  int EQ = 26;
   /** RegularExpression Id. */
-  int EQ = 27;
+  int LE = 27;
   /** RegularExpression Id. */
-  int LE = 28;
+  int GE = 28;
   /** RegularExpression Id. */
-  int GE = 29;
+  int NE = 29;
   /** RegularExpression Id. */
-  int NE = 30;
+  int SC_OR = 30;
   /** RegularExpression Id. */
-  int SC_OR = 31;
+  int SC_AND = 31;
   /** RegularExpression Id. */
-  int SC_AND = 32;
+  int INCR = 32;
   /** RegularExpression Id. */
-  int INCR = 33;
+  int DECR = 33;
   /** RegularExpression Id. */
-  int DECR = 34;
+  int PLUS = 34;
   /** RegularExpression Id. */
-  int PLUS = 35;
+  int MINUS = 35;
   /** RegularExpression Id. */
-  int MINUS = 36;
+  int STAR = 36;
   /** RegularExpression Id. */
-  int STAR = 37;
+  int SLASH = 37;
   /** RegularExpression Id. */
-  int SLASH = 38;
+  int BIT_AND = 38;
   /** RegularExpression Id. */
-  int BIT_AND = 39;
+  int BIT_OR = 39;
   /** RegularExpression Id. */
-  int BIT_OR = 40;
+  int XOR = 40;
   /** RegularExpression Id. */
-  int XOR = 41;
+  int REM = 41;
   /** RegularExpression Id. */
-  int REM = 42;
+  int LPAREN = 42;
   /** RegularExpression Id. */
-  int LPAREN = 43;
+  int RPAREN = 43;
   /** RegularExpression Id. */
-  int RPAREN = 44;
+  int LBRACE = 44;
   /** RegularExpression Id. */
-  int LBRACE = 45;
+  int RBRACE = 45;
   /** RegularExpression Id. */
-  int RBRACE = 46;
+  int LBRACKET = 46;
   /** RegularExpression Id. */
-  int LBRACKET = 47;
+  int RBRACKET = 47;
   /** RegularExpression Id. */
-  int RBRACKET = 48;
+  int SEMICOLON = 48;
   /** RegularExpression Id. */
-  int SEMICOLON = 49;
+  int COMMA = 49;
   /** RegularExpression Id. */
-  int COMMA = 50;
-  /** RegularExpression Id. */
-  int DOT = 51;
+  int DOT = 50;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -131,7 +129,6 @@ public interface DecoderConstants {
     "<EXPONENT>",
     "<STRING_LITERAL>",
     "<IDENTIFIER>",
-    "<GENERIC>",
     "<LETTER>",
     "<DIGIT>",
     "\"=\"",

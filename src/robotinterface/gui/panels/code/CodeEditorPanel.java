@@ -13,17 +13,22 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.Parser;
@@ -47,7 +52,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         super(new BorderLayout());
 
         this.function = function;
-
+        
         textArea = new JEditTextArea();
         textArea.setTokenMarker(new FunctionTokenMarker());
         textArea.setText(Parser.encode(function));
@@ -104,21 +109,51 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         });
 
         tb.add(uncommentButton);
+        
+        JButton cut = new JButton("Cut");
+        cut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textArea.cut();
+            }
+        });
 
+        tb.add(cut);
+        
+        JButton copyButton = new JButton("Copy");
+        copyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textArea.copy();
+            }
+        });
+
+        tb.add(copyButton);
+        
+        JButton pasteButton = new JButton("Paste");
+        pasteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textArea.paste();
+            }
+        });
+
+        tb.add(pasteButton);
+        
         add(tb, BorderLayout.PAGE_START);
 //        add(new JButton("converter"));
 //        add(new JButton("sei lá..."));
         add(jsp);
 
         textArea.setText("func MyFunc(){var x = 1; while (x == 1){move(50,70);wait();}}");
-        
+
         updateFunctionTokens();
 
     }
     private static ArrayList<Class> functionTokenClass = new ArrayList<>();
     private static ArrayList<FunctionToken> functionTokenInstances = new ArrayList<>();
-    
-    public static Collection<FunctionToken> getFunctionTokens(){
+
+    public static Collection<FunctionToken> getFunctionTokens() {
         return functionTokenInstances;
     }
 
@@ -137,8 +172,8 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
                 }
             }
         }
-        
-        
+
+
 
 //        keywords.add("print", Token.LITERAL2);
 
@@ -231,16 +266,24 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 //    }
     @Override
     public void keyTyped(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if ((e.getKeyCode() == KeyEvent.VK_C) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+            textArea.copy();
+            System.out.println("c");
+        } else if ((e.getKeyCode() == KeyEvent.VK_X) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+            textArea.cut();
+            System.out.println("x");
+        } else if ((e.getKeyCode() == KeyEvent.VK_V) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+            textArea.paste();
+            System.out.println("v");
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }
