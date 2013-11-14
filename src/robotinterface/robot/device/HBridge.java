@@ -18,7 +18,7 @@ public class HBridge extends Device {
     private int LeftWheelSpeed;
     private int RightWheelSpeed;
 
-    public HBridge(int id) {
+    public HBridge() {
         msg = new byte[5];
     }
 
@@ -77,5 +77,10 @@ public class HBridge extends Device {
     public void updateRobot(Robot robot) {
         robot.setRightWheelSpeed(RightWheelSpeed);
         robot.setLeftWheelSpeed(LeftWheelSpeed);
+    }
+
+    @Override
+    public String getName() {
+        return "Motores";
     }
 }

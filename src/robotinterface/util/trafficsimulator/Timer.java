@@ -37,8 +37,8 @@ public class Timer {
     private boolean disposable = true;
 
     public Timer(long milis) {
-        if (milis <= 0) {
-            throw new IllegalArgumentException("milis <= 0");
+        if (milis < 0) {
+            throw new IllegalArgumentException("milis < 0");
         }
         tick = milis;
     }
@@ -46,6 +46,14 @@ public class Timer {
     public Timer(long milis, boolean paused) {
         this(milis);
         this.paused = paused;
+    }
+
+    public long getTick() {
+        return tick;
+    }
+
+    public void setTick(long tick) {
+        this.tick = tick;
     }
     
     public synchronized void setDisposable (boolean disposable){

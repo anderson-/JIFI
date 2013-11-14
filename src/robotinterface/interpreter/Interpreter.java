@@ -182,7 +182,7 @@ public class Interpreter extends Thread {
     public static void main(String[] args) {
 
         Robot r = new Robot();
-        r.add(new HBridge(1));
+        r.add(new HBridge());
         r.add(new Compass());
         r.add(new Serial(57600));
         Interpreter i = new Interpreter();

@@ -39,4 +39,9 @@ public class Compass extends Device {
     public double getAlpha() {
         return alpha;
     }
+
+    @Override
+    public String getName() {
+        return "Bussola";
+    }
 }

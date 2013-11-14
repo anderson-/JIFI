@@ -403,7 +403,7 @@ public class Serial implements Connection, SerialPortEventListener {
 //        s = new VirtualConnection();
 
         Robot r = new Robot();
-        r.add(new HBridge(1));
+        r.add(new HBridge());
         r.add(new Compass());
         r.add(new IRProximitySensor());
         r.add(new ReflectanceSensorArray());

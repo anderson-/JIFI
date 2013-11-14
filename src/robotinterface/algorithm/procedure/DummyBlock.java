@@ -19,9 +19,13 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class DummyBlock extends Procedure {
 
+    {
+        setProcedure("<VAZIO>");
+        
+    }
+    
     @Override
     public GraphicObject getDrawableResource() {
-        setProcedure("<VAZIO>");
         return super.getDrawableResource();
     }
 

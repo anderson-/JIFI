@@ -37,6 +37,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
@@ -63,6 +64,8 @@ import robotinterface.util.trafficsimulator.Clock;
 public class Move extends Procedure implements GraphicResource, Classifiable, FunctionToken<Move> {
 
     private byte m1, m2;
+    private String var1 = null;
+    private String var2 = null;
     private HBridge hBridge = null;
 
     public Move() {
@@ -73,7 +76,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
         super();
         this.m1 = (byte) m1;
         this.m2 = (byte) m2;
-        setProcedure("move(" + m1 + "," + m2 + ")");
+        updateProcedure();
     }
 
     public byte getM1() {
@@ -82,7 +85,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     public void setM1(byte m1) {
         this.m1 = m1;
-        setProcedure("move(" + m1 + "," + m2 + ")");
+        updateProcedure();
     }
 
     public byte getM2() {
@@ -91,15 +94,47 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     public void setM2(byte m2) {
         this.m2 = m2;
-        setProcedure("move(" + m1 + "," + m2 + ")");
+        updateProcedure();
+    }
+
+    public void updateProcedure() {
+        setProcedure("move(" + ((var1 != null) ? var1 : m1) + "," + ((var2 != null) ? var2 : m2) + ")");
     }
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
         hBridge = robot.getDevice(HBridge.class);
         if (hBridge != null) {
+
+            byte t1 = m1;
+            byte t2 = m2;
+
+            if (var1 != null) {
+                Variable v = getParser().getSymbolTable().getVar(var1);
+                if (v != null && v.hasValidValue()) {
+                    Object o = v.getValue();
+                    if (o instanceof Number) {
+                        Number n = (Number) o;
+                        t1 = n.byteValue();
+                    }
+                }
+            }
+
+            if (var2 != null) {
+                Variable v = getParser().getSymbolTable().getVar(var1);
+                if (v != null && v.hasValidValue()) {
+                    Object o = v.getValue();
+                    if (o instanceof Number) {
+                        Number n = (Number) o;
+                        t1 = n.byteValue();
+                    }
+                }
+            }
+
+            System.out.println(t1 + "," + t2);
+
             hBridge.setWaiting();
-            hBridge.setFullState(m1, m2);
+            hBridge.setFullState(t1, t2);
         }
     }
 
@@ -152,13 +187,25 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 spinner2.setModel(new SpinnerNumberModel(0, -128, 127, 2));
                 JComboBox combobox1 = new JComboBox();
                 JComboBox combobox2 = new JComboBox();
-                
-                if (data != null){
-                    if (data instanceof Move){
+                boolean num1 = true, num2 = true;
+
+                if (data != null) {
+                    if (data instanceof Move) {
                         Move m = (Move) data;
-                        
-                        spinner1.setValue((int)m.m1);
-                        spinner2.setValue((int)m.m2);
+
+                        if (m.var1 != null) {
+                            combobox1.setSelectedItem(m.var1);
+                            num1 = false;
+                        } else {
+                            spinner1.setValue((int) m.m1);
+                        }
+
+                        if (m.var2 != null) {
+                            combobox1.setSelectedItem(m.var2);
+                            num2 = false;
+                        } else {
+                            spinner2.setValue((int) m.m2);
+                        }
                     }
                 }
 
@@ -171,8 +218,8 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 changeButton1.setIcon(icon);
                 changeButton2.setIcon(icon);
 
-                changeButton1.setEnabled(false);
-                changeButton2.setEnabled(false);
+//                changeButton1.setEnabled(false);
+//                changeButton2.setEnabled(false);
 
                 int x = INSET_X;
                 int y = INSET_Y + 40;
@@ -243,8 +290,17 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 wspinner2.setDynamic(true);
                 wcombobox2.setDynamic(true);
 
-                container.addWidget(wspinner1);
-                container.addWidget(wspinner2);
+                if (num1) {
+                    container.addWidget(wspinner1);
+                } else {
+                    container.addWidget(wcombobox1);
+                }
+
+                if (num2) {
+                    container.addWidget(wspinner2);
+                } else {
+                    container.addWidget(wcombobox2);
+                }
             }
 
             @Override
@@ -286,7 +342,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
             @Override
             public void updateLines() {
                 clear();
-                if (string.isEmpty()) {
+                if (string.length() <= 1) {
                     addLine(headerLine, m);
                 } else {
                     String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
@@ -317,16 +373,41 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     private static void updateMove(String str, Move m) {
         String[] argv = str.split(",");
-        if (argv.length == 1) {
-            int v = Integer.parseInt(argv[0].trim());
-            m.setM1((byte) v);
-            m.setM2((byte) v);
+        if (argv.length == 0) {
+            m.m1 = (byte) 0;
+            m.m2 = (byte) 0;
+        } else if (argv.length == 1) {
+            argv[0] = argv[0].trim();
+            if (Character.isLetter(argv[0].charAt(0))) {
+                m.var1 = argv[0];
+                m.var2 = argv[0];
+            } else {
+                int v = Integer.parseInt(argv[0].trim());
+                m.m1 = (byte) v;
+                m.m2 = (byte) v;
+                m.var1 = null;
+                m.var2 = null;
+            }
         } else if (argv.length == 2) {
-            int v0 = Integer.parseInt(argv[0].trim());
-            int v1 = Integer.parseInt(argv[1].trim());
-            m.setM1((byte) v0);
-            m.setM2((byte) v1);
+            argv[0] = argv[0].trim();
+            if (Character.isLetter(argv[0].charAt(0))) {
+                m.var1 = argv[0];
+            } else {
+                int v = Integer.parseInt(argv[0].trim());
+                m.m1 = (byte) v;
+                m.var1 = null;
+            }
+
+            argv[1] = argv[1].trim();
+            if (Character.isLetter(argv[1].charAt(0))) {
+                m.var2 = argv[1];
+            } else {
+                int v = Integer.parseInt(argv[1].trim());
+                m.m2 = (byte) v;
+                m.var2 = null;
+            }
         }
+        m.updateProcedure();
     }
 
     @Override
@@ -341,7 +422,9 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
     }
 
     public static void main(String[] args) {
-        Procedure p = new Move();
+        Move p = new Move();
+        Move.updateMove("x", p);
+        p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
     }

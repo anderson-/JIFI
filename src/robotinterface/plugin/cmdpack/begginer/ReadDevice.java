@@ -41,13 +41,23 @@ import java.awt.event.ActionListener;
 import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.plugin.cmdpack.serial.Start;
@@ -57,6 +67,7 @@ import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
 import robotinterface.interpreter.ExecutionException;
+import static robotinterface.plugin.cmdpack.begginer.Move.createDrawableMove;
 import robotinterface.robot.device.Device.TimeoutException;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
@@ -65,115 +76,19 @@ import robotinterface.util.trafficsimulator.Timer;
  *
  * @author antunes
  */
-public class ReadDevice extends Procedure implements GraphicResource, Classifiable {
+public class ReadDevice extends Procedure implements GraphicResource, Classifiable, FunctionToken<ReadDevice> {
 
-    public static final String RELOAD_VARS_ITEM = "<atualizar>";
-    private Timer timer;
     private Device device;
     private Class<? extends Device> type;
+    private String deviceName = "";
     private String var;
-    private WidgetContainer sContainer;
 
     public ReadDevice() {
-    }
-
-    public ReadDevice(ArrayList<Class<? extends Device>> devices) {
-        //Cria e inicializa os componentes Swing usados no componente
-        final HashMap<String, Class<? extends Device>> deviceMap = new HashMap<>();
-        JComboBox combobDevice = new JComboBox();
-        for (Class<? extends Device> c : devices) {
-            deviceMap.put(c.getSimpleName(), c);
-            combobDevice.addItem(c.getSimpleName());
-        }
-
-        String devName = (String) combobDevice.getSelectedItem();
-        type = deviceMap.get(devName);
-
-        combobDevice.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox cb = (JComboBox) e.getSource();
-                String devName = (String) cb.getSelectedItem();
-                type = deviceMap.get(devName);
-                System.out.println(type);
-            }
-        });
-
-        JComboBox combobVar = new JComboBox();
-        combobVar.addItem(RELOAD_VARS_ITEM);
-
-        combobVar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox cb = (JComboBox) e.getSource();
-                var = (String) cb.getSelectedItem();
-                if (var.equals(RELOAD_VARS_ITEM)) {
-                    cb.removeAllItems();
-                    cb.addItem(RELOAD_VARS_ITEM);
-                    for (String str : ReadDevice.super.getDeclaredVariables()) {
-                        cb.addItem(str);
-                    }
-                }
-            }
-        });
-
-        /*
-         * se você estiver fazendo um comando simples, pode usar SimpleContainer para desenhar
-         * você só precisa sobrescrever os metodos (pessimamente nomeados):
-         *  - drawWJC (draw with jcomponents) - desenha quando os compoentes swing estão aparecendo
-         *  - drawWoJC (draw without jcomponents) - desenha quando os compoentes swing não estão aparecendo
-         * e passar uma forma geometrica (Shape) e uma cor.
-         * 
-         * para mostrar os componente deve-se selecionar com o mouse.
-         */
-
-        Shape s = new RoundRectangle2D.Double(0, 0, 150, 60, 20, 20);
-        //cria um Losango (usar em IF)
-        //s = SimpleContainer.createDiamond(new Rectangle(0,0,150,100));
-        Color c = Color.getHSBColor(.5f, .3f, .7f);
-
-        sContainer = new SimpleContainer(s, c) {
-            //re
-            @Override
-            protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                //escreve coisas quando os jcomponets estão visiveis
-                ((RoundRectangle2D.Double) shape).height = 100;
-                this.bounds.height = 100;
-                g.setColor(Color.BLACK);
-                g.drawString("use o combobox:", 10, 10);
-                double x = bounds.x + bounds.width / 2;
-                double y = bounds.y;
-                ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
-            }
-
-            @Override
-            protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-                //escreve coisas quando os jcomponets não estão visiveis
-                ((RoundRectangle2D.Double) shape).height = 200;
-                this.bounds.height = 200;
-                g.setColor(Color.BLACK);
-                if (var != null && type != null) {
-                    g.drawString(var + " = " + type.getSimpleName(), 10, 30);
-                } else {
-                    g.drawString("Selecione a variável...", 10, 30);
-                }
-                double x = bounds.x + bounds.width / 2;
-                double y = bounds.y;
-                ReadDevice.this.ident(x, y, 30, 60, 0, 1, false);
-            }
-        };
-        //adiciona os jcompoents no SimpleContainer
-        sContainer.addWidget(combobDevice, 15, 8, 110, 20);
-        sContainer.addWidget(combobVar, 15, 32, 110, 20);
-
-        //esse timer é outra coisa...
-        timer = new Timer(200);
     }
 
     public ReadDevice(Class<? extends Device> type, String var) {
         this.type = type;
         this.var = var;
-        timer = new Timer(200);
     }
 
     @Override
@@ -202,8 +117,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 robot.getMainConnection().send(msg);
             }
         }
-        timer.reset();
-        clock.addTimer(timer);
     }
 
     @Override
@@ -221,70 +134,144 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             begin(r, clock);
         }
         return false;
-
-//        if (timer.isConsumed()) { //espera 200ms antes de ler o valor do dispositivo
-//            if (device != null) {
-//                String deviceState = device.stateToString();
-//                if (!deviceState.isEmpty()) {
-//                    execute(var + " = " + deviceState);
-//                }
-//            }
-//            return true;
-//        }
-//        return false;
     }
+    private GraphicObject resource = null;
 
     @Override
     public GraphicObject getDrawableResource() {
-        //retorna a classe responsável por desenhar esse comando.
-        return sContainer;
+        if (resource == null) {
+            resource = createDrawableMove(this);
+        }
+        return resource;
     }
 
-//    public static void main(String[] args) {
-////        QuickFrame.applyLookAndFeel();
+    public static MutableWidgetContainer createDrawableMove(final ReadDevice m) {
+
+        final JComboBox comboboxDev = new JComboBox();
+        final JComboBox comboboxVar = new JComboBox();
+        final HashMap<String, Class<? extends Device>> deviceMap = new HashMap<>();
+        for (Class<? extends Device> c : RobotControlPanel.getAvailableDevices()) {
+            String str = c.getSimpleName();
+            try {
+                str = c.newInstance().getName();
+            } catch (Exception ex) {
+            }
+            deviceMap.put(str, c);
+            comboboxDev.addItem(str);
+        }
+
+//        comboboxDev.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                JComboBox cb = (JComboBox) e.getSource();
+//                String devName = (String) cb.getSelectedItem();
+//                m.deviceName = devName;
+//                m.type = deviceMap.get(devName);
+//                System.out.println(m.type);
+//            }
+//        });
 //
-//        ArrayList<Class<? extends Device>> a = new ArrayList<>();
-//        a.add(HBridge.class);
-//        a.add(Compass.class);
-//
-//        ReadDevice rd = new ReadDevice(a);
-//
-//        Function func = new Function("main", null);
-//        func.add(new Wait(1000));
-//        func.add(new PrintString("inicio"));
-//        func.add(new Start());
-//        func.add(new robotinterface.algorithm.procedure.Declaration("i", 10));
-//        func.add(new PrintString("Girando %v vezes...", "i"));
-//        While loop = new While("i > 0");
-//        loop.add(new Move(70, 70)); //move
-//        loop.add(new Wait(500));
-//        loop.add(new Move(-70, 70)); //gira
-//        loop.add(new Wait(500));
-//        loop.add(new Move(0, 0)); //para
-//        loop.add(new Wait(500));
-//        loop.add(new PrintString("Falta mais %v passo(s)...", "i"));
-//        loop.add(new Procedure("i = i - 1"));
-//        func.add(loop);
-//        func.add(new PrintString("Procurando angulo 100"));
-//        func.add(new Wait(500));
-//        func.add(new robotinterface.algorithm.procedure.Declaration("alpha", 10));
-//        While loopCompass = new While("alpha != 100");// vai até 100
-//        If ifCompass = new If("alpha > 100");
-//        ifCompass.addTrue(new Move(55, -55));
-//        ifCompass.addTrue(new PrintString("Girando para a esquerda"));
-//        ifCompass.addFalse(new Move(-55, 55));
-//        ifCompass.addFalse(new PrintString("Girando para a direita"));
-//        loopCompass.add(ifCompass);
-//        loopCompass.add(rd);
-//        loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
-//        func.add(loopCompass);
-//        func.add(new Move(0, 0));
-//        func.add(new ReadDevice(Compass.class, "alpha"));
-//        func.add(new PrintString("Angulo final: %v", "alpha"));
-//        func.add(new PrintString("fim"));
-//
-//        QuickFrame.drawTest(rd.getDrawableResource());
-//    }
+//        comboboxVar.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                JComboBox cb = (JComboBox) e.getSource();
+//                String varName = (String) cb.getSelectedItem();
+//                m.var = varName;
+//            }
+//        });
+
+        final int TEXTFIELD_WIDTH = 100;
+        final int TEXTFIELD_HEIGHT = 25;
+        final int BUTTON_WIDTH = 25;
+        final int INSET_X = 5;
+        final int INSET_Y = 5;
+
+        //HEADER LINE
+
+        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
+        int headerWidth = 4 * INSET_X + TEXTFIELD_WIDTH + 64;
+        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+            @Override
+            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+                labels.add(new TextLabel("Ler Sensor:", 20, true));
+
+                MutableWidgetContainer.setAutoFillComboBox(comboboxVar, m);
+
+                if (data != null) {
+                    if (data instanceof ReadDevice) {
+                        ReadDevice rd = (ReadDevice) data;
+
+                        if (rd.var != null && !rd.var.isEmpty()) {
+                            comboboxVar.setSelectedItem(rd.var);
+                        }
+
+                        comboboxDev.setSelectedItem(rd.deviceName);
+                    }
+                }
+
+                int x = INSET_X;
+                int y = INSET_Y + 40;
+                int strlen = 68;
+                labels.add(new TextLabel("Sensor:", x + 5, y));
+
+                x += strlen;
+                y -= 18;
+
+                final WidgetContainer.Widget wcombobox1 = new WidgetContainer.Widget(comboboxDev, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wcombobox1);
+
+                x -= strlen;
+                y += 50;
+
+                labels.add(new TextLabel("Variavel:", x + 5, y));
+
+                x += strlen;
+                y -= 18;
+
+                final WidgetContainer.Widget wcombobox2 = new WidgetContainer.Widget(comboboxVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wcombobox2);
+            }
+        };
+
+        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+            {
+                string = m.getProcedure();
+                updateLines();
+            }
+
+            @Override
+            public void updateLines() {
+                clear();
+                addLine(headerLine, m);
+                string = getString();
+            }
+
+            @Override
+            public String getString() {
+                String devName = (String) comboboxDev.getSelectedItem();
+                m.deviceName = devName;
+                m.type = deviceMap.get(devName);
+
+                String varName = (String) comboboxVar.getSelectedItem();
+                m.var = varName;
+
+                return "read(" + m.deviceName + "," + m.var + ")";
+            }
+        };
+
+        return mwc;
+    }
+
+    private static void updateReadDevice(String args, ReadDevice rd) {
+        String[] argv = args.split(",");
+        if (argv.length == 2) {
+            argv[0] = argv[0].trim();
+            argv[1] = argv[1].trim();
+            rd.deviceName = argv[0];
+            rd.var = argv[1];
+        }
+    }
+
     @Override
     public String toString() {
         if (var != null && type != null) {
@@ -301,10 +288,28 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     @Override
     public Object createInstance() {
-        ArrayList<Class<? extends Device>> a = new ArrayList<>();
-        a.add(HBridge.class);
-        a.add(Compass.class);
+        return new ReadDevice();
+    }
 
-        return new ReadDevice(a);
+    public static void main(String[] args) {
+        ReadDevice p = new ReadDevice();
+        updateReadDevice("Distancia, y", p);
+        p.addBefore(new Procedure("var x, y;"));
+        QuickFrame.applyLookAndFeel();
+        QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    @Override
+    public String getToken() {
+        return "read";
+    }
+
+    @Override
+    public ReadDevice createInstance(String args) {
+        ReadDevice rd = new ReadDevice();
+        if (!args.isEmpty()) {
+            updateReadDevice(args, rd);
+        }
+        return rd;
     }
 }

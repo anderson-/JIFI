@@ -52,7 +52,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         super(new BorderLayout());
 
         this.function = function;
-        
+
         textArea = new JEditTextArea();
         textArea.setTokenMarker(new FunctionTokenMarker());
         textArea.setText(Parser.encode(function));
@@ -109,7 +109,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         });
 
         tb.add(uncommentButton);
-        
+
         JButton cut = new JButton("Cut");
         cut.addActionListener(new ActionListener() {
             @Override
@@ -119,7 +119,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         });
 
         tb.add(cut);
-        
+
         JButton copyButton = new JButton("Copy");
         copyButton.addActionListener(new ActionListener() {
             @Override
@@ -129,7 +129,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         });
 
         tb.add(copyButton);
-        
+
         JButton pasteButton = new JButton("Paste");
         pasteButton.addActionListener(new ActionListener() {
             @Override
@@ -139,13 +139,29 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         });
 
         tb.add(pasteButton);
-        
+
         add(tb, BorderLayout.PAGE_START);
 //        add(new JButton("converter"));
 //        add(new JButton("sei lá..."));
         add(jsp);
 
-        textArea.setText("func MyFunc(){var x = 1; while (x == 1){move(50,70);wait();}}");
+        textArea.setText(
+                "func MyFunc(){\n"
+                + "	var x = 0;\n"
+                + "	var y;\n"
+                + "	 while (x < 100){\n"
+                + "		read(Distancia,y);\n"
+                + "		print(\"%v\", y);\n"
+                + "		move(x);\n"
+                + "		wait(500);\n"
+                + "		move(0);\n"
+                + "		wait(300);\n"
+                + "		x = x + 10;\n"
+                + "		if (x >= 120){\n"
+                + "			x = 0;\n"
+                + "		}\n"
+                + "	}\n"
+                + "}");
 
         updateFunctionTokens();
 
@@ -285,5 +301,4 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
     }
-
 }

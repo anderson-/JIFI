@@ -78,8 +78,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         public int getClassID() {
             return 0;
         }
+
+        @Override
+        public String getName() {
+            return "Ciclo";
+        }
     }
-    
     private Environment environment;
     private Perception perception;
     private ArrayList<Device> devices;
@@ -196,7 +200,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     public Environment getEnvironment() {
         return environment;
     }
-    
+
     public Perception getPerception() {
         return perception;
     }

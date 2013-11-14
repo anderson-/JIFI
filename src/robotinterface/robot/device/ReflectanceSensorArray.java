@@ -89,4 +89,9 @@ public class ReflectanceSensorArray extends Device implements Drawable {
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
+
+    @Override
+    public String getName() {
+        return "Refletancia";
+    }
 }

@@ -1,7 +1,5 @@
 # Lista de Plugins <Default>
 # "robotinterface/algorithm/plugin.txt"
 robotinterface.algorithm.procedure.Procedure
-robotinterface.algorithm.procedure.FunctionBlock
-robotinterface.algorithm.procedure.DummyBlock
 robotinterface.algorithm.procedure.If
 robotinterface.algorithm.procedure.While

@@ -346,7 +346,7 @@ public class Serial1 implements Connection, SerialPortEventListener {
         Serial s = new Serial(57600);
 
         Robot r = new Robot();
-        r.add(new HBridge(1));
+        r.add(new HBridge());
         r.add(new Compass());
         r.add(new IRProximitySensor());
 //        s.attach(r);

@@ -44,7 +44,7 @@ public class Environment {
         double y2 = y + MAX_DISTANCE * sin(theta);
         Line2D.Double line = new Line2D.Double(x, y, x2, y2);
         Point2D p;
-        boolean out = true;
+//        boolean out = true;
         for (Shape s : obstacles) {
             if (s instanceof Line2D.Double) {
             } else {
@@ -53,26 +53,29 @@ public class Environment {
                     if (s.contains(p)) {
                         dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
                         System.out.println(dt + " " + df);
-                        if (df <= 0) {
-                            out = false;
-                        }
-                        if (out) {
                         if (dt < df) {
                             df = dt;
                         }
-                        } else {
-                            if (dt > df) {
-                                df = dt;
-                            }
-                        }
-                            out = false;
-                        }
-                        if (out) {
+//                        if (df <= 0) {
+//                            out = false;
+//                        }
+//                        if (out) {
+//                            if (dt < df) {
+//                                df = dt;
+//                            }
+//                        } else {
+//                            if (dt > df) {
+//                                df = dt;
+//                            }
+//                        }
+//                        out = false;
                     }
+//                    if (out) {
+//                    }
                 }
-                if (!out){
-                    out = true;
-                }
+//                if (!out) {
+//                    out = true;
+//                }
             }
         }
 

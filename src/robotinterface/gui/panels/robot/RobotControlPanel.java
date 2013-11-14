@@ -5,6 +5,8 @@
 package robotinterface.gui.panels.robot;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collection;
 import javax.swing.JOptionPane;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
@@ -36,7 +38,7 @@ public class RobotControlPanel extends javax.swing.JPanel {
         INSTANCE++;
         serial = new Serial(57600);
         robot = new Robot();
-        robot.add(new HBridge(1));
+        robot.add(new HBridge());
         robot.add(new Compass());
         robot.add(new IRProximitySensor());
         robot.add(new ReflectanceSensorArray());
@@ -46,6 +48,17 @@ public class RobotControlPanel extends javax.swing.JPanel {
         setBorder(border);
         refreshButtonActionPerformed(null);
         robotManager = rm;
+    }
+    
+    public static Collection<Class> getAvailableDevices(){
+        ArrayList<Class> devices = new ArrayList<>();
+        
+        devices.add(HBridge.class);
+        devices.add(Compass.class);
+        devices.add(IRProximitySensor.class);
+        devices.add(ReflectanceSensorArray.class);
+        
+        return devices;
     }
     
     public Robot getRobot() {

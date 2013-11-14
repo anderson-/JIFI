@@ -66,17 +66,6 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class Procedure extends Command implements Expression, Classifiable {
 
-//    /**
-//     * Interface para a declaração de multiplas variaveis em algum comando.
-//     *
-//     * @see robotinterface.algorithm.procedure.Declaration
-//     */
-//    protected interface Declaration {
-//
-//        public Collection<String> getVariableNames();
-//
-//        public Collection<Object> getVariableValues();
-//    }
     private ArrayList<String> names;
     private ArrayList<Object> values;
     private static JEP parser;
@@ -127,7 +116,10 @@ public class Procedure extends Command implements Expression, Classifiable {
     }
 
     private void updateVariables() {
+        names.clear();
+        values.clear();
         for (String str : procedure.split(";")) {
+            str = str.trim();
             if (str.startsWith("var")) {
                 str = str.replaceFirst("var ", "");
                 String varName;
@@ -141,10 +133,8 @@ public class Procedure extends Command implements Expression, Classifiable {
                         varName = declaration.trim();
                         varValue = null;
                     }
-                    if (!names.contains(varName)) {
-                        names.add(varName);
-                        values.add(varValue);
-                    }
+                    names.add(varName);
+                    values.add(varValue);
                 }
             }
         }
@@ -369,6 +359,7 @@ public class Procedure extends Command implements Expression, Classifiable {
             {
                 string = p.getProcedure();
                 updateLines();
+                getString();
             }
 
             @Override
@@ -393,6 +384,7 @@ public class Procedure extends Command implements Expression, Classifiable {
             @Override
             public String getString() {
                 String str = super.getString();
+                p.setProcedure(str);
                 return str;
             }
         };

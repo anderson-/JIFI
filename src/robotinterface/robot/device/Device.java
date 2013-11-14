@@ -64,6 +64,8 @@ public abstract class Device {
     public byte getID() {
         return id;
     }
+    
+    public abstract String getName();
 
     public abstract int getClassID();
 
