@@ -139,6 +139,13 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         }
         add(robot);
     }
+
+    public void removeRobot(Robot robot) {
+        synchronized (robots) {
+            robots.remove(robot);
+        }
+        remove(robot);
+    }
     
     public ArrayList<Robot> getRobots() {
         return robots;

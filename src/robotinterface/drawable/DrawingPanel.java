@@ -68,8 +68,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     public final double MIN_ZOOM = 0.1;
     public final double MAX_ZOOM = 10.0;
-    protected final long PAINT_DELAY = 2;
-    protected final long NO_PAINT_DELAY = 100;
+    protected long PAINT_DELAY = 2;
+    protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
     private final ArrayList<Drawable> objects;
     private final ArrayList<Drawable> objectsTmp;
@@ -81,8 +81,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private Thread repaintThread;
     private BufferedImage buffer;
     private boolean repaint = false;
-    private int width;
-    private int height;
+    protected int width;
+    protected int height;
     private int globalX = 0, globalY = 0;
     private boolean zoomEnabled = true;
     private double zoom = 1.0;

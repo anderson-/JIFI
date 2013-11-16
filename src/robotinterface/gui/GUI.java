@@ -101,6 +101,7 @@ public class GUI extends javax.swing.JFrame {
         //robot manager
 
         robotManager = new RobotManager(this);
+        robotManager.createRobot();
         jScrollPane3.setViewportView(robotManager);
         jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -112,6 +113,10 @@ public class GUI extends javax.swing.JFrame {
 ////            System.out.println(Parser.encode(f));
 //        }
         updateRobotList();
+    }
+    
+    public SimulationPanel getSimulationPanel (){
+        return simulationPanel;
     }
 
     public void updateRobotList() {
@@ -141,7 +146,6 @@ public class GUI extends javax.swing.JFrame {
                         return false;
                     }
                 }
-                rcp.refresh();
                 rcp.setConnection(0);
                 boolean connected = rcp.tryConnect();
                 if (connected) {
@@ -155,7 +159,7 @@ public class GUI extends javax.swing.JFrame {
         } else if (o == null) {
             int returnVal = JOptionPane.showConfirmDialog(this, "Nenhum robô está seleionado, quer que eu crie um?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (returnVal == JOptionPane.YES_OPTION) {
-                robotManager.createRobot(this);
+                robotManager.createRobot();
                 setDefaultRobot(interpreter, false);
             }
         }
@@ -215,9 +219,9 @@ public class GUI extends javax.swing.JFrame {
         addNewCodePanel = new javax.swing.JPanel();
         secondarySplitPane = new javax.swing.JSplitPane();
         staticTabbedPane = new javax.swing.JTabbedPane();
+        jScrollPane3 = new javax.swing.JScrollPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
-        jScrollPane3 = new javax.swing.JScrollPane();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
@@ -397,7 +401,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 551, Short.MAX_VALUE)
+            .addGap(0, 559, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -411,11 +415,11 @@ public class GUI extends javax.swing.JFrame {
         secondarySplitPane.setOneTouchExpandable(true);
 
         staticTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
+        staticTabbedPane.addTab("Robôs", jScrollPane3);
 
         jScrollPane2.setViewportView(jTree1);
 
         staticTabbedPane.addTab("Projeto", jScrollPane2);
-        staticTabbedPane.addTab("Robôs", jScrollPane3);
 
         secondarySplitPane.setLeftComponent(staticTabbedPane);
 
@@ -427,7 +431,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 295, Short.MAX_VALUE)
+            .addGap(0, 303, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -469,7 +473,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 589, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );

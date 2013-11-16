@@ -54,4 +54,9 @@ public class StandartIO implements Connection {
         
     }
     
+    @Override
+    public void detach(Observer<ByteBuffer, Connection> observer) {
+        
+    }
+    
 }

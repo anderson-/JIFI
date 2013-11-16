@@ -22,8 +22,9 @@ public abstract class Device {
     public class TimeoutException extends Exception {
     }
     public static long TIMEOUT = 25; //alterado para 25 se utilizar librxtxSerial.so recompilado
-    public static long PING = 0;
-    public static int NMSG = 0;
+    private static long time = 0;
+    private static int receivedPackages = 0;
+    private static int lostPackages = 0;
     private byte id;
     private static Connection connection;
     private boolean received = false;
@@ -41,16 +42,23 @@ public abstract class Device {
 
     public final boolean isValidRead() throws TimeoutException {
         if (received) {
-            NMSG++;
-            PING += (System.currentTimeMillis() - startReadingTime);
-//            PING = PING*.9f + (System.currentTimeMillis() - startReadingTime)*.1f;
-            System.out.println("PING: ~" + PING/NMSG);
+            receivedPackages++;
+            time += (System.currentTimeMillis() - startReadingTime);
             return true;
         } else if (System.currentTimeMillis() - startReadingTime >= TIMEOUT) {
+            lostPackages++;
             throw new TimeoutException();
         } else {
             return false;
         }
+    }
+
+    public static int getLostPackages() {
+        return lostPackages;
+    }
+
+    public static float getPingEstimative() {
+        return (float) time / receivedPackages;
     }
 
     public static void setConnection(Connection connection) {
@@ -64,7 +72,7 @@ public abstract class Device {
     public byte getID() {
         return id;
     }
-    
+
     public abstract String getName();
 
     public abstract int getClassID();
@@ -99,10 +107,7 @@ public abstract class Device {
     protected final void send(byte[] msg) {
         connection.send(msg);
     }
-    
-    
-    public void updateRobot(Robot robot) {
-        
-    }
 
+    public void updateRobot(Robot robot) {
+    }
 }

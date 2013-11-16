@@ -240,7 +240,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Object createInstance() {
-        return new Procedure(" ");
+        return new Procedure("var x = 1");
     }
     private GraphicObject resource = null;
 
@@ -358,6 +358,7 @@ public class Procedure extends Command implements Expression, Classifiable {
         MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#69CD87")) {
             {
                 string = p.getProcedure();
+                System.out.println(string);
                 updateLines();
                 getString();
             }

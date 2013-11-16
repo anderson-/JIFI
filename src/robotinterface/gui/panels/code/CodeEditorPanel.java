@@ -149,7 +149,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
                 "func MyFunc(){\n"
                 + "	var x = 0;\n"
                 + "	var y;\n"
-                + "	 while (x < 100){\n"
+                + "	 while (1 == 1){\n"
                 + "		read(Distancia,y);\n"
                 + "		print(\"%v\", y);\n"
                 + "		move(x);\n"

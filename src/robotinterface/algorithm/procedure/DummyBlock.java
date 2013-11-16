@@ -6,7 +6,6 @@ package robotinterface.algorithm.procedure;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
-import robotinterface.algorithm.Command;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -21,7 +20,6 @@ public class DummyBlock extends Procedure {
 
     {
         setProcedure("<VAZIO>");
-        
     }
     
     @Override

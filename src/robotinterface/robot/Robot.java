@@ -27,13 +27,12 @@ import robotinterface.robot.simulation.Environment;
 import robotinterface.robot.simulation.Perception;
 import robotinterface.robot.simulation.VirtualConnection;
 import robotinterface.robot.simulation.VirtualDevice;
-import robotinterface.util.observable.Observable;
 
 /**
  *
  * @author antunes
  */
-public class Robot implements Observer<ByteBuffer, Connection>, Observable<Device, Robot>, GraphicObject {
+public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
     public static final double SIZE_CM = 20;
     public static final double size = 60;
@@ -110,11 +109,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
 
     }
 
-    @Override
-    public void attach(Observer<Device, Robot> observer) {
-        observers.add(observer);
-    }
-
     public void updateObservers(Device d) {
         for (Observer<Device, Robot> o : observers) {
             o.update(d, this);
@@ -133,6 +127,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
     public final void add(Connection c) {
         c.attach(this);
         connections.add(c);
+    }
+
+    public final void remove(Device d) {
+        devices.remove(d);
+        d.setID(-1);
+    }
+
+    public final void remove(Connection c) {
+        c.detach(this);
+        connections.remove(c);
     }
 
     public final <T> T getDevice(Class<? extends Device> c) {
@@ -538,6 +542,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
                 }
             }
         } catch (BufferUnderflowException e) {
+            e.printStackTrace();
             System.err.println("mensagem pela metade");
         }
     }
@@ -676,21 +681,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, Observable<Devic
         }
 
         g.setTransform(o);
-
-
-//        int sw = (int) (Robot.size / 15);
-//        int sx = (int) (Robot.size * .8 / 2);
-//        int sy = -sw / 2;
-//        AffineTransform t2 = (AffineTransform) t.clone();
-//        t2.rotate(-3 * Math.PI / 12);
-//        g.setTransform(t2);
-//        for (int si = 0; si < 5; si++) {
-//            t2.rotate(Math.PI / 12);
-//            g.setTransform(t2);
-//            g.fillOval(sx, sy, sw, sw);
-//        }
-
-
+        
         move(ga.getClock().getDt());
     }
 

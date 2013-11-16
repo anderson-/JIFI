@@ -12,4 +12,6 @@ public interface Observable <E,V> {
     
     public void attach (Observer <E,V> observer);
     
+    public void detach (Observer <E,V> observer);
+    
 }

@@ -6,7 +6,6 @@ package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
 import robotinterface.robot.Robot;
-import robotinterface.robot.simulation.VirtualDevice;
 
 /**
  *
@@ -24,6 +23,13 @@ public class HBridge extends Device {
 
     @Override
     public void setState(ByteBuffer data) {
+        if (data.remaining() == 2){
+            if (data.get() == 0){
+                LeftWheelSpeed = data.get();
+            } else {
+                RightWheelSpeed = data.get();
+            }
+        }
     }
 
     public void setMotorState(int motor, byte speed) {

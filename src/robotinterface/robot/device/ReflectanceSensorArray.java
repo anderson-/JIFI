@@ -7,30 +7,66 @@ package robotinterface.robot.device;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.robot.Robot;
+import robotinterface.robot.simulation.VirtualDevice;
 
 /**
  *
  * @author antunes
  */
-public class ReflectanceSensorArray extends Device implements Drawable {
+public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable {
 
     private int values[] = new int[5];
     private double x, y;
 
     @Override
     public void setState(ByteBuffer data) {
-        System.out.println("R:" + data.remaining());
         byte b = data.get();
         for (int i = 0; i < 5; i++) {
-            values[4 - i] = (b >> i) & 1;
+            values[i] = (b >> i) & 1;
         }
-        
-        System.out.println(b);
+    }
+
+    @Override
+    public void getState(ByteBuffer buffer, Robot robot) {
+        byte value = 0;
+        int sw = (int) (Robot.size / 15);
+        int sx = (int) (Robot.size * .8 / 2);
+        int sy = -sw / 2;
+        AffineTransform t = new AffineTransform();
+        t.rotate(robot.getTheta());
+        Point2D.Double src = new Point2D.Double(sx, sy);
+        Point2D.Double dst = new Point2D.Double();
+        t.rotate(-3 * Math.PI / 12);
+        for (int si = 0; si < 5; si++) {
+            t.rotate(Math.PI / 12);
+            t.deltaTransform(src, dst);
+            values[si] = (robot.getEnvironment().isOver(dst.x, dst.y)) ? 1 : 0;
+            value |= (values[si] << si);
+        }
+
+        buffer.put((byte) 1);
+        buffer.put(value);
+    }
+
+    @Override
+    public void setState(ByteBuffer data, Robot robot) {
+        setState(data);
+//        int d = (int) robot.getEnvironment().beamDistance(robot.getPosX(), robot.getPosY(), robot.getTheta(), Robot.size / 2);
+//        if (d < dist) {
+//            dist = d;
+//        }
+    }
+
+    @Override
+    public void updateRobot(Robot robot) {
+//        double d = dist * 2 + Robot.size / 2;
+//        robot.getPerception().addObstacle(robot.getPosX(), robot.getPosY(), robot.getTheta(), d);
     }
 
     @Override
@@ -42,7 +78,7 @@ public class ReflectanceSensorArray extends Device implements Drawable {
     public int getClassID() {
         return 4;
     }
-    
+
     @Override
     public void setLocation(double x, double y) {
         this.x = x;

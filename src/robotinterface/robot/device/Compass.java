@@ -18,7 +18,7 @@ public class Compass extends Device {
     @Override
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
-        System.out.println("Angulo:" + alpha);
+//        System.out.println("Angulo:" + alpha);
     }
     
     @Override

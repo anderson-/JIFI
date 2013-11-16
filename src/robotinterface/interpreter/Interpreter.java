@@ -149,6 +149,9 @@ public class Interpreter extends Thread {
                     Thread.sleep(10);
                 } catch (InterruptedException ex) {
                 }
+                if (state != PLAY) {
+                    return true;
+                }
             }
             currentCmd = currentCmd.step();
         } catch (ExecutionException e) {

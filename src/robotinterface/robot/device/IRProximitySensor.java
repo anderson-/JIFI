@@ -27,7 +27,7 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
     @Override
     public void setState(ByteBuffer data) {
         dist = data.getChar();
-        System.out.println("Distancia: " + dist);
+//        System.out.println("Distancia: " + dist);
     }
 
     @Override

@@ -1,7 +1,3 @@
-
-
-
-
 package robotinterface.robot.connection;
 
 import gnu.io.CommPortIdentifier;
@@ -64,10 +60,9 @@ public class Serial1 implements Connection, SerialPortEventListener {
      */
     private static final int TIME_OUT = 2000;
     private static final int PORT_SEARCH = 1;
-
     public int s = 0;
     public int r = 0;
-    
+
     public Serial1(int dataRate) {
         observers = new ArrayList<>();
         this.dataRate = dataRate;
@@ -167,6 +162,11 @@ public class Serial1 implements Connection, SerialPortEventListener {
     @Override
     public void attach(Observer<ByteBuffer, Connection> observer) {
         observers.add(observer);
+    }
+    
+    @Override
+    public void detach(Observer<ByteBuffer, Connection> observer) {
+        observers.remove(observer);
     }
 
     /*
@@ -433,7 +433,7 @@ public class Serial1 implements Connection, SerialPortEventListener {
             //testMessages.add(new byte[]{3, 4, 0, 0});//get clock
             //testMessages.add(new byte[]{3, 4, (byte) (i / 256), (byte) (i)});//get clock
         }
-        
+
 //        if (s.establishConnection()) {
 //            System.out.println("connected");
 //            long timestamp = System.currentTimeMillis();

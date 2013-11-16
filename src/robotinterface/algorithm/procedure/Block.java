@@ -25,16 +25,12 @@
  */
 package robotinterface.algorithm.procedure;
 
-import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
-import static robotinterface.algorithm.procedure.Function.getBounds;
-import static robotinterface.algorithm.procedure.Function.ident;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;
@@ -380,7 +376,7 @@ public class Block extends Procedure {
     }
 
     @Override
-    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+    public final void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
         double cw = 0;
         double ch = 0;
 
@@ -418,7 +414,8 @@ public class Block extends Procedure {
             y += Iy * (ch + yj);
         }
         
-        if (size() == 1){
+        if (size() == 1){ //só tem o EndBlock
+            System.out.println(this);
             DummyBlock db = new DummyBlock();
             db.setNext(end);
             db.setParent(this);
@@ -436,7 +433,7 @@ public class Block extends Procedure {
                 ((Function)it).getD().add(db.getDrawableResource());
             }
             
-            System.out.println("addded dummy");
+            System.out.println("addded dummy on " + this);
         }
 
         start.ident(x, y, j, k, Ix, Iy, a);

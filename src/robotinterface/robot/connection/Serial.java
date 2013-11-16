@@ -47,6 +47,8 @@ public class Serial implements Connection, SerialPortEventListener {
     private String defaultPort = null;
     private boolean isConnected = false;
     private boolean available = false;
+    private int sendedPackages = 0;
+    private int receivedPackages = 0;
     private static final String PORT_NAMES[] = {
         "/dev/tty.usbserial-A9007UX1", // Mac OS X
         "/dev/ttyUSB#", // Linux
@@ -81,6 +83,14 @@ public class Serial implements Connection, SerialPortEventListener {
         buffer = ByteBuffer.allocate(256);
     }
 
+    public int getSendedPackages() {
+        return sendedPackages;
+    }
+
+    public int getReceivedPackages() {
+        return receivedPackages;
+    }
+
     public String getDefaultPort() {
         return defaultPort;
     }
@@ -96,7 +106,7 @@ public class Serial implements Connection, SerialPortEventListener {
         System.arraycopy(data, 0, newdata, 1, length);
         newdata[0] = length;
         try {
-            s++;
+            sendedPackages++;
             output.write(newdata);
 //            output.flush(); //trava a thread main! pq???
         } catch (IOException ex) {
@@ -259,8 +269,6 @@ public class Serial implements Connection, SerialPortEventListener {
             serialPort.close();
         }
     }
-    public int s = 0;
-    public static int r = 0;
 
     @Override
     public boolean isConnected() {
@@ -270,6 +278,11 @@ public class Serial implements Connection, SerialPortEventListener {
     @Override
     public void attach(Observer<ByteBuffer, Connection> observer) {
         observers.add(observer);
+    }
+
+    @Override
+    public void detach(Observer<ByteBuffer, Connection> observer) {
+        observers.remove(observer);
     }
     boolean newMessage = false;
 
@@ -286,8 +299,7 @@ public class Serial implements Connection, SerialPortEventListener {
                     //obtem uma string delimitada por '\n', '\t' ou "\t\n"
                     String str = bufferedReader.readLine();
 //                    printBytes(str);
-                    r++;
-                    System.out.println("S:" + s + " x R:" + r);
+                    receivedPackages++;
                     //obtem os bytes codificados na string com o Charset personalizado
                     byte[] data = str.getBytes(charset);
                     if (data.length > 1) {
@@ -398,9 +410,9 @@ public class Serial implements Connection, SerialPortEventListener {
 
     public static void main(String[] args) {
         Connection s;
-        s = new Serial(57600);
+//        s = new Serial(57600);
 //        s = new VirtualConnection(s);
-//        s = new VirtualConnection();
+        s = new VirtualConnection();
 
         Robot r = new Robot();
         r.add(new HBridge());
@@ -487,10 +499,10 @@ public class Serial implements Connection, SerialPortEventListener {
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
 
-        testMessages.add(new byte[]{7, (byte) 224});//reset system
-        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
-        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
-//        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
+//        testMessages.add(new byte[]{7, (byte) 224});//reset system
+//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
+        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
         for (int i = 0; i < 5000; i++) {
             testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
         }
@@ -526,7 +538,7 @@ public class Serial implements Connection, SerialPortEventListener {
                     try {
                         int w = 0;
                         loop:
-                        while (send != Serial.r) {
+                        while (send != 0/*((Serial) s).receivedPackages*/) {
                             //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             Thread.sleep(1); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             w++;

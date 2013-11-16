@@ -105,4 +105,9 @@ public class VirtualConnection implements Connection, Observer<ByteBuffer, Conne
     public void attach(Observer<ByteBuffer, Connection> observer) {
         observers.add(observer);
     }
+    
+    @Override
+    public void detach(Observer<ByteBuffer, Connection> observer) {
+        observers.remove(observer);
+    }
 }

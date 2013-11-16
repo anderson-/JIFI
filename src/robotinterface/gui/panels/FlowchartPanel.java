@@ -48,10 +48,10 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     public ArrayList<JPanel> tabs = new ArrayList<>();
     private Interpreter interpreter;
     private Function function;
-    private int fx = 200;
-    private int fy = 60;
-    private int fj = 30;
-    private int fk = 60;
+    private int fx = 100;
+    private int fy = 10;
+    private int fj = 10;
+    private int fk = 10;
     private int fIx = 0;
     private int fIy = 1;
     private boolean fsi = false;
@@ -129,7 +129,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     public void setFunction(Function function) {
         removeGraphicResources(this.function);
         this.function = function;
-        add(function);
+//        add(function);
         function.appendDCommandsOn(this);
         function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
         setName(function.toString());
@@ -238,6 +238,8 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+        
+        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
 
         for (Command c : selection) {
             if (c instanceof GraphicResource && c.getParent() != null) {
