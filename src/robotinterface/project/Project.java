@@ -76,15 +76,17 @@ public class Project {
             for (Function f : functions) {
                 addFileToZip("functions", functionToFile(f), zip, false);
             }
+            
+            addFolderToZip("", "environment", zip);
 
             {
                 File file = null;
                 try {
-                    file = new File("environment.txt");
-                    
+                    file = new File("environment.env");
+
                     GUI.getInstance().getSimulationPanel().getEnv().saveFile(file);
-                                        
-                    addFileToZip("", file, zip, false);
+
+                    addFileToZip("environment", file, zip, false);
 
                 } catch (Exception e) {
                     //do stuff with exception
@@ -158,13 +160,13 @@ public class Project {
                      */
                     zip.write(buf, 0, len);
                 }
-            }
-        }
 
-        if (file.delete()) {
-            System.out.println(file.getName() + " is deleted!");
-        } else {
-            System.out.println("Delete operation is failed." + file);
+                if (file.delete()) {
+                    System.out.println(file.getName() + " is deleted!");
+                } else {
+                    System.out.println("Delete operation is failed." + file);
+                }
+            }
         }
     }
 
@@ -204,8 +206,12 @@ public class Project {
 
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
+            System.out.println("open");
+            
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
+                
+                System.out.println("*" + entry);
 
                 InputStream stream = zipFile.getInputStream(entry);
 
@@ -215,6 +221,11 @@ public class Project {
                     if (function != null) {
                         functions.add(function);
                     }
+                }
+                
+                if (entry.getName().startsWith("environment/") && entry.getName().endsWith(".env")) {
+                    System.out.println("Convertendo: " + entry);
+                    GUI.getInstance().getSimulationPanel().getEnv().loadFile(stream);
                 }
             }
 

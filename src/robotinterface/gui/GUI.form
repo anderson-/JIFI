@@ -58,7 +58,7 @@
                   <Component id="dynamicToolBar" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="primarySplitPane" pref="597" max="32767" attributes="0"/>
+              <Component id="primarySplitPane" pref="601" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jToolBar1" min="-2" pref="25" max="-2" attributes="0"/>
           </Group>
@@ -130,7 +130,7 @@
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/resources/tango/32x32/actions/edit-undo.png"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" value="Fechar Projeto"/>
+            <Property name="toolTipText" type="java.lang.String" value="Desfazer"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
             <Property name="verticalTextPosition" type="int" value="3"/>
@@ -141,7 +141,7 @@
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/resources/tango/32x32/actions/edit-redo.png"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" value="Fechar Projeto"/>
+            <Property name="toolTipText" type="java.lang.String" value="Refazer"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
             <Property name="verticalTextPosition" type="int" value="3"/>
@@ -248,7 +248,7 @@
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/resources/tango/32x32/mimetypes/text-x-generic.png"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" value="Fechar Projeto"/>
+            <Property name="toolTipText" type="java.lang.String" value="Converter C&#xf3;digo"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
             <Property name="verticalTextPosition" type="int" value="3"/>
@@ -262,7 +262,7 @@
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/resources/tango/32x32/actions/tab-remove.png"/>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" value="Fechar Projeto"/>
+            <Property name="toolTipText" type="java.lang.String" value="Fechar Aba"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>
             <Property name="verticalTextPosition" type="int" value="3"/>
@@ -336,7 +336,7 @@
                 </DimensionLayout>
                 <DimensionLayout dim="1">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="559" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="563" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
               </Layout>
@@ -423,7 +423,7 @@
                     </DimensionLayout>
                     <DimensionLayout dim="1">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="303" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="307" max="32767" attributes="0"/>
                       </Group>
                     </DimensionLayout>
                   </Layout>

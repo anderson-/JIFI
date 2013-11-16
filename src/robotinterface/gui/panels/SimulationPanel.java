@@ -132,7 +132,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     public void setEnv(Environment env) {
         this.env = env;
     }
-    
+
     public void addRobot(Robot robot) {
         synchronized (robots) {
             robots.add(robot);
@@ -146,7 +146,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         }
         remove(robot);
     }
-    
+
     public ArrayList<Robot> getRobots() {
         return robots;
     }
@@ -202,9 +202,9 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                             Line2D.Double line = new Line2D.Double(point, in.getTransformedMouse());
 
                             if (itemSelected == ITEM_LINE) {
-                                env.addFollowLine(line);
+                                env.addFollowLine(new double[]{line.x1, line.y1, line.x2, line.y2});
                             } else if (itemSelected == ITEM_OBSTACLE_LINE) {
-                                env.addObstacle(line);
+                                env.addObstacleLine(new double[]{line.x1, line.y1, line.x2, line.y2});
                             } else if (itemSelected == ITEM_REMOVE_LINE) {
                                 for (Iterator<Shape> it = env.linesIterator(); it.hasNext();) {
                                     Shape s = it.next();
@@ -259,7 +259,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                             double x = point.x - r;
                             double y = point.y - r;
                             r *= 2;
-                            env.addObstacle(new Ellipse2D.Double(x, y, r, r));
+                            env.addObstacleCircle(new double[]{x, y, r});
                             point = null;
                             return;
                         }
@@ -282,7 +282,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-        
+
         synchronized (robots) {
             for (Robot robot : robots) {
 //                System.out.println("eee");
@@ -353,7 +353,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     }
 
     public static void main(String[] args) {
-        
+
         SimulationPanel p = new SimulationPanel();
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
 
@@ -361,11 +361,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         r.add(new IRProximitySensor());
         r.setEnvironment(p.getEnv());
         p.addRobot(r);
-        
+
         r = new Robot();
         r.add(new IRProximitySensor());
         r.setEnvironment(p.getEnv());
         p.addRobot(r);
     }
-
 }

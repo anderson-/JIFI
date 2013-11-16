@@ -9,12 +9,16 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import static java.lang.Math.cos;
@@ -38,54 +42,110 @@ public class Environment {
     private final ArrayList<double[]> obstacleLines = new ArrayList<>();
     private final ArrayList<double[]> followLineLines = new ArrayList<>();
 
-    public void addObstacleLine(Line2D.Double line) {
-        obstacles.add(line);
-        obstacleLines.add(new double[]{line.x1, line.y1, line.x2, line.y2});
+    public void addObstacleLine(double[] line) {
+        obstacleLines.add(line);
+
+        obstacles.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
     }
 
-    public void addObstacleCircle(double[] data, Shape circle) {
-        obstacles.add(circle);
-        obstacleCircles.add(data);
+    public void addObstacleCircle(double[] circle) {
+        obstacleCircles.add(circle);
+        obstacles.add(new Ellipse2D.Double(circle[0], circle[1], circle[2], circle[2]));
     }
-    
-    public void addFollowLine(Line2D.Double line) {
-        followLines.add(line);
-        followLineLines.add(new double[]{line.x1, line.y1, line.x2, line.y2});
+
+    public void addFollowLine(double[] line) {
+        followLineLines.add(line);
+        followLines.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
     }
 
     public void saveFile(File file) throws IOException {
         FileWriter fw = new FileWriter(file.getAbsoluteFile());
-        fw.write("# Environment: " + System.currentTimeMillis() + "\n");
-        fw.write("# obstacles: \n");
 
-        for (double[] data : obstacleCircles) {
-            fw.write("circle(" + data[0] + ", " + data[1] + ", " + data[2] + ")\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Environment ").append(System.currentTimeMillis()).append(" #\n");
+
+        if (!obstacleCircles.isEmpty() || !obstacleLines.isEmpty()) {
+            sb.append("# Obstacles #\n");
+            sb.append("\n");
         }
-        
-        for (double[] data : obstacleLines) {
-            fw.write("wall(" + data[0] + ", " + data[1] + ", " + data[2] + ", " + data[3] + ")\n");
+
+        if (!obstacleCircles.isEmpty()) {
+            for (double[] data : obstacleCircles) {
+                sb.append("circle(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(")\n");
+            }
+            sb.append("\n");
         }
-        
-        fw.write("# followable lines: \n");
-        
-        for (double[] data : obstacleLines) {
-            fw.write("line(" + data[0] + ", " + data[1] + ", " + data[2] + ", " + data[3] + ")\n");
+
+        if (!obstacleLines.isEmpty()) {
+            for (double[] data : obstacleLines) {
+                sb.append("wall(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(", ").append(data[3]).append(")\n");
+            }
+            sb.append("\n");
         }
-        
-        fw.write("\n");
-        
+
+        if (!followLineLines.isEmpty()) {
+            sb.append("# Followable Lines #\n");
+            sb.append("\n");
+            for (double[] data : followLineLines) {
+                sb.append("line(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(", ").append(data[3]).append(")\n");
+            }
+        }
+
+        sb.append("\n");
+
+        fw.write(sb.toString());
+
         fw.close();
     }
 
-    public void loadFile(File file) {
-    }
+    public void loadFile(InputStream input) throws IOException {
 
-    public void addObstacle(Shape s) {
-        obstacles.add(s);
-    }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (!line.startsWith("#") && !line.trim().isEmpty()) {
+                String str = line.substring(line.indexOf("(") + 1, line.indexOf(")"));
+                String[] argv = str.split(",");
+                if (line.contains("circle") && argv.length == 3) {
+                    argv[0] = argv[0].trim();
+                    argv[1] = argv[1].trim();
+                    argv[2] = argv[2].trim();
 
-    public void addFollowLine(Shape s) {
-        followLines.add(s);
+                    double x = Double.parseDouble(argv[0]);
+                    double y = Double.parseDouble(argv[1]);
+                    double r = Double.parseDouble(argv[2]);
+
+                    addObstacleCircle(new double[]{x, y, r});
+
+                } else if (line.contains("wall") && argv.length == 4) {
+                    argv[0] = argv[0].trim();
+                    argv[1] = argv[1].trim();
+                    argv[2] = argv[2].trim();
+                    argv[3] = argv[3].trim();
+
+                    double x1 = Double.parseDouble(argv[0]);
+                    double y1 = Double.parseDouble(argv[1]);
+                    double x2 = Double.parseDouble(argv[2]);
+                    double y2 = Double.parseDouble(argv[3]);
+
+                    addObstacleLine(new double[]{x1, y1, x2, y2});
+
+                } else if (line.contains("line") && argv.length == 4) {
+                    argv[0] = argv[0].trim();
+                    argv[1] = argv[1].trim();
+                    argv[2] = argv[2].trim();
+                    argv[3] = argv[3].trim();
+
+                    double x1 = Double.parseDouble(argv[0]);
+                    double y1 = Double.parseDouble(argv[1]);
+                    double x2 = Double.parseDouble(argv[2]);
+                    double y2 = Double.parseDouble(argv[3]);
+
+                    addFollowLine(new double[]{x1, y1, x2, y2});
+                }
+            }
+        }
+        reader.close();
     }
 
     public double beamDistance(double x, double y, double theta, double d) {

@@ -274,14 +274,14 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(jSeparator2);
 
         closeProjectButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-undo.png"))); // NOI18N
-        closeProjectButton1.setToolTipText("Fechar Projeto");
+        closeProjectButton1.setToolTipText("Desfazer");
         closeProjectButton1.setFocusable(false);
         closeProjectButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         closeProjectButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(closeProjectButton1);
 
         closeProjectButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-redo.png"))); // NOI18N
-        closeProjectButton2.setToolTipText("Fechar Projeto");
+        closeProjectButton2.setToolTipText("Refazer");
         closeProjectButton2.setFocusable(false);
         closeProjectButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         closeProjectButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -357,7 +357,7 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(jSeparator3);
 
         switchCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"))); // NOI18N
-        switchCodeButton.setToolTipText("Fechar Projeto");
+        switchCodeButton.setToolTipText("Converter Código");
         switchCodeButton.setFocusable(false);
         switchCodeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         switchCodeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -369,7 +369,7 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(switchCodeButton);
 
         deleteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/tab-remove.png"))); // NOI18N
-        deleteButton.setToolTipText("Fechar Projeto");
+        deleteButton.setToolTipText("Fechar Aba");
         deleteButton.setFocusable(false);
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         deleteButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -401,7 +401,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 559, Short.MAX_VALUE)
+            .addGap(0, 563, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -431,7 +431,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 303, Short.MAX_VALUE)
+            .addGap(0, 307, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -473,7 +473,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 601, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );

@@ -13,12 +13,11 @@ import robotinterface.robot.Robot;
  */
 public class HBridge extends Device {
 
-    private byte[] msg;
+    
     private int LeftWheelSpeed;
     private int RightWheelSpeed;
 
     public HBridge() {
-        msg = new byte[5];
     }
 
     @Override
@@ -33,6 +32,7 @@ public class HBridge extends Device {
     }
 
     public void setMotorState(int motor, byte speed) {
+        byte[] msg = new byte[5];
         msg[0] = Robot.CMD_SET; //comando get
         msg[1] = getID(); //id
         msg[2] = 2; //tamanho da mensagem (2 bytes)
@@ -47,15 +47,17 @@ public class HBridge extends Device {
     }
 
     public void setFullState(byte speedM1, byte speedM2) {
+        byte[] msg = new byte[10];
         msg[0] = Robot.CMD_SET; //comando get
         msg[1] = getID(); //id
         msg[2] = 2; //tamanho da mensagem (2 bytes)
-        // ... 
         msg[3] = 0;
         msg[4] = speedM1;
-        send(msg);
-        msg[3] = 1;
-        msg[4] = speedM2;
+        msg[5] = Robot.CMD_SET; //comando get
+        msg[6] = getID(); //id
+        msg[7] = 2; //tamanho da mensagem (2 bytes)
+        msg[8] = 1;
+        msg[9] = speedM2;
         send(msg);
         this.LeftWheelSpeed = speedM1;
         this.RightWheelSpeed = speedM2;
