@@ -21,6 +21,7 @@ import java.util.zip.ZipOutputStream;
 import javax.swing.JTree;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.Function;
+import robotinterface.gui.GUI;
 import robotinterface.interpreter.Interpreter;
 
 /**
@@ -43,10 +44,10 @@ public class Project {
         functions = new ArrayList<>();
         this.functions.addAll(functions);
     }
-    
-    public Collection<Function> getFunctions (){
+
+    public Collection<Function> getFunctions() {
         return functions;
-    }    
+    }
 
     public void setJTree(JTree tree) {
         tree.setEditable(true);
@@ -75,6 +76,22 @@ public class Project {
             for (Function f : functions) {
                 addFileToZip("functions", functionToFile(f), zip, false);
             }
+
+            {
+                File file = null;
+                try {
+                    file = new File("environment.txt");
+                    
+                    GUI.getInstance().getSimulationPanel().getEnv().saveFile(file);
+                                        
+                    addFileToZip("", file, zip, false);
+
+                } catch (Exception e) {
+                    //do stuff with exception
+                    e.printStackTrace();
+                }
+            }
+
             /*
              * close the zip objects
              */
@@ -147,7 +164,7 @@ public class Project {
         if (file.delete()) {
             System.out.println(file.getName() + " is deleted!");
         } else {
-            System.out.println("Delete operation is failed.");
+            System.out.println("Delete operation is failed." + file);
         }
     }
 

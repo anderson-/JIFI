@@ -25,6 +25,7 @@
  */
 package robotinterface.drawable;
 
+import java.awt.BasicStroke;
 import robotinterface.drawable.util.QuickFrame;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -55,6 +56,7 @@ import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.WidgetContainer.Widget;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -66,8 +68,9 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, GraphicObject {
 
-    public final double MIN_ZOOM = 0.1;
-    public final double MAX_ZOOM = 10.0;
+    //outras constantes
+    public final double MIN_ZOOM = 0.5;
+    public final double MAX_ZOOM = 4.0;
     protected long PAINT_DELAY = 2;
     protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
@@ -513,43 +516,43 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public Point getMouse(Point mouse) {
         return new Point((int) ((mouse.getX() - globalX) / zoom), (int) ((mouse.getY() - globalY) / zoom));
     }
-
-    public static void drawGrade(Graphics2D g, int grid, float p, Rectangle bounds) {
-        if (grid > 0) {
-
-            int prop = (int) p / grid;
-
-            for (int x = -(bounds.width / prop) / 2; x <= (bounds.width / prop) / 2; x++) {
-                g.drawLine(x * prop, -bounds.height / 2, x * prop, bounds.height / 2);
-            }
-
-            for (int y = -(bounds.height / prop) / 2; y <= (bounds.height / prop) / 2; y++) {
-                g.drawLine(-bounds.width / 2, y * prop, bounds.width / 2, y * prop);
-            }
-
-        } else if (grid < 0) {
-            int prop = (int) p / -grid;
-
-            for (int x = -(bounds.width / prop) / 2; x <= (bounds.width / prop) / 2; x++) {
-                for (int y = -(bounds.height / prop) / 2; y <= (bounds.height / prop) / 2; y++) {
-                    g.fillRect(x * prop - 1, y * prop - 1, 2, 2);
-                }
-            }
-
-        } else {
-            return;
-        }
-        String str = "grade: " + Math.abs(1.0f / grid) * 100 + " cm";
-        int sx = g.getFontMetrics().stringWidth(str);
-        int sy = g.getFontMetrics().getHeight();
-        int px = bounds.width / 2 - 10 - sx;
-        int py = bounds.height / 2 - 20;
-        g.setColor(Color.lightGray);
-        g.fillRect(px, py - 11, sx, sy);
-        g.setColor(Color.white);
-        g.drawString(str, px, py);
-
-    }
+//
+//    public static void drawGrade(Graphics2D g, int grid, float p, Rectangle bounds) {
+//        if (grid > 0) {
+//
+//            int prop = (int) p / grid;
+//
+//            for (int x = -(bounds.width / prop) / 2; x <= (bounds.width / prop) / 2; x++) {
+//                g.drawLine(x * prop, -bounds.height / 2, x * prop, bounds.height / 2);
+//            }
+//
+//            for (int y = -(bounds.height / prop) / 2; y <= (bounds.height / prop) / 2; y++) {
+//                g.drawLine(-bounds.width / 2, y * prop, bounds.width / 2, y * prop);
+//            }
+//
+//        } else if (grid < 0) {
+//            int prop = (int) p / -grid;
+//
+//            for (int x = -(bounds.width / prop) / 2; x <= (bounds.width / prop) / 2; x++) {
+//                for (int y = -(bounds.height / prop) / 2; y <= (bounds.height / prop) / 2; y++) {
+//                    g.fillRect(x * prop - 1, y * prop - 1, 2, 2);
+//                }
+//            }
+//
+//        } else {
+//            return;
+//        }
+//        String str = "grade: " + Math.abs(1.0f / grid) * 100 + " cm";
+//        int sx = g.getFontMetrics().stringWidth(str);
+//        int sy = g.getFontMetrics().getHeight();
+//        int px = bounds.width / 2 - 10 - sx;
+//        int py = bounds.height / 2 - 20;
+//        g.setColor(Color.lightGray);
+//        g.fillRect(px, py - 11, sx, sy);
+//        g.setColor(Color.white);
+//        g.drawString(str, px, py);
+//
+//    }
 
     @Override
     public int getDrawableLayer() {
@@ -591,6 +594,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
         g.setColor(Color.LIGHT_GRAY);
+        g.setStroke(DEFAULT_STROKE);
         drawGrid(g, 60, globalX / zoom, globalY / zoom, width / zoom, height / zoom, false);
     }
 

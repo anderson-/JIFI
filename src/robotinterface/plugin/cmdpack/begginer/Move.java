@@ -41,6 +41,7 @@ import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
@@ -121,17 +122,15 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
             }
 
             if (var2 != null) {
-                Variable v = getParser().getSymbolTable().getVar(var1);
+                Variable v = getParser().getSymbolTable().getVar(var2);
                 if (v != null && v.hasValidValue()) {
                     Object o = v.getValue();
                     if (o instanceof Number) {
                         Number n = (Number) o;
-                        t1 = n.byteValue();
+                        t2 = n.byteValue();
                     }
                 }
             }
-
-            System.out.println(t1 + "," + t2);
 
             hBridge.setWaiting();
             hBridge.setFullState(t1, t2);
@@ -149,7 +148,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 return true;
             }
         } catch (Device.TimeoutException ex) {
-            System.err.println("RE-ENVIANDO hBridge");
+//            System.err.println("RE-ENVIANDO hBridge");
             begin(r, clock);
         }
         return false;
@@ -189,6 +188,9 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 JComboBox combobox2 = new JComboBox();
                 boolean num1 = true, num2 = true;
 
+                MutableWidgetContainer.setAutoFillComboBox(combobox1, m);
+                MutableWidgetContainer.setAutoFillComboBox(combobox2, m);
+
                 if (data != null) {
                     if (data instanceof Move) {
                         Move m = (Move) data;
@@ -201,16 +203,13 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                         }
 
                         if (m.var2 != null) {
-                            combobox1.setSelectedItem(m.var2);
+                            combobox2.setSelectedItem(m.var2);
                             num2 = false;
                         } else {
                             spinner2.setValue((int) m.m2);
                         }
                     }
                 }
-
-                MutableWidgetContainer.setAutoFillComboBox(combobox1, m);
-                MutableWidgetContainer.setAutoFillComboBox(combobox2, m);
 
                 final JButton changeButton1 = new JButton();
                 final JButton changeButton2 = new JButton();
@@ -333,7 +332,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
             }
         };
 
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(m, Color.decode("#FF6200")) {
             {
                 string = m.getProcedure();
                 updateLines();
@@ -353,7 +352,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
             }
         };
 
-        return mwc;
+        return dcb;
     }
 
     @Override

@@ -28,17 +28,14 @@ package robotinterface.algorithm;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Collection;
 import robotinterface.algorithm.procedure.Block;
 import static robotinterface.algorithm.procedure.Function.getBounds;
-import static robotinterface.algorithm.procedure.Function.ident;
-import robotinterface.algorithm.procedure.If;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.FlowchartBlock;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
@@ -47,7 +44,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Comando genérico.
  */
-public abstract class Command implements GraphicResource, GraphicFlowchart {
+public abstract class Command implements GraphicResource, GraphicFlowchart, FlowchartBlock {
 
     public static final String identChar = "\t";
     private Command prev;
@@ -61,7 +58,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
         id = classCounter++;
         name = this.getClass().getSimpleName() + "[" + id + "]";
     }
-    
+
     public Command(Command c) {
         this();
     }
@@ -252,9 +249,13 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
 
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+        return getBounds(this, tmp, j, k, Ix, Iy, a);
+    }
+
+    protected static Rectangle2D.Double getBounds(Command c, Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
         Rectangle2D.Double t = null;
-        if (this instanceof GraphicResource) {
-            GraphicObject d = ((GraphicResource) this).getDrawableResource();
+        if (c instanceof GraphicResource) {
+            GraphicObject d = ((GraphicResource) c).getDrawableResource();
 
             if (d != null) {
                 t = (Rectangle2D.Double) d.getObjectBouds();
@@ -278,5 +279,22 @@ public abstract class Command implements GraphicResource, GraphicFlowchart {
             tmp.height += Iy * j;
         }
         return tmp;
+    }
+
+    @Override
+    public void drawLines(Graphics2D g) {
+        GraphicObject resource = getDrawableResource();
+        if (resource != null) {
+            Command c = getNext();
+            if (c instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    Rectangle2D.Double bThis = resource.getObjectBouds();
+                    Rectangle2D.Double bNext = d.getObjectBouds();
+                    Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bNext.getCenterX(), bNext.getMinY());
+                    g.draw(l);
+                }
+            }
+        }
     }
 }

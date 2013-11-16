@@ -20,6 +20,7 @@ import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
@@ -220,7 +221,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             }
         };
 
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(w, Color.decode("#FF6200")) {
             {
                 string = w.getProcedure();
                 updateLines();
@@ -240,7 +241,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             }
         };
 
-        return mwc;
+        return dcb;
     }
 
     private static void updateWait(String args, Wait w) {

@@ -11,14 +11,16 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.util.LineIterator;
 
 /**
@@ -32,6 +34,51 @@ public class Environment {
     private final ArrayList<Shape> obstacles = new ArrayList<>();
     private final ArrayList<Shape> followLinesTmp = new ArrayList<>();
     private final ArrayList<Shape> obstaclesTmp = new ArrayList<>();
+    private final ArrayList<double[]> obstacleCircles = new ArrayList<>();
+    private final ArrayList<double[]> obstacleLines = new ArrayList<>();
+    private final ArrayList<double[]> followLineLines = new ArrayList<>();
+
+    public void addObstacleLine(Line2D.Double line) {
+        obstacles.add(line);
+        obstacleLines.add(new double[]{line.x1, line.y1, line.x2, line.y2});
+    }
+
+    public void addObstacleCircle(double[] data, Shape circle) {
+        obstacles.add(circle);
+        obstacleCircles.add(data);
+    }
+    
+    public void addFollowLine(Line2D.Double line) {
+        followLines.add(line);
+        followLineLines.add(new double[]{line.x1, line.y1, line.x2, line.y2});
+    }
+
+    public void saveFile(File file) throws IOException {
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        fw.write("# Environment: " + System.currentTimeMillis() + "\n");
+        fw.write("# obstacles: \n");
+
+        for (double[] data : obstacleCircles) {
+            fw.write("circle(" + data[0] + ", " + data[1] + ", " + data[2] + ")\n");
+        }
+        
+        for (double[] data : obstacleLines) {
+            fw.write("wall(" + data[0] + ", " + data[1] + ", " + data[2] + ", " + data[3] + ")\n");
+        }
+        
+        fw.write("# followable lines: \n");
+        
+        for (double[] data : obstacleLines) {
+            fw.write("line(" + data[0] + ", " + data[1] + ", " + data[2] + ", " + data[3] + ")\n");
+        }
+        
+        fw.write("\n");
+        
+        fw.close();
+    }
+
+    public void loadFile(File file) {
+    }
 
     public void addObstacle(Shape s) {
         obstacles.add(s);
@@ -54,9 +101,7 @@ public class Environment {
 
         obstaclesTmp.clear();
         obstaclesTmp.addAll(obstacles);
-        System.out.println("1");
         for (Iterator<Shape> shapeIt = obstaclesTmp.iterator(); shapeIt.hasNext();) {
-            System.out.println("2");
             Shape s = shapeIt.next();
             if (s instanceof Line2D.Double) {
                 Line2D.Double obstacleLine = ((Line2D.Double) s);
@@ -101,10 +146,9 @@ public class Environment {
                         }
                     }
                 }
-                
+
                 if (isInsideShape && !shapeIt.hasNext()) {
                     shapeIt = obstaclesTmp.iterator();
-                    System.out.println("3");
                     end = true;
                 }
             }

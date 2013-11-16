@@ -24,6 +24,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
@@ -285,7 +286,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
         };
 
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#08B9AC")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.decode("#08B9AC")) {
             private GeneralPath myShape = new GeneralPath();
 
             {
@@ -378,7 +379,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
         };
 
-        return mwc;
+        return dcb;
     }
     private GraphicObject resource = null;
 

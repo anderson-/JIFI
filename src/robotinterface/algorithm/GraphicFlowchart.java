@@ -14,10 +14,13 @@ import java.util.Collection;
  */
 public interface GraphicFlowchart {
 
-    public interface Wireable {
-
-        public void wire();
-    }
+    public static int GF_X = 100; //posição x
+    public static int GF_Y = 10; //posição y
+    public static int GF_J = 15; //deslocamento vertical
+    public static int GF_K = 30; //deslocamento horizontal
+    public static int GF_IX = 0;
+    public static int GF_IY = 1;
+    public static boolean F_SI = false;
 
     public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a);
 

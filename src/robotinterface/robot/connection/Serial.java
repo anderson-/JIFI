@@ -410,9 +410,9 @@ public class Serial implements Connection, SerialPortEventListener {
 
     public static void main(String[] args) {
         Connection s;
-//        s = new Serial(57600);
-//        s = new VirtualConnection(s);
-        s = new VirtualConnection();
+        s = new Serial(57600);
+        s = new VirtualConnection(s);
+//        s = new VirtualConnection();
 
         Robot r = new Robot();
         r.add(new HBridge());

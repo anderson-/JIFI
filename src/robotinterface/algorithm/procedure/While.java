@@ -26,10 +26,12 @@
 package robotinterface.algorithm.procedure;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Iterator;
@@ -39,6 +41,8 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import robotinterface.algorithm.GraphicFlowchart;
+import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import static robotinterface.algorithm.procedure.If.createDrawableIf;
 import static robotinterface.algorithm.procedure.Procedure.INSET_X;
 import static robotinterface.algorithm.procedure.Procedure.INSET_Y;
@@ -46,6 +50,7 @@ import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -83,7 +88,6 @@ public class While extends Block {
         sb.append(ident).append("}\n");
     }
 
-    
     @Override
     public Item getItem() {
         return new Item("Repetição", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#1281BD"));
@@ -103,5 +107,87 @@ public class While extends Block {
             resource = mwc;
         }
         return resource;
+    }
+
+    @Override
+    public void drawLines(Graphics2D g) {
+        if (resource != null) {
+            Path2D.Double path = new Path2D.Double();
+            Rectangle2D.Double bThis = resource.getObjectBouds();
+            Rectangle2D.Double bBlock = getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+            path.moveTo(bThis.getCenterX(), bThis.getMaxY());
+            path.lineTo(bThis.getCenterX(), bThis.getMaxY() + GF_J);
+
+            Command c = start;
+
+            Rectangle2D.Double bEnd = c.getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            while (c.getNext() != null && !(c.getNext() instanceof BlockEnd)) {
+                c = c.getNext();
+            }
+
+            if (c instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    bEnd = d.getObjectBouds();
+                }
+            }
+
+            //pegar o ultimo para x
+            path.moveTo(bEnd.getCenterX(), bBlock.getMaxY() - 3 * GF_J);
+            path.lineTo(bEnd.getCenterX(), bBlock.getMaxY() - 2 * GF_J);
+            path.lineTo(bBlock.getMinX(), bBlock.getMaxY() - 2 * GF_J);
+            path.lineTo(bBlock.getMinX(), bThis.getCenterY());
+            path.lineTo(bBlock.getCenterX(), bThis.getCenterY());
+
+            c = getNext();
+            boolean end = false;
+
+            if (c instanceof BlockEnd) {
+                end = true;
+                c = this.getParent();
+                if (!(c instanceof While)) {
+                    c = c.getParent();
+                    if (!(c instanceof If)) {
+                        c = null;
+                    }
+                }
+            }
+
+            if (c instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
+                    path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
+                    path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
+                    if (!end) {
+                        Rectangle2D.Double bNext = d.getObjectBouds();
+                        path.lineTo(bNext.getCenterX(), bBlock.getMaxY() - GF_J);
+                        path.lineTo(bNext.getCenterX(), bBlock.getMaxY());
+                    } else {
+                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
+                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
+                    }
+                }
+            }
+            g.draw(path);
+        }
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+        Rectangle2D.Double bounds = super.getBounds(tmp, j, k, Ix, Iy, a);
+        bounds.height += 2 * j;
+        return bounds;
     }
 }

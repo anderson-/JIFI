@@ -52,6 +52,7 @@ import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
@@ -130,7 +131,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 return true;
             }
         } catch (TimeoutException ex) {
-            System.err.println("RE-ENVIANDO");
+//            System.err.println("RE-ENVIANDO");
             begin(r, clock);
         }
         return false;
@@ -145,7 +146,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         return resource;
     }
 
-    public static MutableWidgetContainer createDrawableMove(final ReadDevice m) {
+    public static MutableWidgetContainer createDrawableMove(final ReadDevice rd) {
 
         final JComboBox comboboxDev = new JComboBox();
         final JComboBox comboboxVar = new JComboBox();
@@ -195,7 +196,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Ler Sensor:", 20, true));
 
-                MutableWidgetContainer.setAutoFillComboBox(comboboxVar, m);
+                MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd);
 
                 if (data != null) {
                     if (data instanceof ReadDevice) {
@@ -233,33 +234,33 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             }
         };
 
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#FF6200")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(rd, Color.decode("#FF6200")) {
             {
-                string = m.getProcedure();
+                string = rd.getProcedure();
                 updateLines();
             }
 
             @Override
             public void updateLines() {
                 clear();
-                addLine(headerLine, m);
+                addLine(headerLine, rd);
                 string = getString();
             }
 
             @Override
             public String getString() {
                 String devName = (String) comboboxDev.getSelectedItem();
-                m.deviceName = devName;
-                m.type = deviceMap.get(devName);
+                rd.deviceName = devName;
+                rd.type = deviceMap.get(devName);
 
                 String varName = (String) comboboxVar.getSelectedItem();
-                m.var = varName;
+                rd.var = varName;
 
-                return "read(" + m.deviceName + "," + m.var + ")";
+                return "read(" + rd.deviceName + "," + rd.var + ")";
             }
         };
 
-        return mwc;
+        return dcb;
     }
 
     private static void updateReadDevice(String args, ReadDevice rd) {

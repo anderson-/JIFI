@@ -67,12 +67,12 @@ public class RobotControlPanel extends JPanel {
 
                 float ping = Device.getPingEstimative();
                 if (!Float.isNaN(ping)) {
-                    statusLabel2.setText("Ping: " + ping + " ms");
+                    statusLabel2.setText("Ping: " + (int) ping + " ms");
                 } else {
                     statusLabel2.setText(" - ");
                 }
-
-
+                
+                statusLabel3.setText("Lost: " + lost);
 
                 while (sendedArray.size() > size) {
                     sendedArray.remove(0);
@@ -297,6 +297,7 @@ public class RobotControlPanel extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel3 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         connectionComboBox = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
@@ -305,6 +306,9 @@ public class RobotControlPanel extends JPanel {
         removeButton = new javax.swing.JButton();
         connectionStatusGraph = new ConnectionStatusGraph();
         statusLabel2 = new javax.swing.JLabel();
+        statusLabel3 = new javax.swing.JLabel();
+
+        jLabel3.setText("jLabel3");
 
         setBorder(null);
 
@@ -338,8 +342,12 @@ public class RobotControlPanel extends JPanel {
         );
         connectionStatusGraphLayout.setVerticalGroup(
             connectionStatusGraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 45, Short.MAX_VALUE)
+            .addGap(0, 46, Short.MAX_VALUE)
         );
+
+        statusLabel2.setText("-");
+
+        statusLabel3.setText("-");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -359,6 +367,10 @@ public class RobotControlPanel extends JPanel {
                             .addComponent(statusLabel)
                             .addComponent(statusLabel2))))
                 .addGap(0, 31, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(statusLabel3)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -372,8 +384,10 @@ public class RobotControlPanel extends JPanel {
                 .addComponent(statusLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(connectionStatusGraph, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(statusLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(connectionStatusGraph, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(connectButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -396,15 +410,16 @@ public class RobotControlPanel extends JPanel {
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         tryConnect();
     }//GEN-LAST:event_connectButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connectButton;
     private javax.swing.JComboBox connectionComboBox;
     private javax.swing.JPanel connectionStatusGraph;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JButton removeButton;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JLabel statusLabel2;
+    private javax.swing.JLabel statusLabel3;
     // End of variables declaration//GEN-END:variables
 }

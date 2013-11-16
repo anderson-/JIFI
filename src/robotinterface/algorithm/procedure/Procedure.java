@@ -44,6 +44,8 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
+import robotinterface.drawable.Drawable;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
@@ -128,7 +130,7 @@ public class Procedure extends Command implements Expression, Classifiable {
                     int eq = declaration.indexOf("=");
                     if (eq > 0) {
                         varName = declaration.substring(0, eq).trim();
-                        varValue = Double.parseDouble(declaration.substring(eq + 1));
+                        varValue = declaration.substring(eq + 1);
                     } else {
                         varName = declaration.trim();
                         varValue = null;
@@ -161,7 +163,14 @@ public class Procedure extends Command implements Expression, Classifiable {
                     names.add(varName);
                     values.add(varValue);
                 }
-                st.makeVarIfNeeded(varName, varValue);
+
+                Object v = null;
+                if (varValue != null) {
+                    parser.parseExpression(varValue.toString());
+                    v = parser.getValueAsObject();
+                }
+
+                st.makeVarIfNeeded(varName, v);
             }
         }
 
@@ -332,6 +341,7 @@ public class Procedure extends Command implements Expression, Classifiable {
                 addButton = new Widget(bTmp, INSET_X, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
                 bTmp = new JButton("-");
+                bTmp.setEnabled(false);
 
                 bTmp.addActionListener(new ActionListener() {
                     @Override
@@ -355,10 +365,9 @@ public class Procedure extends Command implements Expression, Classifiable {
             }
         };
 
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.decode("#69CD87")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.decode("#69CD87")) {
             {
                 string = p.getProcedure();
-                System.out.println(string);
                 updateLines();
                 getString();
             }
@@ -390,7 +399,7 @@ public class Procedure extends Command implements Expression, Classifiable {
             }
         };
 
-        return mwc;
+        return dcb;
     }
 
     public Procedure copy(Procedure copy) {

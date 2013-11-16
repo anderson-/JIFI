@@ -25,6 +25,7 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
@@ -71,10 +72,10 @@ public class Block extends Procedure {
             return begin;
         }
         
-//        @Override
-//        public GraphicObject getDrawableResource() {
-//            return null;
-//        }
+        @Override
+        public GraphicObject getDrawableResource() {
+            return null;
+        }
     }
     protected Command start;
     protected boolean returnNext = false;
@@ -415,7 +416,6 @@ public class Block extends Procedure {
         }
         
         if (size() == 1){ //só tem o EndBlock
-            System.out.println(this);
             DummyBlock db = new DummyBlock();
             db.setNext(end);
             db.setParent(this);
@@ -433,7 +433,6 @@ public class Block extends Procedure {
                 ((Function)it).getD().add(db.getDrawableResource());
             }
             
-            System.out.println("addded dummy on " + this);
         }
 
         start.ident(x, y, j, k, Ix, Iy, a);
@@ -472,6 +471,6 @@ public class Block extends Procedure {
 
     @Override
     public GraphicObject getDrawableResource() {
-        return super.getDrawableResource();
+        return null;
     }
 }

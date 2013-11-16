@@ -219,22 +219,36 @@ public class MutableWidgetContainer extends WidgetContainer {
         shape.setRect(bounds);
         return shape;
     }
+    
+    @Override
+    public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
+        //linhas
+        g.setColor(color.darker());
+        g.setStroke(BOLD_STROKE);
+        g.translate(-bounds.x, -bounds.y);
+        backDraw(g);
+        g.translate(bounds.x, bounds.y);
+
+    }
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+        
         if (in.mouseClicked() && in.getMouseClickCount() == 2) {
-
             super.widgetVisible = !super.widgetVisible;
             shapeBounds.setRect(0, 0, 0, 0);
         }
 
-//        g.setColor(color);
-//        g.fill(shape);
+        //sombra
+        AffineTransform t = new AffineTransform();
+        t.translate(3, 2);
+        g.setColor(color.darker());
+        g.setStroke(new BasicStroke(5));
+        g.draw(t.createTransformedShape(shape));
 
-//        g.setColor(color.brighter().brighter());
-
+        //fundo branco
         g.setColor(Color.white);
-
         g.fill(shape);
         g.setStroke(new BasicStroke(5));
         g.setColor(color);
@@ -242,11 +256,15 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         AffineTransform o = g.getTransform();
 
+
+        //componente
         if (super.widgetVisible) {
             drawWJC(g, ga, in);
         } else {
             drawWoJC(g, ga, in);
         }
+
+        g.setStroke(new BasicStroke(4));
 
         g.setTransform(o);
 
@@ -287,6 +305,9 @@ public class MutableWidgetContainer extends WidgetContainer {
         bounds.width = (bounds.width < type.getWidth()) ? type.getWidth() : bounds.width;
         int tmpHeight = type.getHeight() - y; //calcula a altura real da linha
         bounds.height = (tmpHeight < type.getHeight()) ? type.getHeight() : tmpHeight;
+    }
+
+    protected void backDraw(Graphics2D g) {
     }
 
     protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
@@ -405,7 +426,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     @Override
     public int getDrawableLayer() {
-        return GraphicObject.DEFAULT_LAYER;
+        return GraphicObject.BACKGROUND_LAYER | GraphicObject.DEFAULT_LAYER;
     }
 
     public static void setAutoFillComboBox(final JComboBox cb, final Procedure p) {
@@ -424,13 +445,13 @@ public class MutableWidgetContainer extends WidgetContainer {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                int i = cb.getSelectedIndex();
+                Object o = cb.getSelectedItem();
                 cb.removeAllItems();
                 for (String str : p.getDeclaredVariables()) {
                     cb.addItem(str);
                 }
-                if (i != -1) {
-                    cb.setSelectedIndex(i);
+                if (o != null) {
+                    cb.setSelectedItem(o);
                 }
             }
 

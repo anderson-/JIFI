@@ -28,12 +28,12 @@ package robotinterface.algorithm.procedure;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -42,17 +42,15 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
-import static robotinterface.algorithm.procedure.Function.getBounds;
-import static robotinterface.algorithm.procedure.Function.ident;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.algorithm.GraphicFlowchart;
+import static robotinterface.algorithm.GraphicFlowchart.GF_J;
+import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -64,10 +62,20 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class If extends Procedure {
 
-    public class BlockTrue extends Block {
+    public class InnerBlock extends Block {
+
+        @Override
+        public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+            Rectangle2D.Double bounds = super.getBounds(tmp, j, k, Ix, Iy, a);
+            bounds.height += j;
+            return bounds;
+        }
     }
 
-    public class BlockFalse extends Block {
+    public class BlockTrue extends InnerBlock {
+    }
+
+    public class BlockFalse extends InnerBlock {
     }
     //blocos para a divisão de fluxo
     private BlockTrue blockTrue;
@@ -134,14 +142,16 @@ public class If extends Procedure {
 
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+        //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
         tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
 
         Rectangle2D.Double p = new Rectangle2D.Double();
+        p.setRect(tmp);
         //false
-        p = Function.getBounds(getBlockFalse(), p, j, k, Ix, Iy, a);
+        p = getBlockFalse().getBounds(p, j, k, Ix, Iy, a);
         tmp.add(p);
         //true
-        p = Function.getBounds(getBlockTrue(), p, j, k, Ix, Iy, a);
+        p = getBlockTrue().getBounds(p, j, k, Ix, Iy, a);
         tmp.add(p);
 
         return tmp;
@@ -185,13 +195,11 @@ public class If extends Procedure {
             }
 
             x += Ix * (cw + xj);
-            y += Iy * (ch + yj);
+            y += Iy * (ch + yj * .6);
         }
 
         Rectangle2D.Double btb = blockTrue.getBounds(null, j, k, Ix, Iy, a);
         Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k, Ix, Iy, a);
-//        System.out.println(bfb);
-//        System.out.println(btb);
 
         if (a) {
             //true
@@ -216,7 +224,6 @@ public class If extends Procedure {
         y += Iy * ((bfb.height > btb.height) ? bfb.height : btb.height);
 
         if (getNext() != null) {
-//            System.out.println("*" + this + " => " + getNext());
             getNext().ident(x, y, j, k, Ix, Iy, a);
         }
     }
@@ -271,7 +278,7 @@ public class If extends Procedure {
                 JTextField primeiro = new JTextField();
                 JTextField segundo = new JTextField();
                 JComboBox comparacao = new JComboBox(comparadores);
-                JComboBox proximo = new JComboBox(proximos);
+                final JComboBox proximo = new JComboBox(proximos);
 
                 if (data instanceof Object[]) {
                     if (((Object[]) data)[0] instanceof String[]) {
@@ -302,7 +309,12 @@ public class If extends Procedure {
                 proximo.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        container.addLine(thisConditionalLine, "");
+                        Object o = proximo.getSelectedItem();
+                        if (o instanceof String) {
+                            if (!((String) o).trim().isEmpty()) {
+                                container.addLine(thisConditionalLine, "");
+                            }
+                        }
                     }
                 });
 
@@ -377,7 +389,7 @@ public class If extends Procedure {
                 return "";
             }
         };
-        MutableWidgetContainer mwc = new MutableWidgetContainer(Color.gray) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.gray) {
             private Polygon myShape = new Polygon();
             public static final int EXTENDED_HEIGHT = 15;
             public static final int SIMPLE_HEIGHT = 18;
@@ -518,7 +530,8 @@ public class If extends Procedure {
                 }
             }
         };
-        return mwc;
+
+        return dcb;
     }
 
     @Override
@@ -530,6 +543,92 @@ public class If extends Procedure {
             resource = mwc;
         }
         return resource;
+    }
+
+    @Override
+    public void drawLines(Graphics2D g) {
+        if (resource != null) {
+            Path2D.Double path = new Path2D.Double();
+            Rectangle2D.Double bThis = resource.getObjectBouds();
+            Rectangle2D.Double bBlock = getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            Rectangle2D.Double bTrueStart = getBlockTrue().start.getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            if (getBlockTrue().start instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) getBlockTrue().start).getDrawableResource();
+
+                if (d != null) {
+                    bTrueStart = (Rectangle2D.Double) d.getObjectBouds();
+                }
+            }
+
+            Rectangle2D.Double bTrueB = getBlockTrue().getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            Rectangle2D.Double bFalseStart = getBlockFalse().start.getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+            
+            if (getBlockFalse().start instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) getBlockFalse().start).getDrawableResource();
+
+                if (d != null) {
+                    bFalseStart = (Rectangle2D.Double) d.getObjectBouds();
+                }
+            }
+
+            Rectangle2D.Double bFalseB = getBlockFalse().getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
+            path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());
+            path.lineTo(bTrueStart.getCenterX(), bTrueB.getMinY());
+
+            path.moveTo(bTrueB.getCenterX(), bTrueB.getMaxY() - 2 * GF_J);
+            path.lineTo(bTrueB.getCenterX(), bBlock.getMaxY() - GF_J);
+
+            path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
+            path.lineTo(bFalseStart.getCenterX(), bThis.getCenterY());
+            path.lineTo(bFalseStart.getCenterX(), bFalseB.getMinY());
+
+            path.moveTo(bFalseB.getCenterX(), bFalseB.getMaxY() - 2 * GF_J);
+            path.lineTo(bFalseB.getCenterX(), bBlock.getMaxY() - GF_J);
+
+            path.moveTo(bTrueB.getCenterX(), bBlock.getMaxY() - GF_J);
+            path.lineTo(bFalseB.getCenterX(), bBlock.getMaxY() - GF_J);
+
+
+            Command c = getNext();
+            if (c instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    path.moveTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
+                    path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
+                }
+            }
+            g.draw(path);
+        }
     }
 
     public static void main(String args[]) {

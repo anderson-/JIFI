@@ -16,18 +16,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import robotinterface.algorithm.Command;
-import robotinterface.algorithm.parser.Parser;
+import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.procedure.Block;
 import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.algorithm.procedure.Function;
-import robotinterface.algorithm.procedure.FunctionBlock;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.GraphicObject;
@@ -37,7 +34,6 @@ import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.Interpreter;
 import robotinterface.plugin.PluginManager;
-import robotinterface.robot.Robot;
 
 /**
  *
@@ -48,13 +44,6 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     public ArrayList<JPanel> tabs = new ArrayList<>();
     private Interpreter interpreter;
     private Function function;
-    private int fx = 100;
-    private int fy = 10;
-    private int fj = 10;
-    private int fk = 10;
-    private int fIx = 0;
-    private int fIy = 1;
-    private boolean fsi = false;
     private ArrayList<Command> selection = new ArrayList<>();
     private ArrayList<Command> copy = new ArrayList<>();
     private boolean keyActionUsed = false;
@@ -65,36 +54,24 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     int tmpi = 0;
 
 //    public FlowchartPanel() {
-        
 //        try {
 //            function = Parser.decode("func myFunc() {var x = 4; if (x > 2) print(\"ok\") else print(\"rodrigo\")}");
 //        } catch (Exception ex) {
 //            function = Interpreter.bubbleSort(10, true);
 //        }
-
 //        function = Interpreter.bubbleSort(10, true);
-
 //        Procedure p = (Procedure) function.getStart();
 //        Procedure np = Procedure.copyAll(p);
 //        function = new Function("ss", null);
 //        function.addAll(np);
-
 //        function = (Function) function.copy((Procedure) new Function());
-
-        //function = Interpreter.newTestFunction();
+    //function = Interpreter.newTestFunction();
 //        add(function);
-        
 //        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
 //        function.wire(fj, fk, fIx, fIy, fsi);
-        
-
 //        JTextArea console = new JTextArea();
-
 //        mc.redirectOut(null, System.out);
-
-        
 //    }
-
     public FlowchartPanel(Function function) {
         SidePanel sp = new SidePanel() {
             @Override
@@ -111,7 +88,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt", Procedure.class));
         sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
         add(sp);
-        
+
         interpreter = new Interpreter();
         interpreter.start();
         setFunction(function);
@@ -131,10 +108,20 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         this.function = function;
 //        add(function);
         function.appendDCommandsOn(this);
-        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+        ident(function);
         setName(function.toString());
         interpreter.setInterpreterState(Interpreter.STOP);
         interpreter.setMainFunction(function);
+    }
+
+    public static void ident(Function f) {
+        f.ident(GraphicFlowchart.GF_X,
+                GraphicFlowchart.GF_Y,
+                GraphicFlowchart.GF_J,
+                GraphicFlowchart.GF_K,
+                GraphicFlowchart.GF_IX,
+                GraphicFlowchart.GF_IY,
+                GraphicFlowchart.F_SI);
     }
 
     @Override
@@ -220,11 +207,11 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                             c.addBefore(tmp);
                         }
 
-                        if (c instanceof DummyBlock){
+                        if (c instanceof DummyBlock) {
                             removeGraphicResources(c);
                         }
 
-                        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+                        ident(function);
 //                    function.wire(fj, fk, fIx, fIy, fsi);
 //                System.out.println(c);
                     }
@@ -238,8 +225,8 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-        
-        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+
+        ident(function);
 
         for (Command c : selection) {
             if (c instanceof GraphicResource && c.getParent() != null) {
@@ -261,7 +248,7 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
 
             selection.clear();
 
-            function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
+            ident(function);
         }
 
         if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {
@@ -355,8 +342,10 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     }
 
     private void removeGraphicResources(Command c) {
-        if (c == null) return;
-        
+        if (c == null) {
+            return;
+        }
+
         if (c instanceof Block) {
             Command it = ((Block) c).getStart();
             while (it != null) {
@@ -367,13 +356,13 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
             removeGraphicResources(((If) c).getBlockTrue());
             removeGraphicResources(((If) c).getBlockFalse());
         }
-        
+
         super.remove(c.getDrawableResource());
 
         if (c.getParent() instanceof Block && c == ((Block) c.getParent()).getStart()) {
             ((Block) c.getParent()).shiftStart();
         }
-        
+
         c.remove();
     }
 
@@ -452,22 +441,20 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
             selection.clear();
         }
     }
-    
     private JButton undoButton = new JButton();
     private JButton redoButton = new JButton();
-    
     private ArrayList<JComponent> toolBar = new ArrayList<>();
-    
+
     {
         undoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-undo.png")));
         redoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-redo.png")));
         //tentar simplificar isso aqui =/
-        undoButton.setPreferredSize(new Dimension(40,40));
-        redoButton.setPreferredSize(new Dimension(40,40));
+        undoButton.setPreferredSize(new Dimension(40, 40));
+        redoButton.setPreferredSize(new Dimension(40, 40));
         toolBar.add(undoButton);
         toolBar.add(redoButton);
     }
-    
+
     @Override
     public Collection<JComponent> getToolBarComponents() {
         return toolBar;
