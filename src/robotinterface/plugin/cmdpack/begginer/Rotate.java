@@ -26,9 +26,12 @@
 package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
+import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.Collection;
@@ -300,7 +303,21 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     @Override
     public Item getItem() {
-        return new Item("Girar", new Ellipse2D.Double(0, 0, 20, 20), myColor);
+        Area myShape = new Area();
+        
+        Shape tmpShape = new Ellipse2D.Double(0, 0, 20, 20);
+        myShape.add(new Area(tmpShape));
+        
+        tmpShape = new Ellipse2D.Double(5, 5, 10, 10);
+        myShape.subtract(new Area(tmpShape));
+        
+        Polygon tmpPoli = new Polygon();
+        tmpPoli.addPoint(14, 8);
+        tmpPoli.addPoint(14, 12);
+        tmpPoli.addPoint(25, 14);
+        myShape.subtract(new Area(tmpPoli));
+        
+        return new Item("Girar", myShape, myColor);
     }
 
     @Override

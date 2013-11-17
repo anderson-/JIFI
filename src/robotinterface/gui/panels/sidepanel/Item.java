@@ -182,6 +182,7 @@ public class Item implements GraphicObject {
         x = maxIconWidth + 2 * insetX;
         y = maxHeight / 2 + stringBounds.getHeight() / 2 - 2;
 
+        g.setColor(color.darker());
         g.translate(x, y);
         g.drawString(name, 0, 0);
         g.translate(-x, -y);

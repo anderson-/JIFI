@@ -233,7 +233,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Item getItem() {
-        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), myColor);
+        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 12), myColor);
     }
 
     @Override
