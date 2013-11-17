@@ -26,10 +26,10 @@
 package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.Collection;
 import javax.swing.ImageIcon;
@@ -63,47 +63,35 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Procedure implements GraphicResource, Classifiable, FunctionToken<Move> {
+public class Rotate extends Procedure implements GraphicResource, Classifiable, FunctionToken<Rotate> {
 
-    private static Color myColor = Color.decode("#47B56C");
-    private byte m1, m2;
-    private String var1 = null;
-    private String var2 = null;
-    private HBridge hBridge = null;
+    private static Color myColor = Color.decode("#FF8533");
+    private int angle;
+    private String var = null;
 
-    public Move() {
-        m1 = m2 = 0;
+    public Rotate() {
+        angle = 0;
     }
 
-    public Move(int m1, int m2) {
+    public Rotate(int angle) {
         super();
-        this.m1 = (byte) m1;
-        this.m2 = (byte) m2;
+        this.angle = angle;
         updateProcedure();
     }
 
-    public byte getM1() {
-        return m1;
+    public int getAngle() {
+        return angle;
     }
 
-    public void setM1(byte m1) {
-        this.m1 = m1;
-        updateProcedure();
-    }
-
-    public byte getM2() {
-        return m2;
-    }
-
-    public void setM2(byte m2) {
-        this.m2 = m2;
+    public void setAngle(int angle) {
+        this.angle = angle;
         updateProcedure();
     }
 
     public void updateProcedure() {
-        setProcedure("move(" + ((var1 != null) ? var1 : m1) + "," + ((var2 != null) ? var2 : m2) + ")");
+        setProcedure("rotate(" + ((var != null) ? var : angle) + ")");
     }
-    
+
     @Override
     public void toString(String ident, StringBuilder sb) {
         updateProcedure();
@@ -112,66 +100,67 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-        hBridge = robot.getDevice(HBridge.class);
-        if (hBridge != null) {
-
-            byte t1 = m1;
-            byte t2 = m2;
-
-            if (var1 != null) {
-                Variable v = getParser().getSymbolTable().getVar(var1);
-                if (v != null && v.hasValidValue()) {
-                    Object o = v.getValue();
-                    if (o instanceof Number) {
-                        Number n = (Number) o;
-                        t1 = n.byteValue();
-                    }
-                }
-            }
-
-            if (var2 != null) {
-                Variable v = getParser().getSymbolTable().getVar(var2);
-                if (v != null && v.hasValidValue()) {
-                    Object o = v.getValue();
-                    if (o instanceof Number) {
-                        Number n = (Number) o;
-                        t2 = n.byteValue();
-                    }
-                }
-            }
-
-            hBridge.setWaiting();
-            hBridge.setFullState(t1, t2);
-        }
+//        hBridge = robot.getDevice(HBridge.class);
+//        if (hBridge != null) {
+//
+//            byte t1 = angle;
+//            byte t2 = m2;
+//
+//            if (var != null) {
+//                Variable v = getParser().getSymbolTable().getVar(var);
+//                if (v != null && v.hasValidValue()) {
+//                    Object o = v.getValue();
+//                    if (o instanceof Number) {
+//                        Number n = (Number) o;
+//                        t1 = n.byteValue();
+//                    }
+//                }
+//            }
+//
+//            if (var2 != null) {
+//                Variable v = getParser().getSymbolTable().getVar(var2);
+//                if (v != null && v.hasValidValue()) {
+//                    Object o = v.getValue();
+//                    if (o instanceof Number) {
+//                        Number n = (Number) o;
+//                        t2 = n.byteValue();
+//                    }
+//                }
+//            }
+//
+//            hBridge.setWaiting();
+//            hBridge.setFullState(t1, t2);
+//        }
     }
 
     @Override
     public boolean perform(Robot r, Clock clock) throws ExecutionException {
-        try {
-            if (hBridge != null && hBridge.isValidRead()) {
-//                String deviceState = device.stateToString();
-//                if (!deviceState.isEmpty()) {
-//                    execute(var + " = " + deviceState);
-//                }
-                return true;
-            }
-        } catch (Device.TimeoutException ex) {
-//            System.err.println("RE-ENVIANDO hBridge");
-            begin(r, clock);
-        }
-        return false;
+//        try {
+//            if (hBridge != null && hBridge.isValidRead()) {
+////                String deviceState = device.stateToString();
+////                if (!deviceState.isEmpty()) {
+////                    execute(var + " = " + deviceState);
+////                }
+//                return true;
+//            }
+//        } catch (Device.TimeoutException ex) {
+////            System.err.println("RE-ENVIANDO hBridge");
+//            begin(r, clock);
+//        }
+//        return false;
+        return true;
     }
     private GraphicObject resource = null;
 
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createDrawableMove(this);
+            resource = createDrawableRotate(this);
         }
         return resource;
     }
 
-    public static MutableWidgetContainer createDrawableMove(final Move m) {
+    public static MutableWidgetContainer createDrawableRotate(final Rotate r) {
 
         final int TEXTFIELD_WIDTH = 80;
         final int TEXTFIELD_HEIGHT = 25;
@@ -181,58 +170,43 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
         //HEADER LINE
 
-        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
+        int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
+        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 64;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
             @Override
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Mover:", 20, true));
+                labels.add(new TextLabel("Girar:", 20, true));
 
                 final JSpinner spinner1 = new JSpinner();
-                final JSpinner spinner2 = new JSpinner();
-                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
-                spinner2.setModel(new SpinnerNumberModel(0, -128, 127, 2));
+                spinner1.setModel(new SpinnerNumberModel(0, -360, 360, 2));
                 JComboBox combobox1 = new JComboBox();
-                JComboBox combobox2 = new JComboBox();
-                boolean num1 = true, num2 = true;
+                boolean num1 = true;
 
-                MutableWidgetContainer.setAutoFillComboBox(combobox1, m);
-                MutableWidgetContainer.setAutoFillComboBox(combobox2, m);
+                MutableWidgetContainer.setAutoFillComboBox(combobox1, r);
 
                 if (data != null) {
-                    if (data instanceof Move) {
-                        Move m = (Move) data;
+                    if (data instanceof Rotate) {
+                        Rotate m = (Rotate) data;
 
-                        if (m.var1 != null) {
-                            combobox1.setSelectedItem(m.var1);
+                        if (m.var != null) {
+                            combobox1.setSelectedItem(m.var);
                             num1 = false;
                         } else {
-                            spinner1.setValue((int) m.m1);
-                        }
-
-                        if (m.var2 != null) {
-                            combobox2.setSelectedItem(m.var2);
-                            num2 = false;
-                        } else {
-                            spinner2.setValue((int) m.m2);
+                            spinner1.setValue(m.angle);
                         }
                     }
                 }
 
                 final JButton changeButton1 = new JButton();
-                final JButton changeButton2 = new JButton();
                 ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
                 changeButton1.setIcon(icon);
-                changeButton2.setIcon(icon);
-
-//                changeButton1.setEnabled(false);
-//                changeButton2.setEnabled(false);
 
                 int x = INSET_X;
                 int y = INSET_Y + 40;
-                labels.add(new TextLabel("V1:", x + 5, y));
+                int strLen = 64;
+                labels.add(new TextLabel("Ângulo:", x + 5, y));
 
-                x += 26;
+                x += strLen;
                 y -= 18;
 
                 final WidgetContainer.Widget wspinner1 = new WidgetContainer.Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
@@ -246,25 +220,8 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
                 x -= INSET_Y + TEXTFIELD_WIDTH;
 
-                x -= 26;
+                x -= strLen;
                 y += 50;
-
-                labels.add(new TextLabel("V2:", x + 5, y));
-
-                x += 26;
-                y -= 18;
-
-                final WidgetContainer.Widget wspinner2 = new WidgetContainer.Widget(spinner2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                final WidgetContainer.Widget wcombobox2 = new WidgetContainer.Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(wspinner2);
-                widgets.add(wcombobox2);
-
-                x += INSET_Y + TEXTFIELD_WIDTH;
-
-                widgets.add(new WidgetContainer.Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
-
-                x -= INSET_Y + TEXTFIELD_WIDTH;
-
 
                 changeButton1.addActionListener(new ActionListener() {
                     @Override
@@ -279,23 +236,8 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                     }
                 });
 
-                changeButton2.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (container.contains(wspinner2)) {
-                            container.removeWidget(wspinner2);
-                            container.addWidget(wcombobox2);
-                        } else {
-                            container.removeWidget(wcombobox2);
-                            container.addWidget(wspinner2);
-                        }
-                    }
-                });
-
                 wspinner1.setDynamic(true);
                 wcombobox1.setDynamic(true);
-                wspinner2.setDynamic(true);
-                wcombobox2.setDynamic(true);
 
                 if (num1) {
                     container.addWidget(wspinner1);
@@ -303,11 +245,6 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                     container.addWidget(wcombobox1);
                 }
 
-                if (num2) {
-                    container.addWidget(wspinner2);
-                } else {
-                    container.addWidget(wcombobox2);
-                }
             }
 
             @Override
@@ -315,7 +252,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
                 StringBuilder sb = new StringBuilder();
 
-                sb.append("move(");
+                sb.append("rotate(");
 
                 for (Widget w : widgets) {
                     if (container.contains(w)) {
@@ -325,24 +262,22 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                             Object o = cb.getSelectedItem();
                             if (o != null) {
                                 sb.append(o.toString());
-                                sb.append(" ");
                             }
                         } else if (jc instanceof JSpinner) {
                             JSpinner s = (JSpinner) jc;
                             sb.append(s.getValue());
-                            sb.append(" ");
                         }
                     }
                 }
 
-                String str = sb.toString().trim().replace(" ", ",") + ")";
+                String str = sb.toString() + ")";
                 return str;
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(m, myColor) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(r, myColor) {
             {
-                string = m.getProcedure();
+                string = r.getProcedure();
                 updateLines();
             }
 
@@ -350,11 +285,11 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
             public void updateLines() {
                 clear();
                 if (string.length() <= 1) {
-                    addLine(headerLine, m);
+                    addLine(headerLine, r);
                 } else {
                     String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
-                    updateMove(str, m);
-                    addLine(headerLine, m);
+                    updateRotate(str, r);
+                    addLine(headerLine, r);
                 }
                 string = getString();
             }
@@ -365,76 +300,50 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     @Override
     public Item getItem() {
-        Polygon myShape = new Polygon();
-        myShape.addPoint(0, 0);
-        myShape.addPoint(18, 10);
-        myShape.addPoint(0, 20);
-        return new Item("Mover", myShape, myColor);
+        return new Item("Girar", new Ellipse2D.Double(0, 0, 20, 20), myColor);
     }
 
     @Override
     public Object createInstance() {
-        return new Move();
+        return new Rotate();
     }
 
     @Override
     public String getToken() {
-        return "move";
+        return "rotate";
     }
 
-    private static void updateMove(String str, Move m) {
+    private static void updateRotate(String str, Rotate m) {
         String[] argv = str.split(",");
         if (argv.length == 0) {
-            m.m1 = (byte) 0;
-            m.m2 = (byte) 0;
+            m.angle = 0;
         } else if (argv.length == 1) {
             argv[0] = argv[0].trim();
             if (Character.isLetter(argv[0].charAt(0))) {
-                m.var1 = argv[0];
-                m.var2 = argv[0];
+                m.var = argv[0];
             } else {
-                int v = Integer.parseInt(argv[0].trim());
-                m.m1 = (byte) v;
-                m.m2 = (byte) v;
-                m.var1 = null;
-                m.var2 = null;
-            }
-        } else if (argv.length == 2) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                m.var1 = argv[0];
-            } else {
-                int v = Integer.parseInt(argv[0].trim());
-                m.m1 = (byte) v;
-                m.var1 = null;
-            }
-
-            argv[1] = argv[1].trim();
-            if (Character.isLetter(argv[1].charAt(0))) {
-                m.var2 = argv[1];
-            } else {
-                int v = Integer.parseInt(argv[1].trim());
-                m.m2 = (byte) v;
-                m.var2 = null;
+                int a = Integer.parseInt(argv[0].trim());
+                m.angle = a;
+                m.var = null;
             }
         }
         m.updateProcedure();
     }
 
     @Override
-    public Move createInstance(String args) {
-        Move m = new Move(0, 0);
+    public Rotate createInstance(String args) {
+        Rotate r = new Rotate(0);
         if (!args.isEmpty()) {
-            updateMove(args, m);
+            updateRotate(args, r);
         }
 
-        return m;
+        return r;
         //return new ParseErrorProcedure(this, args);
     }
 
     public static void main(String[] args) {
-        Move p = new Move();
-        Move.updateMove("x", p);
+        Rotate p = new Rotate();
+        Rotate.updateRotate("x", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());

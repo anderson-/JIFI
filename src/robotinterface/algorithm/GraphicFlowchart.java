@@ -14,8 +14,8 @@ import java.util.Collection;
  */
 public interface GraphicFlowchart {
 
-    public static int GF_X = 100; //posição x
-    public static int GF_Y = 10; //posição y
+    public static int GF_X = 0; //posição x
+    public static int GF_Y = 0; //posição y
     public static int GF_J = 15; //deslocamento vertical
     public static int GF_K = 30; //deslocamento horizontal
     public static int GF_IX = 0;

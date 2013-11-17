@@ -40,6 +40,7 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
+    private static Color myColor = Color.decode("#08B9AC");
     private String format;
     private ArrayList<String> varNames;
 
@@ -128,14 +129,27 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     @Override
     public Item getItem() {
-        return new Item("Exibir", new Rectangle2D.Double(0, 0, 20, 15), color);
+        GeneralPath myShape = new GeneralPath();
+        double mx = 10;
+        double my = 12;
+        double a = 4;
+        double b = 8;
+
+        myShape.reset();
+        myShape.moveTo(a, 0);
+        myShape.lineTo(mx + a, 0);
+        myShape.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
+        myShape.lineTo(a, my);
+        myShape.lineTo(0, my / 2);
+        myShape.closePath();
+
+        return new Item("Exibir", myShape, myColor);
     }
 
     @Override
     public Object createInstance() {
         return new PrintString("Hello Worlld!");
     }
-    private Color color = Color.decode("#6693BC");
 
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
 
@@ -286,7 +300,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.decode("#08B9AC")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(p, myColor) {
             private GeneralPath myShape = new GeneralPath();
 
             {

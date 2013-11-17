@@ -31,6 +31,7 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -72,12 +73,13 @@ public class If extends Procedure {
         }
     }
 
+    //blocos para a divisão de fluxo
     public class BlockTrue extends InnerBlock {
     }
 
     public class BlockFalse extends InnerBlock {
     }
-    //blocos para a divisão de fluxo
+    private static Color myColor = Color.decode("#FFA500");
     private BlockTrue blockTrue;
     private BlockFalse blockFalse;
     private GraphicObject resource = null;
@@ -129,12 +131,13 @@ public class If extends Procedure {
     @Override
     public void toString(String ident, StringBuilder sb) {
         sb.append(ident).append("if (").append(getProcedure()).append(")").append("{\n");
-        blockTrue.toString(ident + identChar, sb);
+        blockTrue.toString(ident, sb);
         sb.append(ident).append("}");
 
-        if (blockFalse.size() > 1) {
+        if (blockFalse.size() > 1 && !(blockFalse.get(0) instanceof DummyBlock)) {
             sb.append(" else {\n");
-            blockFalse.toString(ident + identChar, sb);
+            blockFalse.toString(ident, sb);
+            sb.append(ident).append("}\n");
         } else {
             sb.append("\n");
         }
@@ -230,7 +233,12 @@ public class If extends Procedure {
 
     @Override
     public Item getItem() {
-        return new Item("Condicional", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#FFA500"));
+        Polygon myShape = new Polygon();
+        myShape.addPoint(10, 0);
+        myShape.addPoint(20, 10);
+        myShape.addPoint(10, 20);
+        myShape.addPoint(0, 10);
+        return new Item("Condicional", myShape, myColor);
     }
 
     @Override
@@ -539,7 +547,7 @@ public class If extends Procedure {
         if (resource == null) {
             MutableWidgetContainer mwc = If.createDrawableIf(this);
             mwc.setName("If");
-            mwc.setColor(Color.decode("#FFA500"));
+            mwc.setColor(myColor);
             resource = mwc;
         }
         return resource;
@@ -585,7 +593,37 @@ public class If extends Procedure {
                     GraphicFlowchart.GF_IX,
                     GraphicFlowchart.GF_IY,
                     GraphicFlowchart.F_SI);
-            
+
+            Rectangle2D.Double bTrueEnd = getBlockTrue().getEnd().getPrevious().getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            if (getBlockTrue().getEnd().getPrevious() instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) getBlockTrue().getEnd().getPrevious()).getDrawableResource();
+
+                if (d != null) {
+                    bTrueEnd = (Rectangle2D.Double) d.getObjectBouds();
+                }
+            }
+
+            Rectangle2D.Double bFalseEnd = getBlockFalse().getEnd().getPrevious().getBounds(null,
+                    GraphicFlowchart.GF_J,
+                    GraphicFlowchart.GF_K,
+                    GraphicFlowchart.GF_IX,
+                    GraphicFlowchart.GF_IY,
+                    GraphicFlowchart.F_SI);
+
+            if (getBlockFalse().getEnd().getPrevious() instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) getBlockFalse().getEnd().getPrevious()).getDrawableResource();
+
+                if (d != null) {
+                    bFalseEnd = (Rectangle2D.Double) d.getObjectBouds();
+                }
+            }
+
             if (getBlockFalse().start instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) getBlockFalse().start).getDrawableResource();
 
@@ -601,22 +639,27 @@ public class If extends Procedure {
                     GraphicFlowchart.GF_IY,
                     GraphicFlowchart.F_SI);
 
+            //true
+
             path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bTrueB.getMinY());
 
-            path.moveTo(bTrueB.getCenterX(), bTrueB.getMaxY() - 2 * GF_J);
-            path.lineTo(bTrueB.getCenterX(), bBlock.getMaxY() - GF_J);
+            path.moveTo(bTrueEnd.getCenterX(), bTrueB.getMaxY() - 2 * GF_J);
+            path.lineTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
+
+            //false
 
             path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bFalseB.getMinY());
 
-            path.moveTo(bFalseB.getCenterX(), bFalseB.getMaxY() - 2 * GF_J);
-            path.lineTo(bFalseB.getCenterX(), bBlock.getMaxY() - GF_J);
+            path.moveTo(bFalseEnd.getCenterX(), bFalseB.getMaxY() - 2 * GF_J);
+            path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
 
-            path.moveTo(bTrueB.getCenterX(), bBlock.getMaxY() - GF_J);
-            path.lineTo(bFalseB.getCenterX(), bBlock.getMaxY() - GF_J);
+            //linha final
+            path.moveTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
+            path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
 
 
             Command c = getNext();

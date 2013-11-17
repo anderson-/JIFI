@@ -114,7 +114,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         t2.rotate(-3 * Math.PI / 12);
         g.setTransform(t2);
         for (int si = 0; si < 5; si++) {
-            g.setColor(Color.getHSBColor(.0f, 1, 1 - (float) (values[si])));
+            g.setColor(Color.getHSBColor(.0f, 1, (float) (values[si])));
             t2.rotate(Math.PI / 12);
             g.setTransform(t2);
             g.fillOval(sx, sy, sw, sw);

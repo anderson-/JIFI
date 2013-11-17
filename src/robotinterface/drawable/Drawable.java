@@ -18,7 +18,7 @@ import java.awt.geom.Rectangle2D;
 public interface Drawable {
     
     //constantes de desenho
-    public static Stroke DEFAULT_STROKE  = new BasicStroke(0);
+    public static Stroke DEFAULT_STROKE  = new BasicStroke(1);
     public static Stroke BOLD_STROKE  = new BasicStroke(5);
     
     public static final int BACKGROUND_LAYER = 1;

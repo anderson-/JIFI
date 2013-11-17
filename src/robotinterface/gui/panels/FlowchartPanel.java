@@ -27,6 +27,7 @@ import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
+import robotinterface.drawable.Drawable;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.graphicresource.GraphicResource;
@@ -39,9 +40,10 @@ import robotinterface.plugin.PluginManager;
  *
  * @author antunes
  */
-public class FlowchartPanel extends DrawingPanel implements TabController, Interpertable {
+public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
     public ArrayList<JPanel> tabs = new ArrayList<>();
+    private SidePanel sidePanel;
     private Interpreter interpreter;
     private Function function;
     private ArrayList<Command> selection = new ArrayList<>();
@@ -52,28 +54,12 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     Command tmp = null;
     Item itmp = null;
     int tmpi = 0;
+    private Color selectionColor = new Color(1, 0, 0, .7f);
+    private Color executionColor = new Color(0, 1, 0, .7f);
+    private GraphicObject executionCommand = null;
 
-//    public FlowchartPanel() {
-//        try {
-//            function = Parser.decode("func myFunc() {var x = 4; if (x > 2) print(\"ok\") else print(\"rodrigo\")}");
-//        } catch (Exception ex) {
-//            function = Interpreter.bubbleSort(10, true);
-//        }
-//        function = Interpreter.bubbleSort(10, true);
-//        Procedure p = (Procedure) function.getStart();
-//        Procedure np = Procedure.copyAll(p);
-//        function = new Function("ss", null);
-//        function.addAll(np);
-//        function = (Function) function.copy((Procedure) new Function());
-    //function = Interpreter.newTestFunction();
-//        add(function);
-//        function.ident(fx, fy, fj, fk, fIx, fIy, fsi);
-//        function.wire(fj, fk, fIx, fIy, fsi);
-//        JTextArea console = new JTextArea();
-//        mc.redirectOut(null, System.out);
-//    }
     public FlowchartPanel(Function function) {
-        SidePanel sp = new SidePanel() {
+        sidePanel = new SidePanel() {
             @Override
             protected void ItemSelected(Item item, Object ref) {
                 try {
@@ -84,10 +70,11 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                 }
             }
         };
-        sp.setColor(Color.decode("#54A4A4"));
-        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt", Procedure.class));
-        sp.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
-        add(sp);
+        sidePanel.setColor(Color.decode("#54A4A4"));
+        sidePanel.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt", Procedure.class));
+        sidePanel.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
+
+        add(sidePanel);
 
         interpreter = new Interpreter();
         interpreter.start();
@@ -103,18 +90,42 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         return function;
     }
 
-    public void setFunction(Function function) {
+    public final void setFunction(Function function) {
         removeGraphicResources(this.function);
         this.function = function;
-//        add(function);
-        function.appendDCommandsOn(this);
+
         ident(function);
+
         setName(function.toString());
         interpreter.setInterpreterState(Interpreter.STOP);
         interpreter.setMainFunction(function);
     }
 
-    public static void ident(Function f) {
+    public void ident(Function f) {
+        addDummyBlocks(function);
+        ident(function, true);
+        addAllDrawableResources(function, this);
+    }
+
+    private static void addDummyBlocks(Command c) {
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            if (b.size() == 1) { //só tem o EndBlock
+                DummyBlock db = new DummyBlock();
+                b.add(db);
+            }
+            Command it = b.getStart();
+            while (it != null) {
+                addDummyBlocks(it);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            addDummyBlocks(((If) c).getBlockTrue());
+            addDummyBlocks(((If) c).getBlockFalse());
+        }
+    }
+
+    private static void ident(Function f, boolean b) {
         f.ident(GraphicFlowchart.GF_X,
                 GraphicFlowchart.GF_Y,
                 GraphicFlowchart.GF_J,
@@ -128,38 +139,24 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         Command cmd = interpreter.getCurrentCommand();
-//        System.out.println(cmd);
         if (cmd instanceof GraphicResource) {
             GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
-            if (d != null) {
-                AffineTransform o = g.getTransform();
-                AffineTransform n = (AffineTransform) o.clone();
-                ga.applyGlobalPosition(n);
-                ga.applyZoom(n);
-                g.setTransform(n);
-                g.setColor(Color.GREEN);
-
-//                g.fill(d.getObjectShape());
-
-                g.setStroke(new BasicStroke(5));
-                g.draw(d.getObjectShape());
-
-                g.setTransform(o);
+            if (d != null && cmd != function) {
+                executionCommand = d;
             }
         }
 
-//        if (in.mouseGeneralClick() && in.isKeyPressed(KeyEvent.VK_R)) {
-//            Point p = in.getTransformedMouse();
-//            Command c = function.find(p);
-//            System.out.println("CLICK");
-//            if (c != null) {
-//                System.out.println("REMOVE");
-//                c.remove();
-//                return;
-//            }
-//        }
-
-
+        if (executionCommand != null) {
+            AffineTransform o = g.getTransform();
+            AffineTransform n = (AffineTransform) o.clone();
+            ga.applyGlobalPosition(n);
+            ga.applyZoom(n);
+            g.setTransform(n);
+            g.setColor(executionColor);
+            g.setStroke(new BasicStroke(5));
+            g.draw(executionCommand.getObjectShape());
+            g.setTransform(o);
+        }
 
         if (tmp != null) {
             if (itmp != null) {
@@ -211,6 +208,9 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                             removeGraphicResources(c);
                         }
 
+                        selection.clear();
+                        selection.add(tmp);
+
                         ident(function);
 //                    function.wire(fj, fk, fIx, fIy, fsi);
 //                System.out.println(c);
@@ -223,16 +223,38 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         }
     }
 
+    public void addAllDrawableResources(Command c, DrawingPanel p) {
+        GraphicObject d = ((GraphicResource) c).getDrawableResource();
+        add(d); //com verificação null e contains 
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            Command it = b.getStart();
+            while (it != null) {
+                addAllDrawableResources(it, p);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            addAllDrawableResources(((If) c).getBlockTrue(), p);
+            addAllDrawableResources(((If) c).getBlockFalse(), p);
+        }
+    }
+
+    @Override
+    public int getDrawableLayer() {
+        return Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
+    }
+
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         ident(function);
 
+        g.setStroke(BOLD_STROKE);
         for (Command c : selection) {
             if (c instanceof GraphicResource && c.getParent() != null) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
-                    g.setColor(Color.red);
+                    g.setColor(selectionColor);
                     g.draw(d.getObjectShape());
                 }
             }
@@ -266,14 +288,21 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                 if (in.isKeyPressed(KeyEvent.VK_X)) {
                     if (isValidSelection()) {
                         copy.clear();
+                        pushUndo();
+                        redo.clear();
+
                         for (Command c : selection) {
                             if (c instanceof Procedure) {
                                 Procedure p = (Procedure) c;
                                 copy.add(p.copy((Procedure) p.createInstance()));
+                                removeGraphicResources(c);
                             } else {
                                 System.out.println("Erro de copia");
                             }
                         }
+
+                        selection.clear();
+                        ident(function);
                     }
                     keyActionUsed = true;
                 }
@@ -297,20 +326,18 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
                     if (!selection.isEmpty() && !copy.isEmpty()) {
                         pushUndo();
                         Command s = selection.get(0);
+                        selection.clear();
                         for (Command c : copy) {
                             if (c instanceof Procedure) {
                                 Procedure p = (Procedure) c;
                                 c = p.copy((Procedure) p.createInstance());
                             }
+                            addAllDrawableResources(c, this);
                             s.addAfter(c);
+                            selection.add(c);
                             s = c;
-                            if (c instanceof GraphicResource) {
-                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                                if (d != null) {
-                                    add(d);
-                                }
-                            }
                         }
+                        ident(function);
                     }
                     keyActionUsed = true;
                 }
@@ -407,11 +434,6 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
         QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
     }
 
-    @Override
-    public List<JPanel> getTabs() {
-        return tabs;
-    }
-
     public void pushUndo() {
         undo.add(function.copy());
         if (redo.size() > 10) {
@@ -440,23 +462,5 @@ public class FlowchartPanel extends DrawingPanel implements TabController, Inter
             setFunction(redo.pop());
             selection.clear();
         }
-    }
-    private JButton undoButton = new JButton();
-    private JButton redoButton = new JButton();
-    private ArrayList<JComponent> toolBar = new ArrayList<>();
-
-    {
-        undoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-undo.png")));
-        redoButton.setIcon(new ImageIcon(getClass().getResource("/resources/tango/22x22/actions/edit-redo.png")));
-        //tentar simplificar isso aqui =/
-        undoButton.setPreferredSize(new Dimension(40, 40));
-        redoButton.setPreferredSize(new Dimension(40, 40));
-        toolBar.add(undoButton);
-        toolBar.add(redoButton);
-    }
-
-    @Override
-    public Collection<JComponent> getToolBarComponents() {
-        return toolBar;
     }
 }

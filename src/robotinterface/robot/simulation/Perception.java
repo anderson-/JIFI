@@ -41,6 +41,9 @@ public class Perception {
 
     public void addPathPoint(double x, double y) {
         path.add(new Point((int) x, (int) y));
+        if (path.size() > MAX_ARRAY){
+            path.remove(0);
+        }
     }
 
     public void draw(Graphics2D g) {

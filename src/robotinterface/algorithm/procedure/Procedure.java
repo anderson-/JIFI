@@ -25,36 +25,24 @@
  */
 package robotinterface.algorithm.procedure;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
-import robotinterface.drawable.Drawable;
 import robotinterface.drawable.DrawableCommandBlock;
-import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer.Widget;
-import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -68,6 +56,7 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class Procedure extends Command implements Expression, Classifiable {
 
+    private static Color myColor = Color.decode("#ACD630");
     private ArrayList<String> names;
     private ArrayList<Object> values;
     private static JEP parser;
@@ -235,7 +224,7 @@ public class Procedure extends Command implements Expression, Classifiable {
     public void toString(String ident, StringBuilder sb) {
         if (!procedure.equals("0")) {
             for (String p : procedure.split(";")) {
-                sb.append(ident).append(p).append(";\n");
+                sb.append(ident).append(p.trim()).append(";\n");
             }
         } else {
             sb.append(ident).append(toString()).append(";\n");
@@ -244,7 +233,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Item getItem() {
-        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), Color.decode("#69CD87"));
+        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 15), myColor);
     }
 
     @Override
@@ -365,7 +354,7 @@ public class Procedure extends Command implements Expression, Classifiable {
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.decode("#69CD87")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(p, myColor) {
             {
                 string = p.getProcedure();
                 updateLines();
@@ -426,7 +415,7 @@ public class Procedure extends Command implements Expression, Classifiable {
                 newCopy = ((Procedure) it).copy((Procedure) ((Procedure) it).createInstance());
 
                 i++;
-                //System.out.println(it.getClass().getSimpleName() + " -> " + newCopy.getClass().getSimpleName());
+//                System.out.println(it.getClass().getSimpleName() + " -> " + newCopy.getClass().getSimpleName());
 
                 if (old != null) {
                     old.setNext(newCopy);

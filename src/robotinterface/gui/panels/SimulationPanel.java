@@ -105,7 +105,9 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                 }
 
                 for (Robot robot : tmpBots) {
-                    robot.updatePerception();
+                    if (robot.getLeftWheelSpeed() != 0 && robot.getRightWheelSpeed() != 0){
+                        robot.updatePerception();
+                    }
 
                     if (this.getCount() % 20 == 0) {
 //                        robot.setRightWheelSpeed(30);

@@ -88,6 +88,8 @@ public class MutableWidgetContainer extends WidgetContainer {
     protected int shapeStartX = 0;
     protected int shapeStartY = 0;
     protected boolean center = false;
+    protected boolean widgetsEnebled = true;
+    protected Color stringColor = Color.BLACK;
     private String name = "";
     private double stringWidth = 0;
     private int firstShapeUpdate = 2;
@@ -129,6 +131,14 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     public void setString(String string) {
         this.string = string;
+    }
+
+    public boolean isWidgetsEnebled() {
+        return widgetsEnebled;
+    }
+
+    public void setWidgetsEnebled(boolean widgetsEnebled) {
+        this.widgetsEnebled = widgetsEnebled;
     }
 
     public String getString() {
@@ -235,7 +245,7 @@ public class MutableWidgetContainer extends WidgetContainer {
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         
-        if (in.mouseClicked() && in.getMouseClickCount() == 2) {
+        if (widgetsEnebled & in.mouseClicked() && in.getMouseClickCount() == 2) {
             super.widgetVisible = !super.widgetVisible;
             shapeBounds.setRect(0, 0, 0, 0);
         }
@@ -369,7 +379,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         double tmpWidth;
 
-        g.setColor(Color.black);
+        g.setColor(stringColor);
 
 //        g.translate(x, 0);
 //        for (String str : string.split(";")) {

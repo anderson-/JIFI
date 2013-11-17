@@ -45,7 +45,7 @@ public class Project {
         this.functions.addAll(functions);
     }
 
-    public Collection<Function> getFunctions() {
+    public ArrayList<Function> getFunctions() {
         return functions;
     }
 
@@ -61,7 +61,7 @@ public class Project {
         FileOutputStream fileWriter;
 
         try {
-            System.out.println("Program Start zipping");
+//            System.out.println("Program Start zipping");
 
             /*
              * create the output stream to zip file result
@@ -101,7 +101,7 @@ public class Project {
             zip.close();
 
             result = true;
-            System.out.println("Given files are successfully zipped");
+//            System.out.println("Given files are successfully zipped");
         } catch (Exception e) {
             System.out.println("Some Errors happned during the zip process");
             e.printStackTrace();
@@ -162,7 +162,7 @@ public class Project {
                 }
 
                 if (file.delete()) {
-                    System.out.println(file.getName() + " is deleted!");
+//                    System.out.println(file.getName() + " is deleted!");
                 } else {
                     System.out.println("Delete operation is failed." + file);
                 }
@@ -180,7 +180,7 @@ public class Project {
          * check the empty folder
          */
         if (folder.list() == null || folder.list().length == 0) {
-            System.out.println(folder.getName());
+//            System.out.println(folder.getName());
             addFileToZip(path, new File(srcFolder), zip, true);
         } else {
             /*
@@ -206,17 +206,17 @@ public class Project {
 
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
-            System.out.println("open");
+//            System.out.println("open");
             
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 
-                System.out.println("*" + entry);
+//                System.out.println("*" + entry);
 
                 InputStream stream = zipFile.getInputStream(entry);
 
                 if (entry.getName().startsWith("functions/") && entry.getName().endsWith(".func")) {
-                    System.out.println("Convertendo: " + entry);
+//                    System.out.println("Convertendo: " + entry);
                     Function function = Parser.decode(stream);
                     if (function != null) {
                         functions.add(function);
@@ -224,7 +224,7 @@ public class Project {
                 }
                 
                 if (entry.getName().startsWith("environment/") && entry.getName().endsWith(".env")) {
-                    System.out.println("Convertendo: " + entry);
+//                    System.out.println("Convertendo: " + entry);
                     GUI.getInstance().getSimulationPanel().getEnv().loadFile(stream);
                 }
             }

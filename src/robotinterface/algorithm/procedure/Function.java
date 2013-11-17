@@ -25,44 +25,33 @@
  */
 package robotinterface.algorithm.procedure;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.gui.panels.SimulationPanel;
-import robotinterface.plugin.cmdpack.begginer.ReadDevice;
+import robotinterface.gui.GUI;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -115,15 +104,14 @@ public class Function extends Block {
 
     @Override
     public boolean addBefore(Command c) {
-        System.out.println("before");
         return super.addBegin(c);
     }
 
     @Override
     public boolean addAfter(Command c) {
-        System.out.println("after");
         return super.addBegin(c);
     }
+    
     public static final int ARR_SIZE = 7;
 
     public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
@@ -206,36 +194,7 @@ public class Function extends Block {
         }
         return Function.find(p, this);
     }
-    DrawingPanel d = null;
-
-    public DrawingPanel getD() {
-        return d;
-    }
-
-    public static void appendDCommandsOn(Command c, DrawingPanel p) {
-        if (c instanceof GraphicResource) {
-//            System.out.println("Adicionado: " + c.getCommandName());
-            p.add(((GraphicResource) c).getDrawableResource());
-        }
-
-        if (c instanceof Block) {
-            Block b = (Block) c;
-            Command it = b.start;
-            while (it != null) {
-                appendDCommandsOn(it, p);
-                it = it.getNext();
-            }
-        } else if (c instanceof If) {
-            If i = (If) c;
-            appendDCommandsOn(i.getBlockTrue(), p);
-            appendDCommandsOn(i.getBlockFalse(), p);
-        }
-    }
-
-    public void appendDCommandsOn(DrawingPanel p) {
-        d = p;
-        appendDCommandsOn(this, p);
-    }
+    
     Rectangle2D.Double shape = new Rectangle2D.Double();
     static ArrayList<Rectangle2D.Double> tmpBounds = new ArrayList<>();
     static ArrayList<String> tmpBoundsName = new ArrayList<>();
@@ -434,7 +393,7 @@ public class Function extends Block {
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(f, Color.decode("#FFA500")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(f, Color.decode("#E6A82E")) {
             public static final int EXTENDED_HEIGHT = 15;
             public static final int SIMPLE_HEIGHT = 20;
             public static final int SIMPLE_WIDTH = 20;
@@ -451,7 +410,7 @@ public class Function extends Block {
 
                 //adiciona cabeçalho
                 addLine(headerLine, null);
-
+                
                 //adiciona uma nova linha sem dados
                 addLine(nullLine, null);
 
@@ -461,6 +420,9 @@ public class Function extends Block {
 
                 addLine(endLine, null);
                 string = getString();
+                
+                //CUIDADO
+                GUI.getInstance().updateTabNames();
             }
 
             public void splitString(String original, Collection<String> splitted) {
@@ -470,6 +432,8 @@ public class Function extends Block {
             @Override
             public String getString() {
                 String str = super.getString();
+                //CUIDADO
+                GUI.getInstance().updateTabNames();
                 return "func " + str.trim() + ") : ";
             }
         };

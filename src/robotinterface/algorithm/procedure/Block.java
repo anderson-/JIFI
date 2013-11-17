@@ -71,7 +71,7 @@ public class Block extends Procedure {
             resetVariableScope();
             return begin;
         }
-        
+
         @Override
         public GraphicObject getDrawableResource() {
             return null;
@@ -119,9 +119,11 @@ public class Block extends Procedure {
 
         Command it = c;
         while (it.getNext() != null) {
+            it.setParent(this);
             it = it.getNext();
         }
         it.setNext(end);
+        it.setParent(this);
         end.setPrevious(c);
         end.setNext(null);
         //adiciona end ao final da lista
@@ -132,7 +134,7 @@ public class Block extends Procedure {
         } else {
             start = c;
         }
-        
+
         return true;
     }
 
@@ -325,13 +327,13 @@ public class Block extends Procedure {
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append("").append("{\n");
+        //sb.append(ident).append("").append("{\n");
         Command it = start;
         while (it != null) {
             it.toString(ident + identChar, sb);
             it = it.getNext();
         }
-        sb.append(ident).append("}\n");
+        //sb.append(ident).append("}\n");
     }
 
     @Override
@@ -414,26 +416,26 @@ public class Block extends Procedure {
             x += Ix * (cw + xj);
             y += Iy * (ch + yj);
         }
-        
-        if (size() == 1){ //só tem o EndBlock
-            DummyBlock db = new DummyBlock();
-            db.setNext(end);
-            db.setParent(this);
-            db.setPrevious(null);
-            end.setPrevious(db);
-            end.setNext(null);
-            start = db;
-            
-            Command it = this;
-            while (it.getParent() != null){
-                it = it.getParent();
-            }
-            
-            if (it instanceof Function){
-                ((Function)it).getD().add(db.getDrawableResource());
-            }
-            
-        }
+
+//        if (size() == 1){ //só tem o EndBlock
+//            DummyBlock db = new DummyBlock();
+//            db.setNext(end);
+//            db.setParent(this);
+//            db.setPrevious(null);
+//            end.setPrevious(db);
+//            end.setNext(null);
+//            start = db;
+//            
+//            Command it = this;
+//            while (it.getParent() != null){
+//                it = it.getParent();
+//            }
+//            
+//            if (it instanceof Function){
+//                ((Function)it).getD().add(db.getDrawableResource());
+//            }
+//            
+//        }
 
         start.ident(x, y, j, k, Ix, Iy, a);
 
@@ -456,7 +458,7 @@ public class Block extends Procedure {
     @Override
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
-        
+
         if (copy instanceof Block) {
             if (start instanceof Procedure) {
                 ((Block) copy).add(Procedure.copyAll((Procedure) start));

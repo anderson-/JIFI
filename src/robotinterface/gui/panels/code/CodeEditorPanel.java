@@ -37,7 +37,9 @@ import robotinterface.algorithm.procedure.Function;
 import robotinterface.gui.GUI;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.code.jedit.*;
+import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.plugin.PluginManager;
+import robotinterface.robot.device.Device;
 
 /**
  *
@@ -65,13 +67,12 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 
         SyntaxStyle[] styles = SyntaxUtilities.getDefaultSyntaxStyles();
 
-
         Color cstring = Color.decode("#f07818");
         Color cfunction = Color.decode("#6a4a3c");
         Color cvar = Color.decode("#cc333f");
         Color cblocks = Color.decode("#00a0b0");
         Color cfuncandbool = Color.decode("#8fbe00");
-
+        Color cdevices = Color.decode("#00C12B");
 
         styles[Token.COMMENT1] = new SyntaxStyle(Color.GRAY, false, false);
         styles[Token.KEYWORD1] = new SyntaxStyle(cblocks, false, true);
@@ -80,6 +81,8 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 
         styles[Token.LITERAL1] = new SyntaxStyle(cstring, false, false);
         styles[Token.LITERAL2] = new SyntaxStyle(cfuncandbool, false, true);
+
+        styles[Token.OPERATOR] = new SyntaxStyle(cdevices, false, true);
 
         textArea.getPainter().setStyles(styles);
 
@@ -188,10 +191,14 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
             }
         }
 
-
-
-//        keywords.add("print", Token.LITERAL2);
-
+        for (Class<? extends Device> c : RobotControlPanel.getAvailableDevices()) {
+            String str = c.getSimpleName();
+            try {
+                str = c.newInstance().getName();
+            } catch (Exception ex) {
+            }
+            keywords.add(str, Token.OPERATOR);
+        }
     }
 
     private static void commentSelection(JEditTextArea textArea) {

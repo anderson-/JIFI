@@ -12,6 +12,7 @@ import robotinterface.algorithm.parser.decoder.Decoder;
 import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.procedure.Block;
 import robotinterface.algorithm.procedure.Function;
+import robotinterface.gui.panels.code.CodeEditorPanel;
 import robotinterface.interpreter.Interpreter;
 
 /**
@@ -25,12 +26,14 @@ public class Parser {
     }
 
     public static Function decode(String str) throws Exception {
+        CodeEditorPanel.updateFunctionTokens();
         Decoder parser = new Decoder(new ByteArrayInputStream(str.getBytes("UTF-8")));
         Function f = parser.decode();
         return f;
     }
     
     public static Function decode(InputStream stream) throws ParseException {
+        CodeEditorPanel.updateFunctionTokens();
         Decoder parser = new Decoder(stream);
         Function f = parser.decode();
         return f;

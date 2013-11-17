@@ -5,11 +5,11 @@
 package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
+import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.Area;
 import java.util.Collection;
-import java.util.HashMap;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -17,7 +17,6 @@ import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import org.nfunk.jep.Variable;
-import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawableCommandBlock;
@@ -26,15 +25,10 @@ import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
-import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
-import robotinterface.robot.device.HBridge;
 import robotinterface.interpreter.ExecutionException;
-import static robotinterface.plugin.cmdpack.begginer.ReadDevice.createDrawableMove;
-import robotinterface.robot.device.Device;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
 
@@ -44,6 +38,7 @@ import robotinterface.util.trafficsimulator.Timer;
  */
 public class Wait extends Procedure implements Classifiable, FunctionToken<Wait> {
 
+    private static Color myColor = Color.decode("#9966FF");
     private Timer timer;
     private int delay = 0;
     private String var = null;
@@ -85,7 +80,21 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
     @Override
     public Item getItem() {
-        return new Item("Wait", new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#80DE71"));
+        Area myShape = new Area();
+        Polygon tmpShape = new Polygon();
+        tmpShape.addPoint(0, 0);
+        tmpShape.addPoint(7, 0);
+        tmpShape.addPoint(7, 18);
+        tmpShape.addPoint(0, 18);
+        myShape.add(new Area(tmpShape));
+        
+        tmpShape.reset();
+        tmpShape.addPoint(11, 0);
+        tmpShape.addPoint(18, 0);
+        tmpShape.addPoint(18, 18);
+        tmpShape.addPoint(11, 18);
+        myShape.add(new Area(tmpShape));
+        return new Item("Esperar", myShape, myColor);
     }
 
     @Override
@@ -97,6 +106,14 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     public String getToken() {
         return "wait";
     }
+    
+    
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        setProcedure("wait(" + delay + ")");
+        super.toString(ident, sb);
+    }
+    
     private GraphicObject resource = null;
 
     @Override
@@ -221,7 +238,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(w, Color.decode("#FF6200")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(w, myColor) {
             {
                 string = w.getProcedure();
                 updateLines();

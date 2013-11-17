@@ -129,11 +129,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         currentTransform = new AffineTransform();
         currentBounds = new Rectangle();
 
-        //testes, descomente e veja o que acontece
-//        add(new DrawableTest());
-//        Circle cw = new Circle();
-//        cw.setObjectBounds(10, 10, 30, 30);
-//        add(cw);
+        globalX = this.getPreferredSize().width/2;
+        globalY = this.getPreferredSize().height/4;
 
         //adiciona listeners
         addListeners();
@@ -200,10 +197,18 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         repaint = false;
     }
 
+    public final boolean contains(Drawable d) {
+        synchronized (objects) {
+            return objects.contains(d);
+        }
+    }
+
     public final void add(Drawable d) {
         if (d != null) {
             synchronized (objects) {
-                objects.add(0, d);
+                if (!objects.contains(d)) {
+                    objects.add(0, d);
+                }
             }
             if (d instanceof WidgetContainer) {
                 ((WidgetContainer) d).appendTo(this);
@@ -211,9 +216,21 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
     }
 
+    public final void clear() {
+        synchronized (objects) {
+            for (Drawable d : objects) {
+                if (d instanceof WidgetContainer) {
+                    for (Widget w : ((WidgetContainer) d)) {
+                        super.remove(w.getJComponent());
+                    }
+                }
+            }
+            objects.clear();
+        }
+    }
+
     public final void remove(Drawable d) {
         if (d instanceof WidgetContainer) {
-            //((WidgetContainer) d).widgetVisible = false;
             for (Widget w : ((WidgetContainer) d)) {
                 super.remove(w.getJComponent());
             }
@@ -337,21 +354,21 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        synchronized (mouse) {
-//            currentTransform.setTransform(originalTransform);
-//            currentTransform.translate(globalX, globalY);
-//            currentTransform.scale(zoom, zoom);
-//            Point2D p = currentTransform.transform(mouse, null);
-            int x = (int) ((mouse.x - globalX) / zoom);
-            int y = (int) ((mouse.y - globalY) / zoom);
-
-            if (mouseClick) {
-                g.setColor(Color.red);
-            } else {
-                g.setColor(Color.black);
-            }
-            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
-        }
+//        synchronized (mouse) {
+////            currentTransform.setTransform(originalTransform);
+////            currentTransform.translate(globalX, globalY);
+////            currentTransform.scale(zoom, zoom);
+////            Point2D p = currentTransform.transform(mouse, null);
+//            int x = (int) ((mouse.x - globalX) / zoom);
+//            int y = (int) ((mouse.y - globalY) / zoom);
+//
+//            if (mouseClick) {
+//                g.setColor(Color.red);
+//            } else {
+//                g.setColor(Color.black);
+//            }
+//            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+//        }
 
         if (beginDrawing) {
             beginDrawing = false;

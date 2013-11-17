@@ -25,53 +25,31 @@
  */
 package robotinterface.plugin.cmdpack.begginer;
 
-import robotinterface.algorithm.procedure.Function;
-import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
-import robotinterface.algorithm.procedure.While;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.WidgetContainer;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Polygon;
+import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawableCommandBlock;
-import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
-import robotinterface.plugin.cmdpack.serial.Start;
-import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.Robot;
-import robotinterface.robot.device.Compass;
-import robotinterface.robot.device.HBridge;
 import robotinterface.interpreter.ExecutionException;
-import static robotinterface.plugin.cmdpack.begginer.Move.createDrawableMove;
 import robotinterface.robot.device.Device.TimeoutException;
 import robotinterface.util.trafficsimulator.Clock;
-import robotinterface.util.trafficsimulator.Timer;
 
 /**
  *
@@ -79,6 +57,7 @@ import robotinterface.util.trafficsimulator.Timer;
  */
 public class ReadDevice extends Procedure implements GraphicResource, Classifiable, FunctionToken<ReadDevice> {
 
+    private static Color myColor = Color.decode("#ED4A6A");
     private Device device;
     private Class<? extends Device> type;
     private String deviceName = "";
@@ -234,7 +213,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(rd, Color.decode("#FF6200")) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(rd, myColor) {
             {
                 string = rd.getProcedure();
                 updateLines();
@@ -276,15 +255,65 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     @Override
     public String toString() {
         if (var != null && type != null) {
-            return var + " = Robot." + type.getSimpleName();
+            return "read(" + deviceName + ", " + var + ")";
         } else {
-            return getCommandName();
+            return "read()";
         }
     }
 
     @Override
     public Item getItem() {
-        return new Item("Read Device", new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#C05480"));
+        Area myShape = new Area();
+        
+        Polygon tmpShape = new Polygon();
+        tmpShape.addPoint(0, 0);
+        tmpShape.addPoint(20, 0);
+        tmpShape.addPoint(10, 18);
+        myShape.add(new Area(tmpShape));
+        
+//        tmpShape.reset();
+//        tmpShape.addPoint(0, 3);
+//        tmpShape.addPoint(20, 3);
+//        tmpShape.addPoint(20, 7);
+//        tmpShape.addPoint(0, 7);
+//        myShape.exclusiveOr(new Area(tmpShape));
+        
+//        tmpShape.reset();
+//        tmpShape.addPoint(0, 11);
+//        tmpShape.addPoint(20, 11);
+//        tmpShape.addPoint(20, 15);
+//        tmpShape.addPoint(0, 15);
+//        myShape.exclusiveOr(new Area(tmpShape));
+        
+        tmpShape.reset();
+        tmpShape.addPoint(0, 10);
+        tmpShape.addPoint(20, 10);
+        tmpShape.addPoint(20, 20);
+        tmpShape.addPoint(0, 20);
+        myShape.exclusiveOr(new Area(tmpShape));
+        
+//        tmpShape.reset();
+//        tmpShape.addPoint(0, 3);
+//        tmpShape.addPoint(20, 3);
+//        tmpShape.addPoint(20, 5);
+//        tmpShape.addPoint(0, 5);
+//        myShape.subtract(new Area(tmpShape));
+//        
+//        tmpShape.reset();
+//        tmpShape.addPoint(0, 8);
+//        tmpShape.addPoint(20, 8);
+//        tmpShape.addPoint(20, 10);
+//        tmpShape.addPoint(0, 10);
+//        myShape.subtract(new Area(tmpShape));
+//        
+//        tmpShape.reset();
+//        tmpShape.addPoint(0, 13);
+//        tmpShape.addPoint(20, 13);
+//        tmpShape.addPoint(20, 15);
+//        tmpShape.addPoint(0, 15);
+//        myShape.subtract(new Area(tmpShape));
+        
+        return new Item("Ler Sensor", myShape, myColor);
     }
 
     @Override

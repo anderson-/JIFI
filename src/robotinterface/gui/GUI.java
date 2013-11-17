@@ -114,8 +114,8 @@ public class GUI extends javax.swing.JFrame {
 //        }
         updateRobotList();
     }
-    
-    public SimulationPanel getSimulationPanel (){
+
+    public SimulationPanel getSimulationPanel() {
         return simulationPanel;
     }
 
@@ -185,6 +185,16 @@ public class GUI extends javax.swing.JFrame {
         return funcs;
     }
 
+    public void updateTabNames() {
+        for (int i = 0; i < mainTabbedPane.getTabCount(); i++) {
+            Component c = mainTabbedPane.getComponentAt(i);
+            if (c instanceof FlowchartPanel) {
+                Function f = ((FlowchartPanel) c).getFunction();
+                mainTabbedPane.setTitleAt(i, "fx : " + f.getName());
+            }
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -200,9 +210,6 @@ public class GUI extends javax.swing.JFrame {
         saveButton = new javax.swing.JButton();
         closeProjectButton = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
-        closeProjectButton1 = new javax.swing.JButton();
-        closeProjectButton2 = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
         robotComboBox = new javax.swing.JComboBox();
         runButton = new javax.swing.JButton();
         jSpinner1 = new javax.swing.JSpinner();
@@ -236,6 +243,7 @@ public class GUI extends javax.swing.JFrame {
 
         newFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/document-new.png"))); // NOI18N
         newFileButton.setToolTipText("Novo Arquivo");
+        newFileButton.setEnabled(false);
         newFileButton.setFocusable(false);
         newFileButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         newFileButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -267,26 +275,12 @@ public class GUI extends javax.swing.JFrame {
 
         closeProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-clear.png"))); // NOI18N
         closeProjectButton.setToolTipText("Fechar Projeto");
+        closeProjectButton.setEnabled(false);
         closeProjectButton.setFocusable(false);
         closeProjectButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         closeProjectButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(closeProjectButton);
         toolBar.add(jSeparator2);
-
-        closeProjectButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-undo.png"))); // NOI18N
-        closeProjectButton1.setToolTipText("Desfazer");
-        closeProjectButton1.setFocusable(false);
-        closeProjectButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        closeProjectButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(closeProjectButton1);
-
-        closeProjectButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-redo.png"))); // NOI18N
-        closeProjectButton2.setToolTipText("Refazer");
-        closeProjectButton2.setFocusable(false);
-        closeProjectButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        closeProjectButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(closeProjectButton2);
-        toolBar.add(jSeparator1);
 
         robotComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         robotComboBox.setPreferredSize(new java.awt.Dimension(100, 28));
@@ -401,7 +395,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 563, Short.MAX_VALUE)
+            .addGap(0, 567, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -415,6 +409,7 @@ public class GUI extends javax.swing.JFrame {
         secondarySplitPane.setOneTouchExpandable(true);
 
         staticTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
+        staticTabbedPane.setEnabled(false);
         staticTabbedPane.addTab("Robôs", jScrollPane3);
 
         jScrollPane2.setViewportView(jTree1);
@@ -431,7 +426,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 307, Short.MAX_VALUE)
+            .addGap(0, 311, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -463,8 +458,7 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -473,7 +467,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 601, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -547,6 +541,7 @@ public class GUI extends javax.swing.JFrame {
             switchCodeButton.setIcon(flowchartIcon);
         }
 
+        updateTabNames();
         dynamicToolBar.updateUI();
     }//GEN-LAST:event_mainTabbedPaneStateChanged
 
@@ -641,6 +636,28 @@ public class GUI extends javax.swing.JFrame {
                     return;
                 }
             }
+            
+            ArrayList<Function> functions = mainProject.getFunctions();
+            boolean showNameRepeatDialog = true;
+            int k;
+            for (int i = 0; i < functions.size()-1; i++) {
+                k = 2;
+                for (int j = i + 1; j < functions.size(); j++){
+                    if (functions.get(i).getName().equals(functions.get(j).getName())){
+                        if (showNameRepeatDialog){
+                            returnVal = JOptionPane.showConfirmDialog(this, "Existem funções com o mesmo nome,\n"
+                                    + "deseja renomea-las automaticamente?", "Salvar", JOptionPane.YES_NO_OPTION);
+                            if (returnVal != JOptionPane.YES_OPTION) {
+                                return;
+                            }
+                            showNameRepeatDialog = false;
+                        }
+                        functions.get(j).setName(functions.get(j).getName() + k);
+                        k++;
+                    }
+                }
+            }
+            
 
             mainProject.save(file.getAbsolutePath());
         }
@@ -704,15 +721,34 @@ public class GUI extends javax.swing.JFrame {
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
 
+        Component cmp = mainTabbedPane.getSelectedComponent();
+
+        if (!(cmp instanceof FlowchartPanel) && !(cmp instanceof CodeEditorPanel)) {
+            return;
+        }
+
         int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir?", "Excluir", JOptionPane.YES_NO_OPTION);
 
         if (returnVal == JOptionPane.YES_OPTION) {
-            Component cmp = mainTabbedPane.getSelectedComponent();
+
+            Function f = null;
 
             if (cmp instanceof FlowchartPanel) {
+                f = ((FlowchartPanel) cmp).getFunction();
             } else if (cmp instanceof CodeEditorPanel) {
+                int i = mapCE.indexOf(cmp);
+                if (i != -1 && i < mapFC.size()) {
+                    f = mapFC.get(i).getFunction();
+                }
             }
 
+            if (f != null && mainProject.getFunctions().remove(f)) {
+                System.out.println("removido com sucesso");
+                mainTabbedPane.setSelectedIndex(0);
+                mainTabbedPane.remove(cmp);
+            } else {
+                System.out.println("fail");
+            }
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
@@ -776,15 +812,12 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton abortButton;
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton closeProjectButton;
-    private javax.swing.JButton closeProjectButton1;
-    private javax.swing.JButton closeProjectButton2;
     private javax.swing.JPanel consolePanel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JSpinner jSpinner1;
