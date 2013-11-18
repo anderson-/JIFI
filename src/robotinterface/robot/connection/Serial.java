@@ -499,12 +499,13 @@ public class Serial implements Connection, SerialPortEventListener {
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
 
-//        testMessages.add(new byte[]{7, (byte) 224});//reset system
-//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+        testMessages.add(new byte[]{7, (byte) 224});//reset system
+        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
 //        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
         testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
         for (int i = 0; i < 5000; i++) {
-            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
+//            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
+            testMessages.add(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});//get all
         }
 
         SimulationPanel p = new SimulationPanel();

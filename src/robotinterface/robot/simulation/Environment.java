@@ -41,7 +41,12 @@ public class Environment {
     private final ArrayList<double[]> obstacleCircles = new ArrayList<>();
     private final ArrayList<double[]> obstacleLines = new ArrayList<>();
     private final ArrayList<double[]> followLineLines = new ArrayList<>();
+    private static Color obstacleColor = Color.decode("#BA9C3A");
 
+    public static Color getObstacleColor() {
+        return obstacleColor;
+    }
+    
     public void addObstacleLine(double[] line) {
         obstacleLines.add(line);
 
@@ -240,7 +245,7 @@ public class Environment {
             g.draw(s);
         }
 
-        g.setColor(Color.ORANGE.darker().darker());
+        g.setColor(obstacleColor);
         for (Shape s : obstacles) {
             g.draw(s);
         }

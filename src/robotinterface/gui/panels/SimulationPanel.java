@@ -32,9 +32,11 @@ import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -62,11 +64,42 @@ import robotinterface.util.observable.Observer;
  */
 public class SimulationPanel extends DrawingPanel implements Serializable {
 
-    public static final Item ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 5), Color.DARK_GRAY);
-    public static final Item ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 5), Color.decode("#9B68C0"));
-    public static final Item ITEM_CILINDER = new Item("Cilindro", new Ellipse2D.Double(0, 0, 20, 20), Color.decode("#9B68C0"));
-    public static final Item ITEM_REMOVE_LINE = new Item("Remover", new Rectangle(0, 0, 20, 20), Color.decode("#D24545"));
-    private static final int MAX_ARRAY = 5000;
+    public static final Item ITEM_LINE;
+    public static final Item ITEM_OBSTACLE_LINE;
+    public static final Item ITEM_CILINDER;
+    public static final Item ITEM_REMOVE_LINE;
+    
+    static {
+        Area myShape = new Area();
+        Polygon tmpShape = new Polygon();
+        tmpShape.addPoint(2, 0);
+        tmpShape.addPoint(20, 18);
+        tmpShape.addPoint(18, 20);
+        tmpShape.addPoint(0, 2);
+        myShape.add(new Area(tmpShape));
+        
+        tmpShape.reset();
+        tmpShape.addPoint(18, 0);
+        tmpShape.addPoint(20, 2);
+        tmpShape.addPoint(2, 20);
+        tmpShape.addPoint(0, 18);
+        myShape.add(new Area(tmpShape));
+        
+        ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red);
+        
+        myShape = new Area();
+        
+        Shape tmpElipse = new Ellipse2D.Double(0, 0, 20, 20);
+        myShape.add(new Area(tmpElipse));
+        
+        tmpElipse = new Ellipse2D.Double(4, 4, 12, 12);
+        myShape.subtract(new Area(tmpElipse));
+        
+        ITEM_CILINDER = new Item("Cilindro", myShape, Environment.getObstacleColor());
+        ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY);
+        ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor());
+    }
+    
     private final ArrayList<Robot> robots = new ArrayList<>();
     private Environment env = new Environment();
     private Item itemSelected;
@@ -85,8 +118,8 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                 }
             }
         };
-//        sp.setOpen(false);
-//        sp.setColor(Color.decode("#FF7070"));//FF7070
+        
+        sp.setColor(Color.decode("#9DCA1D"));//FF7070
         sp.add(ITEM_LINE);
         sp.add(ITEM_OBSTACLE_LINE);
         sp.add(ITEM_CILINDER);
@@ -106,7 +139,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
                 for (Robot robot : tmpBots) {
                     if (robot.getLeftWheelSpeed() != 0 && robot.getRightWheelSpeed() != 0){
-                        robot.updatePerception();
+                        robot.updateVirtualPerception();
                     }
 
                     if (this.getCount() % 20 == 0) {

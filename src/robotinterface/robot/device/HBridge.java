@@ -13,7 +13,6 @@ import robotinterface.robot.Robot;
  */
 public class HBridge extends Device {
 
-    
     private int LeftWheelSpeed;
     private int RightWheelSpeed;
 
@@ -22,12 +21,9 @@ public class HBridge extends Device {
 
     @Override
     public void setState(ByteBuffer data) {
-        if (data.remaining() == 2){
-            if (data.get() == 0){
-                LeftWheelSpeed = data.get();
-            } else {
-                RightWheelSpeed = data.get();
-            }
+        if (data.remaining() == 2) {
+            LeftWheelSpeed = data.get();
+            RightWheelSpeed = data.get();
         }
     }
 
@@ -39,7 +35,7 @@ public class HBridge extends Device {
         msg[3] = (byte) motor; //byte 1 - motor
         msg[4] = speed; //byte 2 - velocidade
         send(msg); //envia mensagem
-        if (motor == 0){
+        if (motor == 0) {
             this.LeftWheelSpeed = speed;
         } else {
             this.RightWheelSpeed = speed;
@@ -64,11 +60,11 @@ public class HBridge extends Device {
     }
 
     public int getLeftWheelSpeed() {
-        return LeftWheelSpeed/2;
+        return LeftWheelSpeed / 2;
     }
 
     public int getRightWheelSpeed() {
-        return RightWheelSpeed/2;
+        return RightWheelSpeed / 2;
     }
 
     @Override
@@ -80,7 +76,7 @@ public class HBridge extends Device {
     public int getClassID() {
         return 2;
     }
-    
+
     @Override
     public void updateRobot(Robot robot) {
         robot.setRightWheelSpeed(RightWheelSpeed);

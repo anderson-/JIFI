@@ -71,8 +71,10 @@ public class RobotControlPanel extends JPanel {
                 } else {
                     statusLabel2.setText(" - ");
                 }
-                
-                statusLabel3.setText("Lost: " + lost);
+
+                //statusLabel3.setText("Lost: " + lost);
+                statusLabel3.setText(sended + "|" + received + "|" + lost);
+                statusLabel3.setToolTipText("Enviado|Recebido|Perdido");
 
                 while (sendedArray.size() > size) {
                     sendedArray.remove(0);
@@ -116,16 +118,22 @@ public class RobotControlPanel extends JPanel {
             for (int i = 0; i < sendedArray.size(); i++) {
                 t = 0;
                 h = lostArray.get(i) * c;
-                g.setColor(lostColor);
-                g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                if (h > 0) {
+                    g.setColor(lostColor);
+                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                }
                 t += h;
                 h = receivedArray.get(i) * c;
-                g.setColor(receivedColor);
-                g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                if (h > 0) {
+                    g.setColor(receivedColor);
+                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                }
                 t += h;
-                g.setColor(sendedColor);
                 h = sendedArray.get(i) * c;
-                g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                if (h > 0) {
+                    g.setColor(sendedColor);
+                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                }
             }
         }
     }
@@ -152,6 +160,9 @@ public class RobotControlPanel extends JPanel {
         setBorder(border);
         robotManager = rm;
         connectionStatusGraph.setVisible(false);
+
+        statusLabel2.setText("");
+        statusLabel3.setText("");
 
         new Thread("Repaint Thread- " + Thread.activeCount()) {
             @Override
@@ -247,6 +258,7 @@ public class RobotControlPanel extends JPanel {
             statusLabel.setForeground(Color.black);
             statusLabel.setText("Desconectado");
             statusLabel2.setText("");
+            statusLabel3.setText("");
 
             connectButton.setForeground(Color.black);
             connectButton.setText("Conectar");
@@ -275,6 +287,8 @@ public class RobotControlPanel extends JPanel {
             } else {
                 statusLabel.setForeground(Color.red.darker());
                 statusLabel.setText("Falha");
+                statusLabel2.setText("");
+                statusLabel3.setText("");
                 return false;
             }
 

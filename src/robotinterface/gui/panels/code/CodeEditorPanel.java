@@ -92,48 +92,48 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 
         JToolBar tb = new JToolBar();
         tb.setFloatable(false);
+//
+//        JButton commentButton = new JButton("COM");
+//        commentButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                commentSelection(textArea);
+//            }
+//        });
+//
+//        tb.add(commentButton);
+//
+//        JButton uncommentButton = new JButton("UNC");
+//        uncommentButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                uncommentSelection(textArea);
+//            }
+//        });
+//
+//        tb.add(uncommentButton);
+//
+//        JButton cut = new JButton("Cut");
+//        cut.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                textArea.cut();
+//            }
+//        });
+//
+//        tb.add(cut);
+//
+//        JButton copyButton = new JButton("Copy");
+//        copyButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                textArea.copy();
+//            }
+//        });
+//
+//        tb.add(copyButton);
 
-        JButton commentButton = new JButton("COM");
-        commentButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                commentSelection(textArea);
-            }
-        });
-
-        tb.add(commentButton);
-
-        JButton uncommentButton = new JButton("UNC");
-        uncommentButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                uncommentSelection(textArea);
-            }
-        });
-
-        tb.add(uncommentButton);
-
-        JButton cut = new JButton("Cut");
-        cut.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                textArea.cut();
-            }
-        });
-
-        tb.add(cut);
-
-        JButton copyButton = new JButton("Copy");
-        copyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                textArea.copy();
-            }
-        });
-
-        tb.add(copyButton);
-
-        JButton pasteButton = new JButton("Paste ex.");
+        JButton pasteButton = new JButton("Exemplo");
         pasteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -144,7 +144,7 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
                         + "	 while (1 == 1){\n"
                         + "		read(Bussola,y);\n"
                         + "		print(\"%v\", y);\n"
-                        + "             var z = -x;\n"
+                        + "		var z = -x;\n"
                         + "		move(x, z);\n"
                         + "		wait(500);\n"
                         + "		move(0);\n"

@@ -53,10 +53,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public static final byte XTRA_SYSTEM = (byte) 224;
     public static final byte XTRA_BEGIN = (byte) 225;
     public static final byte XTRA_END = (byte) 226;
-
-    public void updatePerception() {
-        perception.addPathPoint(x, y);
-    }
+    public boolean LOG = false;
 
     public class InternalClock extends Device {
 
@@ -65,7 +62,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         @Override
         public void setState(ByteBuffer data) {
             stepTime = data.getFloat();
-            System.out.println("Tempo do ciclo: " + stepTime);
+//            System.out.println("Tempo do ciclo: " + stepTime);
         }
 
         @Override
@@ -209,6 +206,17 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         return perception;
     }
 
+    public void updateVirtualPerception() {
+        perception.addPathPoint(x, y);
+    }
+
+    public void updatePerception() {
+        Connection mainConnection = getMainConnection();
+        if (mainConnection != null) {
+            mainConnection.send(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});
+        }
+    }
+
     public final void virtualRobot(ByteBuffer message, Connection connection) {
         try {
             loop:
@@ -255,41 +263,48 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                     case CMD_GET: {
                         byte id = message.get();
                         byte length = message.get();
-                        byte[] args = new byte[length];
-                        message.get(args);
+                        if (message.remaining() >= length) {
+                            byte[] args = new byte[length];
+                            message.get(args);
 
-                        Device d = getDevice(id);
-                        if (d != null && d instanceof VirtualDevice) {
-                            buffer.put(CMD_SET);
-                            buffer.put(id);
-                            ((VirtualDevice) d).getState(buffer, this);
+                            Device d = getDevice(id);
+                            if (d != null && d instanceof VirtualDevice) {
+                                buffer.put(CMD_SET);
+                                buffer.put(id);
+                                ((VirtualDevice) d).getState(buffer, this);
+                            }
+                        } else if (LOG) {
+                            System.err.println("1mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
                         }
-
                         break;
                     }
 
                     case CMD_SET: {
                         byte id = message.get();
                         byte length = message.get();
-                        byte[] args = new byte[length];
-                        message.get(args);
-                        ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
-                        tmp.order(ByteOrder.LITTLE_ENDIAN);
-                        if (id == XTRA_FREE_RAM) {
-                            freeRam = tmp.getChar();
-                            System.out.println("FreeRam: " + freeRam);
-                        } else {
-                            Device d = getDevice(id);
-                            if (d != null) {
-                                if (d instanceof VirtualDevice) {
-                                    ((VirtualDevice) d).setState(tmp, this);
-                                } else {
-                                    d.setState(tmp);
+                        if (message.remaining() >= length) {
+                            byte[] args = new byte[length];
+                            message.get(args);
+                            ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
+                            tmp.order(ByteOrder.LITTLE_ENDIAN);
+                            if (id == XTRA_FREE_RAM) {
+                                freeRam = tmp.getChar();
+                                System.out.println("FreeRam: " + freeRam);
+                            } else {
+                                Device d = getDevice(id);
+                                if (d != null) {
+                                    if (d instanceof VirtualDevice) {
+                                        ((VirtualDevice) d).setState(tmp, this);
+                                    } else {
+                                        d.setState(tmp);
+                                    }
+                                    d.updateRobot(this);
+                                    d.markUnread();
+                                    updateObservers(d);
                                 }
-                                d.updateRobot(this);
-                                d.markUnread();
-                                updateObservers(d);
                             }
+                        } else if (LOG) {
+                            System.err.println("2mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
                         }
                         break;
                     }
@@ -367,7 +382,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 //                    }
 
                     default:
-                        if (cmd != 0) {
+                        if (LOG && cmd != 0) {
                             System.err.println("Erro: Comando invalido: " + cmd);
                         }
                 }
@@ -375,7 +390,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                 update(buffer, connection);
             }
         } catch (BufferUnderflowException e) {
-            System.err.println("mensagem pela metade");
+            if (LOG) {
+                System.err.println("mensagem pela metade");
+            }
         }
     }
 
@@ -435,30 +452,33 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                     case CMD_SET: {
                         byte id = message.get();
                         byte length = message.get();
-                        byte[] args = new byte[length];
-                        message.get(args);
-                        ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
-                        tmp.order(ByteOrder.LITTLE_ENDIAN);
-                        if (id == XTRA_FREE_RAM) {
-                            freeRam = tmp.getChar();
-                            System.out.println("FreeRam: " + freeRam);
-                        } else {
-                            Device d = getDevice(id);
-                            if (d != null) {
-                                if (connection instanceof VirtualConnection
-                                        && d instanceof VirtualDevice
-                                        && ((VirtualConnection) connection).serial()) {
-                                    //robo real com ambiente virtual
-                                    System.out.println("ASSDADASAS");
-                                    ((VirtualDevice) d).setState(tmp, this);
-                                } else {
-                                    //robo real (sem ambiente virtual) ou somente virtual
-                                    d.setState(tmp);
+                        if (message.remaining() >= length) {
+                            byte[] args = new byte[length];
+                            message.get(args);
+                            ByteBuffer tmp = ByteBuffer.wrap(args).asReadOnlyBuffer();
+                            tmp.order(ByteOrder.LITTLE_ENDIAN);
+                            if (id == XTRA_FREE_RAM) {
+                                freeRam = tmp.getChar();
+                                System.out.println("FreeRam: " + freeRam);
+                            } else {
+                                Device d = getDevice(id);
+                                if (d != null) {
+                                    if (connection instanceof VirtualConnection
+                                            && d instanceof VirtualDevice
+                                            && ((VirtualConnection) connection).serial()) {
+                                        //robo real com ambiente virtual
+                                        ((VirtualDevice) d).setState(tmp, this);
+                                    } else {
+                                        //robo real (sem ambiente virtual) ou somente virtual
+                                        d.setState(tmp);
+                                    }
+                                    d.markUnread();
+                                    d.updateRobot(this);
+                                    updateObservers(d);
                                 }
-                                d.markUnread();
-                                d.updateRobot(this);
-                                updateObservers(d);
                             }
+                        } else if (LOG) {
+                            System.err.println("mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
                         }
                         break;
                     }
@@ -483,13 +503,17 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                         byte id = message.get();
                         if (cmdDone == CMD_RUN) {
                             byte len = message.get();
-                            byte[] status = new byte[len];
-                            message.get(status);
-                            if (len > 0) {
-                                if (status[0] == XTRA_BEGIN) {
-                                    System.out.println("cmd begin:" + id);
-                                } else if (status[0] == XTRA_END) {
-                                    System.out.println("cmd end:" + id);
+                            if (message.remaining() >= len) {
+                                byte[] status = new byte[len];
+                                message.get(status);
+                                if (len > 0) {
+                                    if (status[0] == XTRA_BEGIN) {
+                                        System.out.println("cmd begin:" + id);
+                                    } else if (status[0] == XTRA_END) {
+                                        System.out.println("cmd end:" + id);
+                                    }
+                                } else {
+                                    System.err.println("mesagem muito curta:" + id + "[" + len + "] de " + message.remaining());
                                 }
                             }
                         } else if (cmdDone == CMD_RESET) {
@@ -525,8 +549,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                         break;
                     }
 
-
-
                     case CMD_NO_OP: {
                         break;
                     }
@@ -536,14 +558,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                     }
 
                     default:
-                        if (cmd != 0) {
+                        if (LOG && cmd != 0) {
                             System.err.println("Erro1: Comando invalido: " + cmd);
                         }
                 }
             }
         } catch (BufferUnderflowException e) {
-            e.printStackTrace();
-            System.err.println("mensagem pela metade");
+            if (LOG) {
+                e.printStackTrace();
+                System.err.println("mensagem pela metade");
+            }
         }
     }
 
@@ -656,8 +680,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         //t.translate(x, y); DrawingPanel se encarrega de definir a posiçãos
         t.rotate(theta);
         g.setTransform(t);
-        g.setColor(Color.gray);
+
+
         int iSize = (int) size;
+        g.setColor(Color.white);
+        g.fillOval(-iSize / 2, -iSize / 2, iSize, iSize);
+        g.setColor(Color.gray);
         //body
         g.drawOval(-5, -5, 10, 10);
         g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);
@@ -681,7 +709,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         }
 
         g.setTransform(o);
-        
+
         move(ga.getClock().getDt());
     }
 

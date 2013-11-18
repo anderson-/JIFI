@@ -85,7 +85,7 @@ public class GUI extends javax.swing.JFrame {
         mc.redirectErr(Color.RED, System.err);
         mc.setMessageLines(100);
 
-        jSpinner1.setModel(new SpinnerNumberModel(100, 0, 9999, 10));
+        jSpinner1.setModel(new SpinnerNumberModel(200, 0, 9999, 50));
         jSpinner1.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -521,6 +521,14 @@ public class GUI extends javax.swing.JFrame {
             stopButton.setEnabled(false);
         }
 
+        if (cmp instanceof FlowchartPanel || cmp instanceof CodeEditorPanel) {
+            switchCodeButton.setEnabled(true);
+            deleteButton.setEnabled(true);
+        } else {
+            switchCodeButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+        }
+
         if (cmp instanceof KeyListener) {
             for (KeyListener l : getKeyListeners()) {
                 removeKeyListener(l);
@@ -636,15 +644,15 @@ public class GUI extends javax.swing.JFrame {
                     return;
                 }
             }
-            
+
             ArrayList<Function> functions = mainProject.getFunctions();
             boolean showNameRepeatDialog = true;
             int k;
-            for (int i = 0; i < functions.size()-1; i++) {
+            for (int i = 0; i < functions.size() - 1; i++) {
                 k = 2;
-                for (int j = i + 1; j < functions.size(); j++){
-                    if (functions.get(i).getName().equals(functions.get(j).getName())){
-                        if (showNameRepeatDialog){
+                for (int j = i + 1; j < functions.size(); j++) {
+                    if (functions.get(i).getName().equals(functions.get(j).getName())) {
+                        if (showNameRepeatDialog) {
                             returnVal = JOptionPane.showConfirmDialog(this, "Existem funções com o mesmo nome,\n"
                                     + "deseja renomea-las automaticamente?", "Salvar", JOptionPane.YES_NO_OPTION);
                             if (returnVal != JOptionPane.YES_OPTION) {
@@ -657,7 +665,7 @@ public class GUI extends javax.swing.JFrame {
                     }
                 }
             }
-            
+
 
             mainProject.save(file.getAbsolutePath());
         }
@@ -677,6 +685,9 @@ public class GUI extends javax.swing.JFrame {
                 cep = new CodeEditorPanel(fcp.getFunction());
                 mapCE.add(cep);
             }
+            
+            cep.getTextArea().setText(Parser.encode(fcp.getFunction()));
+            cep.getTextArea().setCaretPosition(0);
 
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);

@@ -30,6 +30,7 @@ import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -54,8 +55,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     Command tmp = null;
     Item itmp = null;
     int tmpi = 0;
-    private Color selectionColor = new Color(1, 0, 0, .7f);
-    private Color executionColor = new Color(0, 1, 0, .7f);
+    private Color selectionColor = new Color(0, 0, 0, .35f);
+    private Color executionColor = new Color(0, 1, 0, .5f);
     private GraphicObject executionCommand = null;
 
     public FlowchartPanel(Function function) {
@@ -154,6 +155,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             g.setTransform(n);
             g.setColor(executionColor);
             g.setStroke(new BasicStroke(5));
+            g.fill(executionCommand.getObjectShape());
             g.draw(executionCommand.getObjectShape());
             g.setTransform(o);
         }
@@ -255,7 +257,16 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
                     g.setColor(selectionColor);
-                    g.draw(d.getObjectShape());
+                    if (d instanceof WidgetContainer) {
+                        WidgetContainer wc = (WidgetContainer) d;
+                        if (!wc.isWidgetVisible()) {
+                            g.fill(d.getObjectShape());
+                        }
+                        g.draw(d.getObjectShape());
+                    } else {
+                        g.fill(d.getObjectShape());
+                        g.draw(d.getObjectShape());
+                    }
                 }
             }
         }

@@ -67,7 +67,7 @@ public class Interpreter extends Thread {
     private int state;
     private Robot robot;
     private Clock clock = new Clock();
-    private int timestep = 0;
+    private int timestep = 200;
 
     public Interpreter() {
         super("Interpreter");
@@ -89,7 +89,7 @@ public class Interpreter extends Thread {
         } else {
             currentCmd = null;
         }
-        
+
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
 //        parser.setTraverse(true); //exibe debug
@@ -102,7 +102,7 @@ public class Interpreter extends Thread {
     public Function getMainFunction() {
         return mainFunction;
     }
-    
+
     public void setMainFunction(Function f) {
         mainFunction = f;
         reset();
@@ -164,21 +164,27 @@ public class Interpreter extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            if (state == PLAY) {
-                if (!step()) {
-                    state = WAITING;
-                }
-                try {
-                    Thread.sleep(timestep);
-                } catch (InterruptedException ex) {
-                }
-            } else {
-                try {
+        try {
+            while (true) {
+                if (state == PLAY) {
+                    if (!step()) {
+                        state = WAITING;
+                    }
+
+                    if (timestep > 50) {
+                        for (int i = 0; i < timestep; i += 50) {
+                            robot.updatePerception();
+                            Thread.sleep(49);
+                        }
+                    } else {
+                        Thread.sleep(timestep);
+                    }
+
+                } else {
                     Thread.sleep(100);
-                } catch (InterruptedException ex) {
                 }
             }
+        } catch (InterruptedException ex) {
         }
     }
 
@@ -293,7 +299,7 @@ public class Interpreter extends Thread {
 //        func.add(new PrintString("inicio"));
 //        func.add(new FunctionBlock(bubbleSort(10, false)));
 //        func.add(new PrintString("fim"));
-        
+
         func = newTestFunction();
         i.setMainFunction(func);
 
@@ -310,12 +316,12 @@ public class Interpreter extends Thread {
 
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
 
-        
+
         SimulationPanel p = new SimulationPanel();
         p.addRobot(r);
         r.setEnvironment(p.getEnv());
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-        
+
         //executa
         while (i.step()) {
 //            try {
@@ -342,7 +348,7 @@ public class Interpreter extends Thread {
     public static Function bubbleSort(int size, boolean rand) {
         rand = false;
         Function func = new Function("bbSort", null);
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append("V = [");
         if (rand) {
@@ -366,7 +372,7 @@ public class Interpreter extends Thread {
 //        func.add(new Declaration("k", 0));
 //        func.add(new Declaration("aux", 0));
 //        func.add(new Declaration("v", 1));
-        
+
 //        func.add(new DummyBlock());
 
         func.add(new PrintString("Antes:"));
@@ -386,14 +392,14 @@ public class Interpreter extends Thread {
         While loopJ = new While("j <= k");
 
         If cond = new If("V[j] > V[j+1]");
-        
+
 //        cond.addTrue(new Procedure("aux = V[j]"));
 //        cond.addTrue(new Procedure("V[j] = V[j+1]"));
 //        cond.addTrue(new Procedure("V[j+1] = aux"));
 
         cond.addTrue(new Procedure("aux = V[j];V[j] = V[j+1];V[j+1] = aux;"));
-        
-        
+
+
         loopJ.add(cond);
         loopJ.add(new Procedure("j = j + 1"));
 
