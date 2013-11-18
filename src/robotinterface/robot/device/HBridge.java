@@ -77,10 +77,14 @@ public class HBridge extends Device {
         return 2;
     }
 
+    public static double realToVirtualVelocityConvert (int v){
+        return -7.7 + 1.19*v + 0.1*(v*v) + -9.29*(v*v*v);
+    }
+    
     @Override
     public void updateRobot(Robot robot) {
-        robot.setRightWheelSpeed(RightWheelSpeed);
-        robot.setLeftWheelSpeed(LeftWheelSpeed);
+        robot.setRightWheelSpeed(realToVirtualVelocityConvert(RightWheelSpeed));
+        robot.setLeftWheelSpeed(realToVirtualVelocityConvert(LeftWheelSpeed));
     }
 
     @Override

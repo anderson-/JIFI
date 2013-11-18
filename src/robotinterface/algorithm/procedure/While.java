@@ -92,7 +92,7 @@ public class While extends Block {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            MutableWidgetContainer mwc = If.createDrawableIf(this);
+            MutableWidgetContainer mwc = If.createDrawableIf(this, "1");
             mwc.setName("While");
             mwc.setColor(myColor);
             resource = mwc;

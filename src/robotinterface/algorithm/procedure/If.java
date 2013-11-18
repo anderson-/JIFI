@@ -261,7 +261,7 @@ public class If extends Procedure {
         return p;
     }
 
-    public static MutableWidgetContainer createDrawableIf(final Procedure p) {
+    public static MutableWidgetContainer createDrawableIf(final Procedure p, final String def) {
 
         final String[] comparadores = {"==", "!=", "<", "<=", ">", ">="};
         final String[] proximos = {" ", "&&", "||"};
@@ -357,6 +357,9 @@ public class If extends Procedure {
                                 sb.append(" ");
                                 sb.append(str.trim());
                                 sb.append(" ");
+                            } else {
+                                p.setProcedure(def);
+                                return def;
                             }
                         }
                         //JComboBox 1
@@ -377,6 +380,9 @@ public class If extends Procedure {
                             if (!str.isEmpty()) {
                                 sb.append(str.trim());
                                 sb.append(" ");
+                            } else {
+                                p.setProcedure(def);
+                                return def;
                             }
                         }
                         //JComboBox 2
@@ -388,13 +394,13 @@ public class If extends Procedure {
                                 sb.append(str);
                             }
                         }
-//                        System.out.println(sb.toString());
-                        return sb.toString();
+                        p.setProcedure(sb.toString().trim());
+                        return p.getProcedure();
                     } catch (NoSuchElementException e) {
                         System.out.println("ERROR!");
                     }
                 }
-                return "";
+                return def;
             }
         };
         DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.gray) {
@@ -468,6 +474,7 @@ public class If extends Procedure {
 
                 //adiciona uma nova linha sem dados
                 addLine(conditionalLine, null);
+//                p.setProcedure(string);
             }
 
             @Override
@@ -545,7 +552,7 @@ public class If extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            MutableWidgetContainer mwc = If.createDrawableIf(this);
+            MutableWidgetContainer mwc = If.createDrawableIf(this, "0");
             mwc.setName("If");
             mwc.setColor(myColor);
             resource = mwc;

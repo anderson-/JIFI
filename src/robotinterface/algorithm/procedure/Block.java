@@ -116,7 +116,6 @@ public class Block extends Procedure {
         c.setParent(this);
         //pega o elemento antes do ultimo
         Command begin = end.getPrevious();
-
         Command it = c;
         while (it.getNext() != null) {
             it.setParent(this);

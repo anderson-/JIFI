@@ -26,21 +26,15 @@
 package robotinterface.interpreter;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.Node;
-import org.nfunk.jep.ParseException;
 import robotinterface.algorithm.parser.Parser;
-import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.SimulationPanel;
-import robotinterface.plugin.cmdpack.begginer.BlockRoboF;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
 import robotinterface.plugin.cmdpack.begginer.Wait;
@@ -112,7 +106,6 @@ public class Interpreter extends Thread {
         this.state = state;
         if (state == STOP) {
             reset();
-            this.state = WAITING;
         }
     }
 
@@ -171,15 +164,16 @@ public class Interpreter extends Thread {
                         state = WAITING;
                     }
 
-                    if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {
-                        for (int i = 0; i < timestep; i += 50) {
-                            robot.updatePerception();
-                            Thread.sleep(50 - Robot.UPDATE_ALL_DEVICES.getTimeout());
+                    if (currentCmd != null && currentCmd.getDrawableResource() != null) {
+                        if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {
+                            for (int i = 0; i < timestep; i += 50) {
+                                robot.updatePerception();
+                                Thread.sleep(50 - Robot.UPDATE_ALL_DEVICES.getTimeout());
+                            }
+                        } else {
+                            Thread.sleep(timestep);
                         }
-                    } else {
-                        Thread.sleep(timestep);
                     }
-
                 } else {
                     Thread.sleep(100);
                 }

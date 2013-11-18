@@ -173,13 +173,18 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                 boolean addNext = true;
                 if (tmpi == 2) {
                     if (c != null) {
+
+                        if (c instanceof Function) {
+                            c = ((Function) c).get(0);
+                        }
+
                         if (c instanceof GraphicResource) {
                             GraphicObject d = ((GraphicResource) c).getDrawableResource();
                             if (d != null) {
                                 g.draw(d.getObjectShape());
 
                                 //alterar usando fIx e fIy
-                                if (p.y > d.getObjectBouds().getCenterY()) {
+                                if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
                                     addNext = true;
                                 } else {
                                     addNext = false;
@@ -188,6 +193,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             }
                         }
                         Command n = tmp;
+
                         if (n instanceof GraphicResource) {
                             GraphicObject d = ((GraphicResource) n).getDrawableResource();
                             if (d != null) {
@@ -197,6 +203,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
                         pushUndo();
                         redo.clear();
+                        
+                        interpreter.setInterpreterState(Interpreter.STOP);
 
                         if (addNext) {
                             c.addAfter(tmp);

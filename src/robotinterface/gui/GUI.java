@@ -753,6 +753,9 @@ public class GUI extends javax.swing.JFrame {
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
             mainTabbedPane.remove(fcp);
+            
+            fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
+            
 //            switchCodeButton.setIcon(codeIcon);
 
         } else if (cmp instanceof CodeEditorPanel) {
@@ -787,6 +790,7 @@ public class GUI extends javax.swing.JFrame {
                 mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
                 mainTabbedPane.remove(cep);
 //                switchCodeButton.setIcon(flowchartIcon);
+                fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
             }
         }
     }//GEN-LAST:event_switchCodeButtonActionPerformed

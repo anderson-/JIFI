@@ -104,12 +104,14 @@ public class Function extends Block {
 
     @Override
     public boolean addBefore(Command c) {
-        return super.addBegin(c);
+        return true;
+        //return super.addBegin(c);
     }
 
     @Override
     public boolean addAfter(Command c) {
-        return super.addBegin(c);
+        return true;
+        //return super.addBegin(c);
     }
     
     public static final int ARR_SIZE = 7;
