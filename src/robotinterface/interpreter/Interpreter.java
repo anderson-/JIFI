@@ -146,7 +146,7 @@ public class Interpreter extends Thread {
             while (!currentCmd.perform(robot, clock)) {
                 clock.increase();
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(5);
                 } catch (InterruptedException ex) {
                 }
                 if (state != PLAY) {
@@ -171,10 +171,10 @@ public class Interpreter extends Thread {
                         state = WAITING;
                     }
 
-                    if (timestep > 50) {
+                    if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {
                         for (int i = 0; i < timestep; i += 50) {
                             robot.updatePerception();
-                            Thread.sleep(49);
+                            Thread.sleep(50 - Robot.UPDATE_ALL_DEVICES.getTimeout());
                         }
                     } else {
                         Thread.sleep(timestep);

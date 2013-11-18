@@ -222,6 +222,15 @@ public class Serial implements Connection, SerialPortEventListener {
     public boolean establishConnection() {
 
         isConnected = false;
+        
+        
+//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                closeConnection();
+//            }
+//        }));
+
 
         if (defaultPort == null) {
 

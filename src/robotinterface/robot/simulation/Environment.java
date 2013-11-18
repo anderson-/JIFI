@@ -25,6 +25,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.util.LineIterator;
 
 /**
@@ -33,7 +34,6 @@ import robotinterface.util.LineIterator;
  */
 public class Environment {
 
-    private static final int MAX_DISTANCE = 500;
     private final ArrayList<Shape> followLines = new ArrayList<>();
     private final ArrayList<Shape> obstacles = new ArrayList<>();
     private final ArrayList<Shape> followLinesTmp = new ArrayList<>();
@@ -154,10 +154,10 @@ public class Environment {
     }
 
     public double beamDistance(double x, double y, double theta, double d) {
-        double df = Double.MAX_VALUE;
+        double df = IRProximitySensor.MAX_DISTANCE;
         double dt;
-        double x2 = x + MAX_DISTANCE * cos(theta);
-        double y2 = y + MAX_DISTANCE * sin(theta);
+        double x2 = x + IRProximitySensor.MAX_DISTANCE * cos(theta);
+        double y2 = y + IRProximitySensor.MAX_DISTANCE * sin(theta);
         Line2D.Double line = new Line2D.Double(x, y, x2, y2);
         boolean insideShape = false;
         boolean isInsideShape = false;

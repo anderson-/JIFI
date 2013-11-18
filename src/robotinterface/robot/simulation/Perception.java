@@ -11,6 +11,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.util.ArrayList;
 import java.util.List;
+import robotinterface.robot.device.IRProximitySensor;
 
 /**
  *
@@ -29,6 +30,9 @@ public class Perception {
     }
 
     public void addObstacle(double x, double y, double theta, double d) {
+        if (d >= IRProximitySensor.MAX_DISTANCE){
+            return;
+        }
         x += d * cos(theta);
         y += d * sin(theta);
         synchronized (distanceMap) {

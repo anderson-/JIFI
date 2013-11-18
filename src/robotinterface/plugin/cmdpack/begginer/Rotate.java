@@ -59,6 +59,7 @@ import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
+import robotinterface.robot.action.RotateAction;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.util.trafficsimulator.Clock;
@@ -68,9 +69,11 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class Rotate extends Procedure implements GraphicResource, Classifiable, FunctionToken<Rotate> {
 
+    private RotateAction rotateAction = null;
     private static Color myColor = Color.decode("#FF8533");
     private int angle;
     private String var = null;
+    private GraphicObject resource = null;
 
     public Rotate() {
         angle = 0;
@@ -103,57 +106,17 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-//        hBridge = robot.getDevice(HBridge.class);
-//        if (hBridge != null) {
-//
-//            byte t1 = angle;
-//            byte t2 = m2;
-//
-//            if (var != null) {
-//                Variable v = getParser().getSymbolTable().getVar(var);
-//                if (v != null && v.hasValidValue()) {
-//                    Object o = v.getValue();
-//                    if (o instanceof Number) {
-//                        Number n = (Number) o;
-//                        t1 = n.byteValue();
-//                    }
-//                }
-//            }
-//
-//            if (var2 != null) {
-//                Variable v = getParser().getSymbolTable().getVar(var2);
-//                if (v != null && v.hasValidValue()) {
-//                    Object o = v.getValue();
-//                    if (o instanceof Number) {
-//                        Number n = (Number) o;
-//                        t2 = n.byteValue();
-//                    }
-//                }
-//            }
-//
-//            hBridge.setWaiting();
-//            hBridge.setFullState(t1, t2);
-//        }
+        rotateAction = robot.getAction(RotateAction.class);
+        if (rotateAction != null){
+            rotateAction.setAngle(angle);
+            rotateAction.begin(robot);
+        }
     }
 
     @Override
     public boolean perform(Robot r, Clock clock) throws ExecutionException {
-//        try {
-//            if (hBridge != null && hBridge.isValidRead()) {
-////                String deviceState = device.stateToString();
-////                if (!deviceState.isEmpty()) {
-////                    execute(var + " = " + deviceState);
-////                }
-//                return true;
-//            }
-//        } catch (Device.TimeoutException ex) {
-////            System.err.println("RE-ENVIANDO hBridge");
-//            begin(r, clock);
-//        }
-//        return false;
-        return true;
+        return rotateAction.perform(r);
     }
-    private GraphicObject resource = null;
 
     @Override
     public GraphicObject getDrawableResource() {
@@ -304,19 +267,19 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     @Override
     public Item getItem() {
         Area myShape = new Area();
-        
+
         Shape tmpShape = new Ellipse2D.Double(0, 0, 20, 20);
         myShape.add(new Area(tmpShape));
-        
+
         tmpShape = new Ellipse2D.Double(5, 5, 10, 10);
         myShape.subtract(new Area(tmpShape));
-        
+
         Polygon tmpPoli = new Polygon();
         tmpPoli.addPoint(14, 8);
         tmpPoli.addPoint(14, 12);
         tmpPoli.addPoint(25, 14);
         myShape.subtract(new Area(tmpPoli));
-        
+
         return new Item("Girar", myShape, myColor);
     }
 

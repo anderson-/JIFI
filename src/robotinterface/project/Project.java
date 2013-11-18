@@ -29,7 +29,9 @@ import robotinterface.interpreter.Interpreter;
  * @author antunes
  */
 public class Project {
-
+    
+    public static final String FILE_EXTENSION = "proj";
+    
     public static void main(String[] args) {
 //        Project a = new Project("teste");
 //        a.save("teste.zip");

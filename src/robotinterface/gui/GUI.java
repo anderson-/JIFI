@@ -11,13 +11,9 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -27,6 +23,7 @@ import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.gui.panels.FlowchartPanel;
@@ -55,6 +52,7 @@ public class GUI extends javax.swing.JFrame {
     private ImageIcon codeIcon;
     private ImageIcon flowchartIcon;
     private final RobotManager robotManager;
+    private JFileChooser fileChooser = new JFileChooser();
 
     {
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
@@ -69,9 +67,6 @@ public class GUI extends javax.swing.JFrame {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
-
-//        simulationPanel.addRobot(new Robot());
-//        simulationPanel.addRobot(new Robot());
 
         mainTabbedPaneStateChanged(null);
 
@@ -104,6 +99,42 @@ public class GUI extends javax.swing.JFrame {
         robotManager.createRobot();
         jScrollPane3.setViewportView(robotManager);
         jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
+
+        FileFilter ff = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                if (file.isDirectory()) {
+                    return true;
+                }
+
+                String extension = null;
+                String s = file.getName();
+                int i = s.lastIndexOf('.');
+
+                if (i > 0 && i < s.length() - 1) {
+                    extension = s.substring(i + 1).toLowerCase();
+                }
+
+                if (extension != null) {
+                    if (extension.equals(Project.FILE_EXTENSION)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                return false;
+            }
+
+            @Override
+            public String getDescription() {
+                return "Projetos";
+            }
+        };
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.addChoosableFileFilter(ff);
 
 //        mainProject.importFile("teste.zip");
 //
@@ -235,7 +266,9 @@ public class GUI extends javax.swing.JFrame {
         dynamicToolBar = new javax.swing.JToolBar();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
-        menuEdit = new javax.swing.JMenu();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -339,6 +372,7 @@ public class GUI extends javax.swing.JFrame {
 
         abortButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/process-stop.png"))); // NOI18N
         abortButton.setToolTipText("Abortar");
+        abortButton.setEnabled(false);
         abortButton.setFocusable(false);
         abortButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         abortButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -395,7 +429,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 567, Short.MAX_VALUE)
+            .addGap(0, 575, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -426,7 +460,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 311, Short.MAX_VALUE)
+            .addGap(0, 319, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -442,10 +476,34 @@ public class GUI extends javax.swing.JFrame {
         dynamicToolBar.setRollover(true);
 
         menuFile.setText("Arquivo");
-        menuBar.add(menuFile);
 
-        menuEdit.setText("Editar");
-        menuBar.add(menuEdit);
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setText("Carregar");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        menuFile.add(jMenuItem3);
+
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setText("Salvar");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        menuFile.add(jMenuItem1);
+
+        jMenuItem2.setText("Sair");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        menuFile.add(jMenuItem2);
+
+        menuBar.add(menuFile);
 
         setJMenuBar(menuBar);
 
@@ -467,7 +525,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 613, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -600,11 +658,10 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_abortButtonActionPerformed
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
-        JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(this);
+        int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
+            File file = fileChooser.getSelectedFile();
 
             mainProject.importFile(file.getAbsolutePath());
         }
@@ -632,11 +689,15 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_openButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showSaveDialog(this);
+        int returnVal = fileChooser.showSaveDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
+            File file = fileChooser.getSelectedFile();
+            String filename = file.toString();
+            if (!filename.endsWith("." + Project.FILE_EXTENSION)) {
+                filename += "." + Project.FILE_EXTENSION;
+            }
+            file = new File(filename);
 
             if (file.exists()) {
                 returnVal = JOptionPane.showConfirmDialog(this, "Deseja sobreescrever o arquivo?", "Salvar", JOptionPane.YES_NO_OPTION);
@@ -685,7 +746,7 @@ public class GUI extends javax.swing.JFrame {
                 cep = new CodeEditorPanel(fcp.getFunction());
                 mapCE.add(cep);
             }
-            
+
             cep.getTextArea().setText(Parser.encode(fcp.getFunction()));
             cep.getTextArea().setCaretPosition(0);
 
@@ -754,14 +815,25 @@ public class GUI extends javax.swing.JFrame {
             }
 
             if (f != null && mainProject.getFunctions().remove(f)) {
-                System.out.println("removido com sucesso");
                 mainTabbedPane.setSelectedIndex(0);
                 mainTabbedPane.remove(cmp);
             } else {
-                System.out.println("fail");
+                System.out.println("fail ><");
             }
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        saveButtonActionPerformed(null);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        openButtonActionPerformed(null);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
@@ -800,6 +872,40 @@ public class GUI extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+//        System.setProperty("java.library.path", "/home/antunes/teste/");
+//        Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+//        fieldSysPath.setAccessible(true);
+//        fieldSysPath.set(null, null);
+//
+//        System.out.println(System.getProperty("java.library.path"));
+//        System.loadLibrary("librxtxSerial.so");
+
+//        try {
+//            String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+//            String decodedPath = URLDecoder.decode(path, "UTF-8");
+//            decodedPath = decodedPath.substring(0, decodedPath.lastIndexOf("/") + 1);
+//
+//            String OS = System.getProperty("os.name").toLowerCase();
+//            if ((OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0)) {
+//                //linux
+//                decodedPath += "natives/librxtxSerial.so";
+//            } else if (OS.indexOf("win") >= 0) {
+//                //windows
+//                decodedPath += "natives/librxtxSerial.dll";
+//            } else if (OS.indexOf("mac") >= 0) {
+//                //mac
+//                decodedPath += "natives/librxtxSerial.jnilib";
+//            } else if (OS.indexOf("sunos") >= 0){
+//                //solaris
+//                decodedPath += "natives/librxtxSerial.so";
+//            }
+//
+//            System.load(decodedPath);
+//        } catch (Exception | Error e) {
+//            System.err.println("[ping >= 20 ms]");
+//        }
+
+
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -827,6 +933,9 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator2;
@@ -836,7 +945,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JTree jTree1;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenu menuEdit;
     private javax.swing.JMenu menuFile;
     private javax.swing.JButton newFileButton;
     private javax.swing.JButton openButton;

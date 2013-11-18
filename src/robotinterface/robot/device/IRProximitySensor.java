@@ -21,6 +21,7 @@ import robotinterface.robot.simulation.VirtualDevice;
  */
 public class IRProximitySensor extends Device implements VirtualDevice, Drawable {
 
+    public static final int MAX_DISTANCE = 500;
     private int dist = 0;
     private double x, y;
 

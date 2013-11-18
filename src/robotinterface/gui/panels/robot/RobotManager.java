@@ -42,7 +42,9 @@ public class RobotManager extends JPanel implements Iterable<RobotControlPanel> 
                 createRobot();
             }
         });
-
+        
+        btnAddRobot.setEnabled(false); //temp
+        
         super.add(btnAddRobot, cons);
     }
 

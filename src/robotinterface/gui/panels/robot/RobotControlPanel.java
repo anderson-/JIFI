@@ -17,6 +17,7 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.robot.Robot;
+import robotinterface.robot.action.RotateAction;
 import robotinterface.robot.connection.Connection;
 import robotinterface.robot.connection.Serial;
 import robotinterface.robot.device.Compass;
@@ -34,7 +35,7 @@ public class RobotControlPanel extends JPanel {
 
     private class ConnectionStatusGraph extends JPanel {
 
-        private final float size = 25;
+        private final float size = 5;
         private ArrayList<Integer> sendedArray = new ArrayList<>();
         private ArrayList<Integer> lostArray = new ArrayList<>();
         private ArrayList<Integer> receivedArray = new ArrayList<>();
@@ -50,7 +51,7 @@ public class RobotControlPanel extends JPanel {
 
         @Override
         protected void paintComponent(Graphics g) {
-
+            int nbars = (int) (getWidth() / size);
             {
                 if (serial != null && serial.isConnected()) {
                     int s = serial.getSendedPackages();
@@ -76,7 +77,7 @@ public class RobotControlPanel extends JPanel {
                 statusLabel3.setText(sended + "|" + received + "|" + lost);
                 statusLabel3.setToolTipText("Enviado|Recebido|Perdido");
 
-                while (sendedArray.size() > size) {
+                while (sendedArray.size() > nbars) {
                     sendedArray.remove(0);
                     lostArray.remove(0);
                     receivedArray.remove(0);
@@ -108,7 +109,6 @@ public class RobotControlPanel extends JPanel {
 
             max = maxS + maxL + maxR;
             float height = getHeight();
-            int w = (int) (getWidth() / size);
             float c = height / max;
             float h, t;
 
@@ -120,19 +120,19 @@ public class RobotControlPanel extends JPanel {
                 h = lostArray.get(i) * c;
                 if (h > 0) {
                     g.setColor(lostColor);
-                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                    g.fillRect((int) (i * size), (int) (height - h - t), (int) size, (int) h + 3);
                 }
                 t += h;
                 h = receivedArray.get(i) * c;
                 if (h > 0) {
                     g.setColor(receivedColor);
-                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                    g.fillRect((int) (i * size), (int) (height - h - t), (int) size, (int) h + 3);
                 }
                 t += h;
                 h = sendedArray.get(i) * c;
                 if (h > 0) {
                     g.setColor(sendedColor);
-                    g.fillRect((int) (i * w), (int) (height - h - t), (int) w, (int) h + 3);
+                    g.fillRect((int) (i * size), (int) (height - h - t), (int) size, (int) h + 3);
                 }
             }
         }
@@ -154,6 +154,7 @@ public class RobotControlPanel extends JPanel {
         robot.add(new Compass());
         robot.add(new IRProximitySensor());
         robot.add(new ReflectanceSensorArray());
+        robot.add(new RotateAction());
 
         initComponents();
         border = javax.swing.BorderFactory.createTitledBorder("Robô " + INSTANCE);
@@ -192,14 +193,16 @@ public class RobotControlPanel extends JPanel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                int i = connectionComboBox.getSelectedIndex();
-                connectionComboBox.removeAllItems();
-                connectionComboBox.addItem(VIRTUAL_CONNECTION);
-                for (String str : serial.getAvailableDevices()) {
-                    connectionComboBox.addItem(str);
-                }
-                if (i != -1) {
-                    connectionComboBox.setSelectedIndex(i);
+                if (!connected) {
+                    int i = connectionComboBox.getSelectedIndex();
+                    connectionComboBox.removeAllItems();
+                    connectionComboBox.addItem(VIRTUAL_CONNECTION);
+                    for (String str : serial.getAvailableDevices()) {
+                        connectionComboBox.addItem(str);
+                    }
+                    if (i != -1) {
+                        connectionComboBox.setSelectedIndex(i);
+                    }
                 }
             }
 
@@ -254,7 +257,7 @@ public class RobotControlPanel extends JPanel {
             }
 
             connectionStatusGraph.setVisible(false);
-
+            connectionComboBox.setEnabled(true);
             statusLabel.setForeground(Color.black);
             statusLabel.setText("Desconectado");
             statusLabel2.setText("");
@@ -284,11 +287,13 @@ public class RobotControlPanel extends JPanel {
 
                 connectButton.setForeground(Color.red.darker());
                 connectButton.setText("Desconectar");
+                connectionComboBox.setEnabled(false);
             } else {
                 statusLabel.setForeground(Color.red.darker());
                 statusLabel.setText("Falha");
                 statusLabel2.setText("");
                 statusLabel3.setText("");
+                connectionComboBox.setEnabled(true);
                 return false;
             }
 

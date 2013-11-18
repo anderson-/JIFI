@@ -6,19 +6,13 @@ package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Dimension;
 import robotinterface.gui.panels.sidepanel.SidePanel;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Stack;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.GraphicFlowchart;
@@ -55,7 +49,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     Command tmp = null;
     Item itmp = null;
     int tmpi = 0;
-    private Color selectionColor = new Color(0, 0, 0, .35f);
+    private Color selectionColor = new Color(0, .2f, .5f, .5f);
     private Color executionColor = new Color(0, 1, 0, .5f);
     private GraphicObject executionCommand = null;
 
@@ -140,10 +134,14 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         Command cmd = interpreter.getCurrentCommand();
-        if (cmd instanceof GraphicResource) {
-            GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
-            if (d != null && cmd != function) {
-                executionCommand = d;
+        if (interpreter.getInterpreterState() == Interpreter.STOP) {
+            executionCommand = null;
+        } else {
+            if (cmd instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
+                if (d != null && cmd != function) {
+                    executionCommand = d;
+                }
             }
         }
 

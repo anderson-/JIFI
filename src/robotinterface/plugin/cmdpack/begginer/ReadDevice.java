@@ -36,6 +36,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.TimeoutException;
 import javax.swing.JComboBox;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawableCommandBlock;
@@ -48,7 +49,7 @@ import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
-import robotinterface.robot.device.Device.TimeoutException;
+import robotinterface.robot.connection.message.Message;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
@@ -109,7 +110,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 }
                 return true;
             }
-        } catch (TimeoutException ex) {
+        } catch (Message.TimeoutException ex) {
 //            System.err.println("RE-ENVIANDO");
             begin(r, clock);
         }

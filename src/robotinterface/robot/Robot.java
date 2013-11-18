@@ -22,6 +22,11 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import robotinterface.drawable.Drawable;
+import robotinterface.robot.action.Action;
+import robotinterface.robot.action.system.AddNewDevice;
+import robotinterface.robot.action.system.ResetSystem;
+import robotinterface.robot.action.system.UpdateAllDevices;
+import robotinterface.robot.connection.message.Message;
 import robotinterface.util.observable.Observer;
 import robotinterface.robot.simulation.Environment;
 import robotinterface.robot.simulation.Perception;
@@ -54,6 +59,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public static final byte XTRA_BEGIN = (byte) 225;
     public static final byte XTRA_END = (byte) 226;
     public boolean LOG = false;
+    public static final Action RESET_SYSTEM = new ResetSystem();
+    public static final Action UPDATE_ALL_DEVICES = new UpdateAllDevices();
+    public static final AddNewDevice ADD_NEW_DEVICE = new AddNewDevice();
 
     public class InternalClock extends Device {
 
@@ -83,6 +91,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     private Environment environment;
     private Perception perception;
     private ArrayList<Device> devices;
+    private ArrayList<Action> actions;
     private ArrayList<Connection> connections;
     private int freeRam = 0;
     private double x, y;
@@ -94,6 +103,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
     public Robot() {
         devices = new ArrayList<>();
+        actions = new ArrayList<>();
         connections = new ArrayList<>();
         perception = new Perception();
         add(new InternalClock());
@@ -121,29 +131,82 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         d.setID(devices.size() - 1);
     }
 
-    public final void add(Connection c) {
-        c.attach(this);
-        connections.add(c);
-    }
-
     public final void remove(Device d) {
         devices.remove(d);
         d.setID(-1);
     }
 
-    public final void remove(Connection c) {
-        c.detach(this);
-        connections.remove(c);
-    }
-
     public final <T> T getDevice(Class<? extends Device> c) {
-        Device.setConnection(getMainConnection());
+        Message.setConnection(getMainConnection());
         for (Device d : devices) {
             if (c.isInstance(d)) {
                 return (T) d;
             }
         }
         return null;
+    }
+
+    public final Device getDevice(int index) {
+        Message.setConnection(getMainConnection());
+        if (index < 0 || index >= devices.size()) {
+            return null;
+        }
+        return devices.get(index);
+    }
+
+    public final List<Device> getDevices() {
+        Message.setConnection(getMainConnection());
+        return devices;
+    }
+
+    public final int getDeviceListSize() {
+        return devices.size();
+    }
+    
+    public final void add(Action a) {
+        actions.add(a);
+        a.setID(actions.size() - 1);
+    }
+
+    public final void remove(Action a) {
+        actions.remove(a);
+        a.setID(-1);
+    }
+
+    public final <T> T getAction(Class<? extends Action> c) {
+        Message.setConnection(getMainConnection());
+        for (Action a : actions) {
+            if (c.isInstance(a)) {
+                return (T) a;
+            }
+        }
+        return null;
+    }
+
+    public final Action getAction(int index) {
+        if (index < 0 || index >= actions.size()) {
+            return null;
+        }
+        return actions.get(index);
+    }
+
+    public final List<Action> getAction() {
+        Message.setConnection(getMainConnection());
+        return actions;
+    }
+
+    public final int getActionListSize() {
+        return actions.size();
+    }
+
+    public final void add(Connection c) {
+        c.attach(this);
+        connections.add(c);
+    }
+
+    public final void remove(Connection c) {
+        c.detach(this);
+        connections.remove(c);
     }
 
     public final Connection getConnection(Class<? extends Connection> c) {
@@ -153,14 +216,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
             }
         }
         return null;
-    }
-
-    public final Device getDevice(int index) {
-        Device.setConnection(getMainConnection());
-        if (index < 0 || index >= devices.size()) {
-            return null;
-        }
-        return devices.get(index);
     }
 
     public final Connection getConnection(int index) {
@@ -177,17 +232,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         return getConnection(0);
     }
 
-    public final List<Device> getDevices() {
-        Device.setConnection(getMainConnection());
-        return devices;
-    }
-
     public final List<Connection> getConnections() {
         return connections;
-    }
-
-    public final int getDeviceListSize() {
-        return devices.size();
     }
 
     public final int getConnectionListSize() {
@@ -211,10 +257,26 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     }
 
     public void updatePerception() {
-        Connection mainConnection = getMainConnection();
-        if (mainConnection != null) {
-            mainConnection.send(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});
-        }
+        Message.setConnection(getMainConnection());
+        UPDATE_ALL_DEVICES.setAutoSend(false);
+        UPDATE_ALL_DEVICES.begin(this);
+        Action.run(UPDATE_ALL_DEVICES, this);
+    }
+    
+    public void resetSystem() {
+        Message.setConnection(getMainConnection());
+        RESET_SYSTEM.begin(this);
+        Action.run(RESET_SYSTEM, this);
+    }
+    
+    public void addAllDevices() {
+//        Message.setConnection(getMainConnection());
+//        for (Device d : devices){
+//            ADD_NEW_DEVICE.setDeviceId(d.getID());
+//            ADD_NEW_DEVICE.setDeviceData(d.defaultCreateMessage());
+//            ADD_NEW_DEVICE.begin(this);
+//            Action.run(ADD_NEW_DEVICE, this);
+//        }
     }
 
     public final void virtualRobot(ByteBuffer message, Connection connection) {
@@ -507,14 +569,21 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                                 byte[] status = new byte[len];
                                 message.get(status);
                                 if (len > 0) {
-                                    if (status[0] == XTRA_BEGIN) {
-                                        System.out.println("cmd begin:" + id);
-                                    } else if (status[0] == XTRA_END) {
-                                        System.out.println("cmd end:" + id);
+                                    Action a = getAction(id);
+                                    if (a != null) {
+                                        if (status[0] == XTRA_BEGIN) {
+                                            a.markUnread();
+                                            a.setRunning();
+//                                            System.out.println("cmd begin:" + id);
+                                        } else if (status[0] == XTRA_END) {
+                                            a.markUnread();
+                                            a.setDone();
+//                                            System.out.println("cmd end:" + id);
+                                        }
                                     }
-                                } else {
-                                    System.err.println("mesagem muito curta:" + id + "[" + len + "] de " + message.remaining());
                                 }
+                            } else {
+                                System.err.println("3mesagem muito curta:" + id + "[" + len + "] de " + message.remaining());
                             }
                         } else if (cmdDone == CMD_RESET) {
                             switch (id) {
@@ -526,7 +595,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                                     break;
                                 default:
                                     Device d = getDevice(id);
-                                    System.out.println("Dispositivo [" + d + "] resetado...");
+                                    System.out.println("Dispositivo [" + id + "] resetado...");
                                     break;
                             }
 
