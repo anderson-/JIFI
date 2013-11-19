@@ -18,7 +18,7 @@ private final int jjStopStringLiteralDfa_0(int pos, long active0)
    switch (pos)
    {
       case 0:
-         if ((active0 & 0xf00000000L) != 0L)
+         if ((active0 & 0xa00000000L) != 0L)
             return 1;
          if ((active0 & 0x1fe0L) != 0L)
          {
@@ -453,8 +453,6 @@ private int jjMoveNfa_0(int startState, int curPos)
                case 0:
                   if ((0x3ff000000000000L & l) != 0L)
                      jjCheckNAddStates(0, 6);
-                  else if ((0x280000000000L & l) != 0L)
-                     jjstateSet[jjnewStateCnt++] = 1;
                   else if (curChar == 36)
                   {
                      if (kind > 20)
@@ -465,6 +463,8 @@ private int jjMoveNfa_0(int startState, int curPos)
                      jjCheckNAddStates(7, 9);
                   else if (curChar == 46)
                      jjCheckNAdd(5);
+                  else if (curChar == 45)
+                     jjstateSet[jjnewStateCnt++] = 1;
                   if ((0x3fe000000000000L & l) != 0L)
                   {
                      if (kind > 13)

@@ -609,6 +609,7 @@ public class GUI extends javax.swing.JFrame {
 
         updateTabNames();
         dynamicToolBar.updateUI();
+//        mainTabbedPane.updateUI();
     }//GEN-LAST:event_mainTabbedPaneStateChanged
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed

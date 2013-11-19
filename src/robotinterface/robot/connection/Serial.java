@@ -480,16 +480,16 @@ public class Serial implements Connection, SerialPortEventListener {
 
         /* NOVAS FUNÇÕES DE GIRAR */
 
-//        ByteBuffer bf = ByteBuffer.allocate(8);
-//        bf.putChar((char) 180);
-//        byte[] tmp = new byte[2];
-//        bf.flip();
-//        bf.order(ByteOrder.LITTLE_ENDIAN);
-//        bf.get(tmp);
-//
-//        testMessages.add(new byte[]{4, 0, 0});//get clock
-//
-//        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});
+        ByteBuffer bf = ByteBuffer.allocate(8);
+        bf.putChar((char) 270);
+        byte[] tmp = new byte[2];
+        bf.flip();
+        bf.get(tmp);
+
+        testMessages.add(new byte[]{4, 0, 0});//get clock
+
+        testMessages.add(new byte[]{Robot.CMD_RUN, 1, 2, 1, 2, 3, tmp[1], tmp[0], 10});
+        
 
         /* RESETA AS FUNÇÕES E PONTE H */
 
@@ -508,19 +508,19 @@ public class Serial implements Connection, SerialPortEventListener {
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
 
-        testMessages.add(new byte[]{7, (byte) 224});//reset system
-        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
-//        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
-        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
-        for (int i = 0; i < 5000; i++) {
-//            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
-            testMessages.add(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});//get all
-        }
+//        testMessages.add(new byte[]{7, (byte) 224});//reset system
+//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+////        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
+//        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
+//        for (int i = 0; i < 5000; i++) {
+////            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
+//            testMessages.add(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});//get all
+//        }
 
-        SimulationPanel p = new SimulationPanel();
-        p.addRobot(r);
-        r.setEnvironment(p.getEnv());
-        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+//        SimulationPanel p = new SimulationPanel();
+//        p.addRobot(r);
+//        r.setEnvironment(p.getEnv());
+//        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
 
 
         /* TESTE DO RÁDIO */

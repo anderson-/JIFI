@@ -70,7 +70,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         @Override
         public void setState(ByteBuffer data) {
             stepTime = data.getFloat();
-//            System.out.println("Tempo do ciclo: " + stepTime);
+            System.out.println("Tempo do ciclo: " + stepTime);
         }
 
         @Override
@@ -574,11 +574,11 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                                         if (status[0] == XTRA_BEGIN) {
                                             a.markUnread();
                                             a.setRunning();
-//                                            System.out.println("cmd begin:" + id);
+                                            System.out.println("cmd begin:" + id);
                                         } else if (status[0] == XTRA_END) {
                                             a.markUnread();
                                             a.setDone();
-//                                            System.out.println("cmd end:" + id);
+                                            System.out.println("cmd end:" + id);
                                         }
                                     }
                                 }
