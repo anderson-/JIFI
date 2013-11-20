@@ -336,6 +336,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 }
 
                 String str = sb.toString().trim().replace(" ", ",") + ")";
+                updateMove(str.substring(str.indexOf("(") + 1, str.indexOf(")")), m);
                 return str;
             }
         };

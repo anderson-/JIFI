@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.util.observable.Observer;
@@ -42,6 +43,7 @@ import robotinterface.util.ByteCharset;
  */
 public class Serial implements Connection, SerialPortEventListener {
 
+    private static boolean FAIL_LOAD_LIBRARY = false;
     private ArrayList<Observer<ByteBuffer, Connection>> observers;
     private SerialPort serialPort;
     private String defaultPort = null;
@@ -152,7 +154,18 @@ public class Serial implements Connection, SerialPortEventListener {
     public boolean tryConnect(String port) {
 
         CommPortIdentifier portId = null;
-        Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+        Enumeration portEnum = null;
+
+        try {
+            portEnum = CommPortIdentifier.getPortIdentifiers();
+        } catch (Throwable t) {
+            throw new Error();
+        }
+
+        if (portEnum == null) {
+            return false;
+        }
+
         //First, Find an instance of serial port as set in PORT_NAMES.
         while (portEnum.hasMoreElements()) {
             CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
@@ -202,15 +215,25 @@ public class Serial implements Connection, SerialPortEventListener {
     public Collection<String> getAvailableDevices() {
         ArrayList<String> avaliableDevices = new ArrayList<>();
 
+        if (FAIL_LOAD_LIBRARY) {
+            return avaliableDevices;
+        }
+
         for (String name : PORT_NAMES) {
             if (name.contains("#")) {
                 for (int i = 0; i < PORT_SEARCH; i++) {
                     String device = name.replace("#", "" + i);
                     //adiciona portas ocultas e bloqueadas (Linux)
                     System.setProperty("gnu.io.rxtx.SerialPorts", device);
-                    if (tryConnect(device)) {
-                        avaliableDevices.add(device);
-                        closeConnection();
+                    try {
+                        if (tryConnect(device)) {
+                            avaliableDevices.add(device);
+                            closeConnection();
+                        }
+                    } catch (Throwable t) {
+                        JOptionPane.showMessageDialog(null, "Falha ao carregar a biblioteca da porta serial.\nApenas simulação virtual disponivel.", "Erro", JOptionPane.ERROR_MESSAGE);
+                        FAIL_LOAD_LIBRARY = true;
+                        return avaliableDevices;
                     }
                 }
             }
@@ -222,16 +245,13 @@ public class Serial implements Connection, SerialPortEventListener {
     public boolean establishConnection() {
 
         isConnected = false;
-        
-        
+
 //        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 //            @Override
 //            public void run() {
 //                closeConnection();
 //            }
 //        }));
-
-
         if (defaultPort == null) {
 
             for (String name : PORT_NAMES) {
@@ -328,7 +348,6 @@ public class Serial implements Connection, SerialPortEventListener {
                 }
 
 //                printBytes(buffer.array(), buffer.array().length);
-
                 byte[] w = buffer.array();
 
                 for (int i = 0; i < w.length; i++) {
@@ -338,7 +357,6 @@ public class Serial implements Connection, SerialPortEventListener {
                     }
                 }
 
-
 //                byte [] size = new byte[1];
 //                input.read(size);
 //                
@@ -347,10 +365,6 @@ public class Serial implements Connection, SerialPortEventListener {
 //                for (int i = 0; i < size[0]; i++){
 //                    
 //                }
-
-
-
-
 //                //sem usar string
 //                while (true) {
 //                    //obtem uma string delimitada por '\n', '\t' ou "\t\n"
@@ -370,7 +384,6 @@ public class Serial implements Connection, SerialPortEventListener {
 //                        break;
 //                    }
 //                }
-
                 //define esta posição como limite e retorna para a posição 0
                 //buffer.limit() retorna o tamanho da mensagem
                 buffer.flip();
@@ -387,7 +400,6 @@ public class Serial implements Connection, SerialPortEventListener {
                  k++;
                  }
                  */
-
                 //se for possivel ler um ou mais bytes
                 if (buffer.remaining() > 0) {
                     //notify observers
@@ -438,7 +450,6 @@ public class Serial implements Connection, SerialPortEventListener {
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
         /* PRIMEIROS TESTES */
-
 //        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
 //        
 //        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
@@ -450,10 +461,7 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
 //        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
 //        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
-
-
         /* ROBO GENERICO */
-
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 //        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
 //            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
@@ -479,7 +487,6 @@ public class Serial implements Connection, SerialPortEventListener {
          */
 
         /* NOVAS FUNÇÕES DE GIRAR */
-
 //        ByteBuffer bf = ByteBuffer.allocate(8);
 //        bf.putChar((char) 180);
 //        byte[] tmp = new byte[2];
@@ -492,11 +499,9 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});
 
         /* RESETA AS FUNÇÕES E PONTE H */
-
 //        testMessages.add(new byte[]{7, (byte) 222});//reset all
 
         /* RESETA O SISTEMA (funcionando) */
-
 //        testMessages.add(new byte[]{7, (byte) 224});//reset system
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 //        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
@@ -507,7 +512,6 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
-
         testMessages.add(new byte[]{7, (byte) 224});//reset system
         testMessages.add(new byte[]{6, 5, 1, 17});//add dist
 //        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
@@ -524,7 +528,6 @@ public class Serial implements Connection, SerialPortEventListener {
 
 
         /* TESTE DO RÁDIO */
-
         //quando uma mensagem chega é exibido "S:10 x R:10"
         //ou seja 10 mensagens enviadas e 10 recebidas
         //ATENÇÃO: trocar intervalo de tempo na linha ~389

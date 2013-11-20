@@ -237,6 +237,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                 }
 
                 String str = sb.toString() + ")";
+                updateRotate(str.substring(str.indexOf("(") + 1, str.indexOf(")")), r);
                 return str;
             }
         };

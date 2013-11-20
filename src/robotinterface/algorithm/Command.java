@@ -103,7 +103,9 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
                 ((Block) parent).addBegin(c);
             }
         }
-        c.prev = prev;
+        if (prev != c){
+            c.prev = prev;
+        }
         c.next = this;
         c.parent = parent;
         prev = c;

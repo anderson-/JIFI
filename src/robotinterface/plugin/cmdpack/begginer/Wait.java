@@ -234,6 +234,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 }
 
                 String str = sb.toString() + ")";
+                updateWait(str.substring(str.indexOf("(") + 1, str.indexOf(")")), w);
                 return str;
             }
         };

@@ -38,7 +38,6 @@ import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
 import robotinterface.plugin.cmdpack.begginer.Wait;
-import robotinterface.plugin.cmdpack.serial.Start;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
@@ -421,7 +420,6 @@ public class Interpreter extends Thread {
         Function func = new Function("main", null);
         func.add(new Wait(1000));
         func.add(new PrintString("inicio"));
-        func.add(new Start());
         func.add(new Procedure("var i = 10"));
         func.add(new PrintString("Girando %v vezes...", "i"));
         While loop = new While("i > 10");

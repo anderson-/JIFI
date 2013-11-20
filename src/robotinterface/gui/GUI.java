@@ -12,7 +12,16 @@ import java.awt.GridLayout;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Collection;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -38,6 +47,7 @@ import robotinterface.interpreter.Interpreter;
 import robotinterface.project.Project;
 import robotinterface.robot.Robot;
 import robotinterface.robot.connection.Connection;
+import robotinterface.util.fommil.jni.JniNamer;
 
 /**
  *
@@ -54,12 +64,26 @@ public class GUI extends javax.swing.JFrame {
     private final RobotManager robotManager;
     private JFileChooser fileChooser = new JFileChooser();
 
-    {
-        codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
-        flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
+    static {
+        try {
+            String syspath = System.getProperty("java.library.path");
+            String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+            path = path.substring(0, path.lastIndexOf('/') + 1);
+            path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();
+            path += File.pathSeparator + syspath;
+//            System.out.println("Set path:" + path);
+            System.setProperty("java.library.path", path);
+            Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+            fieldSysPath.setAccessible(true);
+            fieldSysPath.set(null, null);
+        } catch (Exception e) {
+        }
     }
 
     private GUI() {
+        codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
+        flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
+
         initComponents();
         setLocationRelativeTo(null);
         secondarySplitPane.setDividerLocation(.5);
@@ -94,7 +118,6 @@ public class GUI extends javax.swing.JFrame {
         });
 
         //robot manager
-
         robotManager = new RobotManager(this);
         robotManager.createRobot();
         jScrollPane3.setViewportView(robotManager);
@@ -727,7 +750,6 @@ public class GUI extends javax.swing.JFrame {
                 }
             }
 
-
             mainProject.save(file.getAbsolutePath());
         }
     }//GEN-LAST:event_saveButtonActionPerformed
@@ -753,11 +775,10 @@ public class GUI extends javax.swing.JFrame {
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
             mainTabbedPane.remove(fcp);
-            
-            fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
-            
-//            switchCodeButton.setIcon(codeIcon);
 
+            fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
+
+//            switchCodeButton.setIcon(codeIcon);
         } else if (cmp instanceof CodeEditorPanel) {
             CodeEditorPanel cep = (CodeEditorPanel) cmp;
             //int returnVal = JOptionPane.showConfirmDialog(this, "Durante a conversão erros podem ocorrer, deseja prosseguir?", "Converter Código", JOptionPane.YES_NO_OPTION);
@@ -872,43 +893,36 @@ public class GUI extends javax.swing.JFrame {
         jSpinner1.setEnabled(true);
     }
 
+    private static Logger logger = null;
+
+    public static Logger getLogger() {
+        if (logger == null) {
+            logger = Logger.getLogger(GUI.class.getName());
+            FileHandler fh;
+
+            try {
+
+                // This block configure the logger with handler and formatter  
+                fh = new FileHandler("log.txt");
+                logger.addHandler(fh);
+                SimpleFormatter formatter = new SimpleFormatter();
+                fh.setFormatter(formatter);
+
+                // the following statement is used to log any messages  
+//                logger.info("My first log");
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return logger;
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-//        System.setProperty("java.library.path", "/home/antunes/teste/");
-//        Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-//        fieldSysPath.setAccessible(true);
-//        fieldSysPath.set(null, null);
-//
-//        System.out.println(System.getProperty("java.library.path"));
-//        System.loadLibrary("librxtxSerial.so");
-
-//        try {
-//            String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//            String decodedPath = URLDecoder.decode(path, "UTF-8");
-//            decodedPath = decodedPath.substring(0, decodedPath.lastIndexOf("/") + 1);
-//
-//            String OS = System.getProperty("os.name").toLowerCase();
-//            if ((OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0)) {
-//                //linux
-//                decodedPath += "natives/librxtxSerial.so";
-//            } else if (OS.indexOf("win") >= 0) {
-//                //windows
-//                decodedPath += "natives/librxtxSerial.dll";
-//            } else if (OS.indexOf("mac") >= 0) {
-//                //mac
-//                decodedPath += "natives/librxtxSerial.jnilib";
-//            } else if (OS.indexOf("sunos") >= 0){
-//                //solaris
-//                decodedPath += "natives/librxtxSerial.so";
-//            }
-//
-//            System.load(decodedPath);
-//        } catch (Exception | Error e) {
-//            System.err.println("[ping >= 20 ms]");
-//        }
-
 
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
