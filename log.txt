@@ -1,2 +1,0 @@
-Nov 20, 2013 1:25:18 PM robotinterface.util.fommil.jni.JniLoader liberalLoad
-INFO: successfully loaded /tmp/jniloader4459407682292102437rxtxSerial.so
