@@ -1,0 +1,4 @@
+func null() {
+	print("Isso é um teste");
+}
+

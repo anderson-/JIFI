@@ -1,0 +1,7 @@
+# Lista de Plugins
+# "robotinterface/plugin/cmdpack/plugin.txt"
+robotinterface.plugin.cmdpack.begginer.ReadDevice
+robotinterface.plugin.cmdpack.begginer.Move
+robotinterface.plugin.cmdpack.begginer.Rotate
+robotinterface.plugin.cmdpack.begginer.Wait
+robotinterface.plugin.cmdpack.util.PrintString

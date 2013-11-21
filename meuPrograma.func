@@ -1,0 +1,6 @@
+func meuPrograma() {
+	while (1){
+		read();
+	}
+}
+

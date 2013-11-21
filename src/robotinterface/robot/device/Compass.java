@@ -5,6 +5,7 @@
 package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
+import robotinterface.robot.Robot;
 
 /**
  *
@@ -17,7 +18,12 @@ public class Compass extends Device {
     @Override
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
-        System.out.println("Angulo:" + alpha);
+//        System.out.println("Angulo:" + alpha);
+    }
+    
+    @Override
+    public void updateRobot(Robot robot) {
+        robot.setTheta(Math.toRadians(alpha));
     }
 
     @Override
@@ -32,5 +38,10 @@ public class Compass extends Device {
 
     public double getAlpha() {
         return alpha;
+    }
+
+    @Override
+    public String getName() {
+        return "Bussola";
     }
 }

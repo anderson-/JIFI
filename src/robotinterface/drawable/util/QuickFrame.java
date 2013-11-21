@@ -4,9 +4,9 @@
  */
 package robotinterface.drawable.util;
 
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.DWidgetContainer;
+import robotinterface.drawable.WidgetContainer;
 import java.awt.Dimension;
 import java.awt.event.ComponentListener;
 import javax.swing.JComponent;
@@ -49,16 +49,17 @@ public class QuickFrame {
         return frame;
     }
 
-    public static void drawTest(Drawable d) {
+    public static void drawTest(GraphicObject d) {
         DrawingPanel p = new DrawingPanel();
-        int width = (int) d.getObjectBouds().width;
-        if (width < MIN_WIDTH) {
-            if (width < 100) {
-                System.err.println("Atenção! Seu objeto tem tamanho: " + d.getObjectBouds() + " isso está certo?");
-            }
-            width = MIN_WIDTH;
-        }
-        p.setPreferredSize(new Dimension(width, (int) d.getObjectBouds().height));
+//        int width = (int) d.getObjectBouds().width;
+//        if (width < MIN_WIDTH) {
+//            if (width < 100) {
+//                System.err.println("Atenção! Seu objeto tem tamanho: " + d.getObjectBouds() + " isso está certo?");
+//            }
+//            width = MIN_WIDTH;
+//        }
+//        p.setPreferredSize(new Dimension(width, (int) d.getObjectBouds().height));
+        p.setPreferredSize(new Dimension(400,200));
         p.add(d);
         create(p, "Teste de desenho: " + d.getClass().getSimpleName());
     }

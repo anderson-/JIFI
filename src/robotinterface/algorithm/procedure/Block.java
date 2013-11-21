@@ -25,10 +25,17 @@
  */
 package robotinterface.algorithm.procedure;
 
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
+import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.robot.Robot;
+import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Bloco de comandos com suporte a escopo de variável.
@@ -64,6 +71,11 @@ public class Block extends Procedure {
             resetVariableScope();
             return begin;
         }
+
+        @Override
+        public GraphicObject getDrawableResource() {
+            return null;
+        }
     }
     protected Command start;
     protected boolean returnNext = false;
@@ -72,40 +84,94 @@ public class Block extends Procedure {
     public Block() {
         end = new BlockEnd();
         end.setBlockBegin(this);
+        end.setParent(this);
         start = end;
     }
 
-    @Deprecated
+    public void clear() {
+        start = end;
+        end.setNext(null);
+        end.setPrevious(null);
+    }
+
     public final Command getStart() {
         return start;
     }
 
-    /**
-     * Adiciona um comando ao bloco de comandos.
-     *
-     * @param c Comando a ser adicionado
-     * @return true se o comando foi adicionado ao bloco
-     */
+    public Command shiftStart() {
+        if (start != null && start != end) {
+            start = start.getNext();
+        }
+        return start;
+    }
+
+    public final BlockEnd getEnd() {
+        return end;
+    }
+
     public final boolean add(Command c) {
         if (c == null) {
             return false;
         }
         c.setParent(this);
         //pega o elemento antes do ultimo
-        Command it = end.getPrevious();
-        //define a relação entre o novo elemento e o final ...<-c<->end
-        c.setNext(end);
+        Command begin = end.getPrevious();
+        Command it = c;
+        while (it.getNext() != null) {
+            it.setParent(this);
+            it = it.getNext();
+        }
+        it.setNext(end);
+        it.setParent(this);
         end.setPrevious(c);
         end.setNext(null);
         //adiciona end ao final da lista
-        if (it != null) {
+        if (begin != null) {
             //...<-it<->c<->end->null
-            it.setNext(c);
-            c.setPrevious(it);
+            begin.setNext(c);
+            c.setPrevious(begin);
         } else {
             start = c;
         }
+
         return true;
+    }
+
+//    public final boolean addAfter(Command x, Command c) {
+//        if (contains(x) && c != null) {
+//            c.setPrevious(x);
+//            c.setNext(x.getNext());
+//            x.getNext().setPrevious(c);
+//            x.setNext(c);
+//            c.setParent(this);
+//        }
+//        return false;
+//    }
+    public final boolean addAfter(Command x, Command c) {
+        if (c == null || x == null) {
+            return false;
+        }
+        c.setParent(this);
+        //pega o elemento antes do ultimo
+        Command begin = x;
+
+        Command it = c;
+        while (it != null && it.getNext() != x) {
+            it = it.getNext();
+        }
+
+        //begin<->c<->...<->end<->begin.next
+
+        if (it != null && begin.getNext() != null) {
+            it.setNext(begin.getNext());
+            begin.getNext().setPrevious(it);
+
+            begin.setNext(c);
+            c.setPrevious(begin);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -207,16 +273,7 @@ public class Block extends Procedure {
                 c.setNext(x);
                 start = c;
             }
-        }
-        return false;
-    }
-
-    public final boolean addAfter(Command x, Command c) {
-        if (contains(x) && c != null) {
-            c.setPrevious(x);
-            c.setNext(x.getNext());
-            x.getNext().setPrevious(c);
-            x.setNext(c);
+            c.setParent(this);
         }
         return false;
     }
@@ -230,17 +287,30 @@ public class Block extends Procedure {
         SymbolTable st = getParser().getSymbolTable();
         Command it = start;
         while (it != null) {
-            if (it instanceof Declaration) {
-                for (String varName : ((Declaration) it).getVariableNames()) {
+            if (it instanceof Procedure) {
+                for (String varName : ((Procedure) it).getVariableNames()) {
                     Variable remove = st.getVar(varName);
                     if (remove != null) {
-                        System.out.println("Removed var: " + remove.getName());
+//                        System.out.println("Removed var: " + remove.getName());
                         remove.setValidValue(false);
                     }
                 }
             }
             it = it.getNext();
         }
+    }
+
+    public boolean isDone() {
+        return returnNext;
+    }
+
+    void setDone(boolean b) {
+        returnNext = b;
+    }
+
+    @Override
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+        return true;
     }
 
     @Override
@@ -252,5 +322,156 @@ public class Block extends Procedure {
         } else {
             return start;
         }
+    }
+
+    @Override
+    public void toString(String ident, StringBuilder sb) {
+        //sb.append(ident).append("").append("{\n");
+        Command it = start;
+        while (it != null) {
+            it.toString(ident + identChar, sb);
+            it = it.getNext();
+        }
+        //sb.append(ident).append("}\n");
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+
+        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+
+        Rectangle2D.Double p = new Rectangle2D.Double();
+        Command it = this.start;
+        boolean ident = true;
+        while (it != null) {
+            p = it.getBounds(p, j, k, Ix, Iy, a);
+//            if (it instanceof GraphicResource) {
+//                GraphicObject d = ((GraphicResource) it).getDrawableResource();
+//
+//                if (d != null) {
+//                    p = (Rectangle2D.Double) d.getObjectBouds();
+//                }
+//            }
+
+            tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+            tmp.y = (p.y < tmp.y) ? p.y : tmp.y;
+
+            tmp.width = (Iy * p.width > tmp.width) ? p.width : tmp.width;
+            tmp.height = (Ix * p.height > tmp.height) ? p.height : tmp.height;
+
+            tmp.width += Ix * p.width;
+            tmp.height += Iy * p.height;
+
+            if (it instanceof If) {
+                ident = false;
+            }
+
+            it = it.getNext();
+        }
+
+        if (ident) {
+            tmp.x -= j;
+            tmp.width += 2 * j;
+        }
+
+        return tmp;
+    }
+
+    @Override
+    public final void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+        double cw = 0;
+        double ch = 0;
+
+        double xj = Ix * j;
+        double yj = Iy * j;
+        double xk = Iy * k;
+        double yk = Ix * k;
+
+        Rectangle2D.Double t = null;
+        if (this instanceof GraphicResource) {
+            GraphicObject d = ((GraphicResource) this).getDrawableResource();
+
+            if (d != null) {
+                t = (Rectangle2D.Double) d.getObjectBouds();
+            }
+        }
+
+        if (t != null) {
+            cw = t.width;
+            ch = t.height;
+
+            double px = x - Iy * (cw / 2);
+            double py = y - Ix * (ch / 2);
+
+            if (this instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) this).getDrawableResource();
+
+                if (d != null) {
+                    d.setLocation(px, py);
+//                    System.out.println(this + " [" + px + "," + py + "]");
+                }
+            }
+
+            x += Ix * (cw + xj);
+            y += Iy * (ch + yj);
+        }
+
+//        if (size() == 1){ //só tem o EndBlock
+//            DummyBlock db = new DummyBlock();
+//            db.setNext(end);
+//            db.setParent(this);
+//            db.setPrevious(null);
+//            end.setPrevious(db);
+//            end.setNext(null);
+//            start = db;
+//            
+//            Command it = this;
+//            while (it.getParent() != null){
+//                it = it.getParent();
+//            }
+//            
+//            if (it instanceof Function){
+//                ((Function)it).getD().add(db.getDrawableResource());
+//            }
+//            
+//        }
+
+        start.ident(x, y, j, k, Ix, Iy, a);
+
+        if (getNext() != null) {
+            getNext().ident(x, y + this.getBounds(null, j, k, Ix, Iy, a).height - Iy * (ch + yj), j, k, Ix, Iy, a);
+        }
+
+    }
+
+    @Override
+    public Item getItem() {
+        return super.getItem();
+    }
+
+    @Override
+    public Object createInstance() {
+        return new Block();
+    }
+
+    @Override
+    public Procedure copy(Procedure copy) {
+        Procedure p = super.copy(copy);
+
+        if (copy instanceof Block) {
+            if (start instanceof Procedure) {
+                ((Block) copy).add(Procedure.copyAll((Procedure) start));
+            }
+        } else {
+            System.out.println("Erro ao copiar: ");
+            start.print();
+        }
+
+        return p;
+    }
+
+    @Override
+    public GraphicObject getDrawableResource() {
+        return null;
     }
 }

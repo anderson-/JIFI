@@ -27,11 +27,19 @@ package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.Drawable;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,45 +48,108 @@ import robotinterface.robot.device.Device;
 import robotinterface.util.trafficsimulator.Timer;
 import robotinterface.robot.Robot;
 import static java.lang.Math.*;
+import java.util.Iterator;
+import robotinterface.gui.panels.sidepanel.Item;
+import robotinterface.gui.panels.sidepanel.SidePanel;
+import robotinterface.plugin.PluginManager;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.robot.simulation.Environment;
+import robotinterface.robot.simulation.Perception;
+import robotinterface.util.LineIterator;
 import robotinterface.util.observable.Observer;
 
 /**
  * Painel da simulação do robô. <### EM DESENVOLVIMENTO ###>
  */
-public class SimulationPanel extends DrawingPanel implements Serializable, Observer<Device, Robot> {
+public class SimulationPanel extends DrawingPanel implements Serializable {
 
-    private static final int MAX_ARRAY = 500;
+    public static final Item ITEM_LINE;
+    public static final Item ITEM_OBSTACLE_LINE;
+    public static final Item ITEM_CILINDER;
+    public static final Item ITEM_REMOVE_LINE;
+
+    static {
+        Area myShape = new Area();
+        Polygon tmpShape = new Polygon();
+        tmpShape.addPoint(2, 0);
+        tmpShape.addPoint(20, 18);
+        tmpShape.addPoint(18, 20);
+        tmpShape.addPoint(0, 2);
+        myShape.add(new Area(tmpShape));
+
+        tmpShape.reset();
+        tmpShape.addPoint(18, 0);
+        tmpShape.addPoint(20, 2);
+        tmpShape.addPoint(2, 20);
+        tmpShape.addPoint(0, 18);
+        myShape.add(new Area(tmpShape));
+
+        ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red);
+
+        myShape = new Area();
+
+        Shape tmpElipse = new Ellipse2D.Double(0, 0, 20, 20);
+        myShape.add(new Area(tmpElipse));
+
+        tmpElipse = new Ellipse2D.Double(4, 4, 12, 12);
+        myShape.subtract(new Area(tmpElipse));
+
+        ITEM_CILINDER = new Item("Cilindro", myShape, Environment.getObstacleColor());
+        ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY);
+        ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor());
+    }
     private final ArrayList<Robot> robots = new ArrayList<>();
-    private final ArrayList<Point> rpos = new ArrayList<>();
-    private final ArrayList<Point> obstacle = new ArrayList<>();
-    private boolean stop = false;
+    private Environment env = new Environment();
+    private Item itemSelected;
+    private Point2D.Double point = null;
+    SidePanel sp;
 
     public SimulationPanel() {
-//        robot.setRightWheelSpeed(50);
-//        robot.setLeftWheelSpeed(50);
+
+        sp = new SidePanel() {
+            @Override
+            protected void ItemSelected(Item item, Object ref) {
+                try {
+                    itemSelected = item;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+
+        sp.setColor(Color.decode("#9DCA1D"));//FF7070
+        sp.add(ITEM_LINE);
+        sp.add(ITEM_OBSTACLE_LINE);
+        sp.add(ITEM_CILINDER);
+        sp.add(ITEM_REMOVE_LINE);
+        add(sp);
+
         //mapeia a posição a cada x ms
-        Timer timer = new Timer(100) {
+        Timer timer = new Timer(1000) {
+            ArrayList<Robot> tmpBots = new ArrayList<>();
+
             @Override
             public void run() {
-                for (Robot robot : robots) {
-                    //posição
-                    synchronized (rpos) {
-                        rpos.add(new Point((int) robot.getObjectBouds().x, (int) robot.getObjectBouds().y));
-                        while (rpos.size() > MAX_ARRAY) {
-                            rpos.remove(0);
-                        }
+                tmpBots.clear();
+                synchronized (robots) {
+                    tmpBots.addAll(robots);
+                }
+
+                for (Robot robot : tmpBots) {
+                    if (robot.getLeftWheelSpeed() != 0 && robot.getRightWheelSpeed() != 0) {
+                        robot.updateVirtualPerception();
                     }
-                    synchronized (obstacle) {
-                        while (obstacle.size() > MAX_ARRAY) {
-                            obstacle.remove(0);
-                        }
-                    }
-//                    if (this.getCount() % 20 == 0) {
+                    
+//                    robot.setRightWheelSpeed(30);
+//                    robot.setLeftWheelSpeed(-30);
+//                    System.out.println(robot.getPosX());
+//                    System.out.println(Math.toDegrees(robot.getTheta()));
+
+                    if (this.getCount() % 20 == 0) {
 //                        robot.setRightWheelSpeed(Math.random() * 100);
 //                        robot.setLeftWheelSpeed(Math.random() * 100);
-//                    }
+                    }
                 }
             }
         };
@@ -87,42 +158,61 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
         clock.setPaused(false);
     }
 
+    private SimulationPanel(Environment e) {
+        env = e;
+    }
+
+    public Environment getEnv() {
+        return env;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
+
     public void addRobot(Robot robot) {
         synchronized (robots) {
             robots.add(robot);
         }
-        robot.attach(this);
         add(robot);
     }
 
-    private void addObstacle(Robot robot, double d) {
-        double tx = robot.getObjectBouds().x + d * cos(robot.getTheta());
-        double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
-        synchronized (obstacle) {
-            obstacle.add(new Point((int) tx, (int) ty));
+    public void removeRobot(Robot robot) {
+        synchronized (robots) {
+            robots.remove(robot);
         }
+        remove(robot);
     }
 
-    public final void add(Robot r) {
-        add((Drawable) r);
-        for (Device d : r.getDevices()) {
-            if (d instanceof Drawable) {
-                add((Drawable) d);
-            }
-        }
-        for (Connection c : r.getConnections()) {
-            add((Drawable) c);
-        }
+    public ArrayList<Robot> getRobots() {
+        return robots;
     }
 
-    public static void paintPoints(Graphics2D g, List<Point> points, int size) {
+//    private void addObstacle(Robot robot, double d) {
+//        double tx = robot.getObjectBouds().x + d * cos(robot.getTheta());
+//        double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
+//        synchronized (obstacle) {
+//            obstacle.add(new Point((int) tx, (int) ty));
+//            while (obstacle.size() > MAX_ARRAY) {
+//                obstacle.remove(0);
+//            }
+//        }
+//    }
+//    public final void add(Robot r) {
+//        add((GraphicObject) r);
+//        for (Device d : r.getDevices()) {
+//            if (d instanceof GraphicObject) {
+//                add((GraphicObject) d);
+//            }
+//        }
+//        for (Connection c : r.getConnections()) {
+//            add((GraphicObject) c);
+//        }
+//    }
+    private void paintPoints(Graphics2D g, List<Point> points, int size) {
         for (Point p : points) {
             g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
         }
-    }
-
-    public static double getAcceleration() {
-        return 10;
     }
 
     @Override
@@ -132,12 +222,94 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        g.setColor(Color.gray);
-        drawGrade(g, 4, (float) ((Robot.size * 100) / Robot.SIZE_CM), getBounds());
+        super.drawBackground(g, ga, in);
+        env.draw(g);
     }
 
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+        if (sp.getObjectBouds().contains(in.getMouse())) {
+            return;
+        }
+        if (itemSelected != null) {
+            if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            Line2D.Double line = new Line2D.Double(point, in.getTransformedMouse());
+
+                            if (itemSelected == ITEM_LINE) {
+                                env.addFollowLine(new double[]{line.x1, line.y1, line.x2, line.y2});
+                            } else if (itemSelected == ITEM_OBSTACLE_LINE) {
+                                env.addObstacleLine(new double[]{line.x1, line.y1, line.x2, line.y2});
+                            } else if (itemSelected == ITEM_REMOVE_LINE) {
+                                for (Iterator<Shape> it = env.linesIterator(); it.hasNext();) {
+                                    Shape s = it.next();
+                                    if (s instanceof Line2D.Double) {
+                                        if (((Line2D.Double) s).intersectsLine(line)) {
+                                            it.remove();
+                                        }
+                                    } else {
+                                        Point2D p;
+                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
+                                            p = iter.next();
+                                            if (s.contains(p)) {
+                                                it.remove();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                for (Iterator<Shape> it = env.obstaclesIterator(); it.hasNext();) {
+                                    Shape s = it.next();
+                                    if (s instanceof Line2D.Double) {
+                                        if (((Line2D.Double) s).intersectsLine(line)) {
+                                            it.remove();
+                                        }
+                                    } else {
+                                        Point2D p;
+                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
+                                            p = iter.next();
+                                            if (s.contains(p)) {
+                                                it.remove();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                point = null;
+                                return;
+                            }
+
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            } else if (itemSelected == ITEM_CILINDER) {
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            double r = point.distance(in.getTransformedMouse());
+                            double x = point.x - r;
+                            double y = point.y - r;
+                            r *= 2;
+                            env.addObstacleCircle(new double[]{x, y, r});
+                            point = null;
+                            return;
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            }
+//            g.translate(in.getMouse().x - 10, in.getMouse().y - 10);
+//            g.setColor(itemSelected.getColor());
+//            g.fill(itemSelected.getIcon());
+        }
     }
     public static final BasicStroke defaultStroke = new BasicStroke();
     public static final BasicStroke dashedStroke = new BasicStroke(1.0f,
@@ -147,8 +319,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+
         synchronized (robots) {
             for (Robot robot : robots) {
+//                System.out.println("eee");
                 double v1 = robot.getLeftWheelSpeed();
                 double v2 = robot.getRightWheelSpeed();
 
@@ -177,33 +351,57 @@ public class SimulationPanel extends DrawingPanel implements Serializable, Obser
                     g.setStroke(defaultStroke); //fim da linha pontilhada
                     //desenha o centro
                     g.fillOval((int) (x - 3), (int) (y - 3), 6, 6);
+//                    System.out.println("asd");
                 }
             }
         }
-        g.setColor(Color.red);
-        synchronized (rpos) {
-            paintPoints(g, rpos, 5);
+
+//        g.setColor(Color.red);
+//        synchronized (rpos) {
+//            paintPoints(g, rpos, 5);
+//        }
+//        g.setColor(Color.GREEN.brighter());
+//        synchronized (obstacle) {
+//            paintPoints(g, obstacle, 5);
+//        }
+
+//        per.draw(g);
+
+        g.setStroke(new BasicStroke(5));
+
+        if (point != null) {
+            if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
+                g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
+            } else {
+                double r = point.distance(in.getTransformedMouse());
+                double x = point.x - r;
+                double y = point.y - r;
+                r *= 2;
+                g.drawOval((int) x, (int) y, (int) r, (int) r);
+            }
         }
-        g.setColor(Color.GREEN.brighter());
-        synchronized (obstacle) {
-            paintPoints(g, obstacle, 5);
-        }
+
+//        g.setColor(Color.BLACK);
+//        for (Shape s : obstacles) {
+//            g.draw(s);
+//        }
+
+        g.setStroke(defaultStroke);
     }
 
     public static void main(String[] args) {
+
         SimulationPanel p = new SimulationPanel();
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-        p.addRobot(new Robot());
-        p.addRobot(new Robot());
-    }
 
-    @Override
-    public void update(Device device, Robot robot) {
-        if (device instanceof IRProximitySensor) {
-            addObstacle(robot, ((IRProximitySensor) device).getDist() * 2);
-        }
-        if (device instanceof Compass) {
-            robot.setTheta(Math.toRadians(((Compass) device).getAlpha()));
-        }
+        Robot r = new Robot();
+        r.add(new IRProximitySensor());
+        r.setEnvironment(p.getEnv());
+        p.addRobot(r);
+
+        r = new Robot();
+        r.add(new IRProximitySensor());
+        r.setEnvironment(p.getEnv());
+        p.addRobot(r);
     }
 }
