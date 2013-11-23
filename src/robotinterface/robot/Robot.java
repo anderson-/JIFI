@@ -89,6 +89,11 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         public String getName() {
             return "Ciclo";
         }
+
+		@Override
+		public void resetState() {
+			stepTime = 0;
+		}
     }
     private Environment environment;
     private Perception perception;
@@ -116,6 +121,19 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
 
+    }
+    
+    
+    public void reset() {
+        x = 0;
+        y = 0;
+        theta = 0;
+        rightWheelSpeed = 0;
+        leftWheelSpeed = 0;
+        perception.clearPath();
+		for (Device d : devices)
+			d.resetState();
+		actions.clear();
     }
 
     public void updateObservers(Device d) {

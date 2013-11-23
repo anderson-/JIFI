@@ -274,4 +274,12 @@ public class Environment {
     public Iterator<Shape> obstaclesIterator() {
         return obstacles.iterator();
     }
+    
+    public void clearEnvironment() {
+        obstacleCircles.clear();
+        obstacleLines.clear();
+        obstacles.clear();
+        followLineLines.clear();
+        followLines.clear();
+    }
 }

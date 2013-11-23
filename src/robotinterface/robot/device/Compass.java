@@ -67,4 +67,9 @@ public class Compass extends Device implements VirtualDevice {
     public String getName() {
         return "Bussola";
     }
+
+    @Override
+    public void resetState() {
+        alpha = 0;
+    }
 }

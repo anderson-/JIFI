@@ -109,4 +109,9 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
     public String getName() {
         return "Distancia";
     }
+
+	@Override
+	public void resetState() {
+		dist = 0;
+	}
 }

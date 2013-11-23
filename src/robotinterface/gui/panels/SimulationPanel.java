@@ -479,6 +479,16 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        }
         g.setStroke(defaultStroke);
     }
+    
+    
+    public void resetSimulation() {
+      // remove as percepções dos robos e retorna-os para a posicao (0,0)
+      for(Robot r : robots) {
+        r.reset();
+      }
+      // limpa o ambiente
+      env.clearEnvironment();
+    }
 
     public static void main(String[] args) {
 

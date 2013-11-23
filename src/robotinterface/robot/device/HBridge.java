@@ -110,4 +110,10 @@ public class HBridge extends Device implements VirtualDevice {
     public String getName() {
         return "Motores";
     }
+
+	@Override
+	public void resetState() {
+		LeftWheelSpeed = 0;
+		RightWheelSpeed = 0;
+	}
 }

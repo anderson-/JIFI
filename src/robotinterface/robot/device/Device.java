@@ -28,6 +28,8 @@ public abstract class Device extends Message {
     public abstract void setState(ByteBuffer data);
 
     public abstract String stateToString();
+    
+    public abstract void resetState();
 
     /**
      * Define a mensagem padrão a ser enviada para o comando GET.

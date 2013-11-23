@@ -151,4 +151,10 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     public String getName() {
         return "Refletancia";
     }
+
+	@Override
+	public void resetState() {
+		for (int i = 0; i < 5; i++)	
+			values[i] = 0;
+	}
 }
