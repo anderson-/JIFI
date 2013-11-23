@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -249,6 +250,10 @@ public class RobotControlPanel extends JPanel {
         connectionComboBox.setSelectedIndex(index);
     }
 
+    public JComboBox getConnectionComboBox() {
+        return connectionComboBox;
+    }
+    
     public boolean tryConnect() {
         if (connected) {
             connected = false;

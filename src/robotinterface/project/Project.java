@@ -29,9 +29,10 @@ import robotinterface.interpreter.Interpreter;
  * @author antunes
  */
 public class Project {
-    
+
+    private static final String tmpdir = System.getProperty("java.io.tmpdir");
     public static final String FILE_EXTENSION = "proj";
-    
+
     public static void main(String[] args) {
 //        Project a = new Project("teste");
 //        a.save("teste.zip");
@@ -78,17 +79,20 @@ public class Project {
             for (Function f : functions) {
                 addFileToZip("functions", functionToFile(f), zip, false);
             }
-            
+
             addFolderToZip("", "environment", zip);
 
             {
                 File file = null;
                 try {
-                    file = new File("environment.env");
+                    //file = new File("environment.env");
+                    file = new File(tmpdir, "environment.env");
 
                     GUI.getInstance().getSimulationPanel().getEnv().saveFile(file);
 
                     addFileToZip("environment", file, zip, false);
+
+                    file.delete();
 
                 } catch (Exception e) {
                     //do stuff with exception
@@ -116,7 +120,8 @@ public class Project {
         File file = null;
         try {
             String str = Parser.encode(f);
-            file = new File(f.getName() + ".func");
+//            file = new File(f.getName() + ".func");
+            file = new File(tmpdir, f.getName() + ".func");
 
             FileWriter fw = new FileWriter(file);
             fw.write(str);
@@ -143,6 +148,7 @@ public class Project {
              * if the current name is directory, recursively traverse it
              * to get the files
              */
+
             if (file.isDirectory()) {
                 /*
                  * if folder is not empty
@@ -163,6 +169,7 @@ public class Project {
                     zip.write(buf, 0, len);
                 }
 
+                file.delete();
 //                if (file.delete()) {
 ////                    System.out.println(file.getName() + " is deleted!");
 //                } else {
@@ -209,12 +216,10 @@ public class Project {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
 //            System.out.println("open");
-            
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
-                
-//                System.out.println("*" + entry);
 
+//                System.out.println("*" + entry);
                 InputStream stream = zipFile.getInputStream(entry);
 
                 if (entry.getName().startsWith("functions/") && entry.getName().endsWith(".func")) {
@@ -224,7 +229,7 @@ public class Project {
                         functions.add(function);
                     }
                 }
-                
+
                 if (entry.getName().startsWith("environment/") && entry.getName().endsWith(".env")) {
 //                    System.out.println("Convertendo: " + entry);
                     GUI.getInstance().getSimulationPanel().getEnv().loadFile(stream);

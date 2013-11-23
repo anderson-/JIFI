@@ -19,7 +19,7 @@ import robotinterface.robot.device.IRProximitySensor;
  */
 public class Perception {
 
-    private static final int MAX_ARRAY = 500;
+    private static final int MAX_ARRAY = 1000;
     private final ArrayList<Point> path = new ArrayList<>();
     private final ArrayList<Point> distanceMap = new ArrayList<>();
 
@@ -30,13 +30,19 @@ public class Perception {
     }
 
     public void addObstacle(double x, double y, double theta, double d) {
-        if (d >= IRProximitySensor.MAX_DISTANCE-10){
+        if (d >= IRProximitySensor.MAX_DISTANCE - 10) {
             return;
         }
         x += d * cos(theta);
         y += d * sin(theta);
         synchronized (distanceMap) {
-            distanceMap.add(new Point((int) x, (int) y));
+            Point p = new Point((int) x, (int) y);
+            if (!distanceMap.isEmpty()) {
+                if (distanceMap.get(distanceMap.size() - 1).equals(p)) {
+                    return;
+                }
+            }
+            distanceMap.add(p);
             while (distanceMap.size() > MAX_ARRAY) {
                 distanceMap.remove(0);
             }
@@ -44,9 +50,17 @@ public class Perception {
     }
 
     public void addPathPoint(double x, double y) {
-        path.add(new Point((int) x, (int) y));
-        if (path.size() > MAX_ARRAY){
-            path.remove(0);
+        synchronized (path) {
+            Point p = new Point((int) x, (int) y);
+            if (!path.isEmpty()) {
+                if (path.get(path.size() - 1).equals(p)) {
+                    return;
+                }
+            }
+            path.add(new Point((int) x, (int) y));
+            if (path.size() > MAX_ARRAY) {
+                path.remove(0);
+            }
         }
     }
 

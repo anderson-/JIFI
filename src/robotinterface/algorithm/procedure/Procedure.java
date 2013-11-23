@@ -28,6 +28,7 @@ package robotinterface.algorithm.procedure;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
@@ -233,7 +234,10 @@ public class Procedure extends Command implements Expression, Classifiable {
 
     @Override
     public Item getItem() {
-        return new Item("Procedimento", new Rectangle2D.Double(0, 0, 20, 12), myColor);
+        Area myShape = new Area();
+        myShape.add(new Area(new Rectangle2D.Double(0, 0, 20, 12)));
+        myShape.subtract(new Area(new Rectangle2D.Double(4, 4, 12, 4)));
+        return new Item("Procedimento", myShape, myColor);
     }
 
     @Override

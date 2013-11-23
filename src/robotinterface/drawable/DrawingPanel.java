@@ -74,8 +74,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     protected long PAINT_DELAY = 2;
     protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
-    private static int tempTransformsSize = 10;
-    private static AffineTransform[] tempTransforms;
+    private final int tempTransformsSize = 6;
+    private AffineTransform[] tempTransforms;
+    private boolean[] tempTransformsInUse;
     private final ArrayList<Drawable> objects;
     private final ArrayList<Drawable> objectsTmp;
     private final ArrayList<Integer> keys;
@@ -89,9 +90,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     protected int width;
     protected int height;
     private int globalX = 0, globalY = 0;
-    private boolean zoomEnabled = true;
+    protected boolean zoomEnabled = true;
+    protected boolean midMouseButtonResetView = true;
     private double zoom = 1.0;
-    private boolean autoFullSize = false;
+    protected boolean autoFullSize = true;
     private Rectangle2D.Double bounds;
     //********** componente atual
     private AffineTransform originalTransform;
@@ -125,7 +127,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         objects = new ArrayList<>();
         keys = new ArrayList<>();
         tempTransforms = new AffineTransform[10];
-        for (int i = 0; i < tempTransformsSize; i++){
+        tempTransformsInUse = new boolean[10];
+        for (int i = 0; i < tempTransformsSize; i++) {
             tempTransforms[i] = new AffineTransform();
         }
         repaintThread = null;
@@ -163,7 +166,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     protected final void createBuffers() {
-        width = this.getWidth();
+        width = this.getWidth() - 200; //TODO: trocar listener para mainTabbedPane
         height = this.getHeight();
         //cria buffers no padrão do sistema (teoricamente mais eficiente)
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -275,6 +278,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         beginDrawing = true;
+
+        for (int i = 0; i < tempTransformsSize; i++) {
+            tempTransformsInUse[i] = false;
+        }
 
         objectsTmp.clear();
         synchronized (objects) {
@@ -412,14 +419,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseClicked(final MouseEvent e) {
-        if (e.getButton() != MouseEvent.BUTTON2) {
-            mouseClick = true;
-            mouseButton = e.getButton();
-            mouseClickCount = e.getClickCount();
-        } else {
+        mouseClick = true;
+        mouseButton = e.getButton();
+        mouseClickCount = e.getClickCount();
+        if (midMouseButtonResetView && e.getButton() == MouseEvent.BUTTON2) {
             zoom = 1;
-            globalX = 0;
-            globalY = 0;
+            globalX = width / 2;
+            globalY = height / 4;
         }
     }
 
@@ -742,16 +748,29 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             t.translate(-b.getX(), -b.getY());
         }
 
-        public AffineTransform getT(int i) {
-            i %= (tempTransformsSize+1);
-            tempTransforms[i].setToIdentity();
-            return tempTransforms[i];
+        public AffineTransform getT() {
+            for (int i = 0; i < tempTransformsSize; i++) {
+                if (!tempTransformsInUse[i]) {
+                    tempTransformsInUse[i] = true;
+                    tempTransforms[i].setToIdentity();
+                    return tempTransforms[i];
+                }
+            }
+            throw new NullPointerException("Sem mais transformações!");
         }
-        
-        public AffineTransform getT(int i, AffineTransform toCopy) {
-            i %= (tempTransformsSize+1);
-            tempTransforms[i].setTransform(toCopy);
-            return tempTransforms[i];
+
+        public AffineTransform getT(AffineTransform toCopy) {
+            AffineTransform t = getT();
+            t.setTransform(toCopy);
+            return t;
+        }
+
+        public void done(AffineTransform t) {
+            for (int i = 0; i < tempTransformsSize; i++) {
+                if (tempTransforms[i] == t) {
+                    tempTransformsInUse[i] = false;
+                }
+            }
         }
     }
 

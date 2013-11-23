@@ -94,10 +94,11 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        AffineTransform t = ga.getT(0, g.getTransform());
+        AffineTransform t = ga.getT(g.getTransform());
         g.setTransform(t);
         g.setColor(new Color(.1f, 1f, .1f, 0.5f));
         g.fillRect(30, -5, (int) (dist * 2), 10);
+        ga.done(t);
     }
 
     @Override

@@ -41,7 +41,7 @@ public class Environment {
     private final ArrayList<double[]> obstacleCircles = new ArrayList<>();
     private final ArrayList<double[]> obstacleLines = new ArrayList<>();
     private final ArrayList<double[]> followLineLines = new ArrayList<>();
-    private static Color obstacleColor = Color.decode("#BA9C3A");
+    private static final Color obstacleColor = Color.decode("#BA9C3A");
 
     public static Color getObstacleColor() {
         return obstacleColor;
@@ -61,6 +61,21 @@ public class Environment {
     public void addFollowLine(double[] line) {
         followLineLines.add(line);
         followLines.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
+    }
+    
+    public void removeObstacleLine(Shape s) {
+        int i = obstacleLines.indexOf(s);
+        if (i != -1){
+            obstacleLines.remove(i);
+        }
+    }
+    
+    public void removeFollowLine(Shape s) {
+        int i = followLines.indexOf(s);
+        System.out.println(i);
+        if (i != -1){
+            followLineLines.remove(i);
+        }
     }
 
     public void saveFile(File file) throws IOException {
@@ -159,7 +174,6 @@ public class Environment {
         double x2 = x + IRProximitySensor.MAX_DISTANCE * cos(theta);
         double y2 = y + IRProximitySensor.MAX_DISTANCE * sin(theta);
         Line2D.Double line = new Line2D.Double(x, y, x2, y2);
-        boolean insideShape = false;
         boolean isInsideShape = false;
         boolean end = false;
         Point2D p;
@@ -184,7 +198,7 @@ public class Environment {
                     }
                 }
             } else {
-                insideShape = s.contains(x, y);
+                boolean insideShape = s.contains(x, y);
                 if (insideShape) {
                     if (end) {
                         continue;

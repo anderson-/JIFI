@@ -146,6 +146,8 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 JComboBox combobox = new JComboBox();
                 boolean num = true;
 
+                MutableWidgetContainer.setAutoFillComboBox(combobox, w);
+                
                 if (data != null) {
                     if (data instanceof Wait) {
                         Wait w = (Wait) data;
@@ -158,8 +160,6 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                         }
                     }
                 }
-
-                MutableWidgetContainer.setAutoFillComboBox(combobox, w);
 
                 final JButton changeButton1 = new JButton();
                 ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
@@ -260,6 +260,16 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         };
 
         return dcb;
+    }
+    
+    @Override
+    public Procedure copy(Procedure copy) {
+        super.copy(copy);
+        if (copy instanceof Wait){
+            ((Wait)copy).delay = delay;
+            ((Wait)copy).var = var;
+        }
+        return copy;
     }
 
     private static void updateWait(String args, Wait w) {

@@ -27,7 +27,6 @@ package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
 import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -35,29 +34,24 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
-import robotinterface.robot.connection.Connection;
-import robotinterface.robot.device.Device;
 import robotinterface.util.trafficsimulator.Timer;
 import robotinterface.robot.Robot;
 import static java.lang.Math.*;
 import java.util.Iterator;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.gui.panels.sidepanel.SidePanel;
-import robotinterface.plugin.PluginManager;
-import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.robot.simulation.Environment;
-import robotinterface.robot.simulation.Perception;
 import robotinterface.util.LineIterator;
-import robotinterface.util.observable.Observer;
 
 /**
  * Painel da simulação do robô. <### EM DESENVOLVIMENTO ###>
@@ -65,8 +59,10 @@ import robotinterface.util.observable.Observer;
 public class SimulationPanel extends DrawingPanel implements Serializable {
 
     public static final Item ITEM_LINE;
+    public static final Item ITEM_LINE_POLI;
     public static final Item ITEM_OBSTACLE_LINE;
     public static final Item ITEM_CILINDER;
+    public static final Item ITEM_OBSTACLE_POLI;
     public static final Item ITEM_REMOVE_LINE;
 
     static {
@@ -96,16 +92,63 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         myShape.subtract(new Area(tmpElipse));
 
         ITEM_CILINDER = new Item("Cilindro", myShape, Environment.getObstacleColor());
-        ITEM_LINE = new Item("Fita Adesiva", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY);
+
+        myShape = new Area();
+        tmpShape = new Polygon();
+        tmpShape.reset();
+        tmpShape.addPoint(0, 20);
+        tmpShape.addPoint(10, 0);
+        tmpShape.addPoint(20, 20);
+        myShape.add(new Area(tmpShape));
+        tmpShape.reset();
+        tmpShape.addPoint(5, 17);
+        tmpShape.addPoint(10, 6);
+        tmpShape.addPoint(15, 17);
+        myShape.exclusiveOr(new Area(tmpShape));
+
+        ITEM_OBSTACLE_POLI = new Item("Parede Fechada", myShape, Environment.getObstacleColor());
+        ITEM_LINE = new Item("Linha", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY);
+        ITEM_LINE_POLI = new Item("Linha Fechada", myShape, Color.DARK_GRAY);
         ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor());
     }
     private final ArrayList<Robot> robots = new ArrayList<>();
     private Environment env = new Environment();
     private Item itemSelected;
     private Point2D.Double point = null;
+    private final Ellipse2D.Double circle = new Ellipse2D.Double();
+    private final Ellipse2D.Double dot = new Ellipse2D.Double();
+    private final Line2D.Double radius = new Line2D.Double();
+    private int poliSegments = 6;
     SidePanel sp;
 
+    public static Shape create(int i, double x, double y, double r, Path2D.Double poly) {
+
+        if (poly == null) {
+            poly = new Path2D.Double();
+        } else {
+            poly.reset();
+        }
+
+        double alpha = 1;
+        double theta = (2 * Math.PI) / i;
+        double tx = x + r * cos(alpha);
+        double ty = y + r * sin(alpha);
+
+        poly.moveTo(tx, ty);
+
+        for (int j = 0; j < i; j++) {
+            alpha += theta;
+            tx = x + r * cos(alpha);
+            ty = y + r * sin(alpha);
+            poly.lineTo((int) tx, (int) ty);
+        }
+
+        return poly;
+    }
+
     public SimulationPanel() {
+        
+        super.midMouseButtonResetView = false;
 
         sp = new SidePanel() {
             @Override
@@ -120,13 +163,15 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
         sp.setColor(Color.decode("#9DCA1D"));//FF7070
         sp.add(ITEM_LINE);
+        sp.add(ITEM_LINE_POLI);
         sp.add(ITEM_OBSTACLE_LINE);
-        sp.add(ITEM_CILINDER);
+        sp.add(ITEM_OBSTACLE_POLI);
+//        sp.add(ITEM_CILINDER);
         sp.add(ITEM_REMOVE_LINE);
         add(sp);
 
         //mapeia a posição a cada x ms
-        Timer timer = new Timer(1000) {
+        Timer timer = new Timer(500) {
             ArrayList<Robot> tmpBots = new ArrayList<>();
 
             @Override
@@ -140,12 +185,11 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     if (robot.getLeftWheelSpeed() != 0 && robot.getRightWheelSpeed() != 0) {
                         robot.updateVirtualPerception();
                     }
-                    
+
 //                    robot.setRightWheelSpeed(30);
 //                    robot.setLeftWheelSpeed(-30);
 //                    System.out.println(robot.getPosX());
 //                    System.out.println(Math.toDegrees(robot.getTheta()));
-
                     if (this.getCount() % 20 == 0) {
 //                        robot.setRightWheelSpeed(Math.random() * 100);
 //                        robot.setLeftWheelSpeed(Math.random() * 100);
@@ -188,33 +232,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         return robots;
     }
 
-//    private void addObstacle(Robot robot, double d) {
-//        double tx = robot.getObjectBouds().x + d * cos(robot.getTheta());
-//        double ty = robot.getObjectBouds().y + d * sin(robot.getTheta());
-//        synchronized (obstacle) {
-//            obstacle.add(new Point((int) tx, (int) ty));
-//            while (obstacle.size() > MAX_ARRAY) {
-//                obstacle.remove(0);
-//            }
-//        }
-//    }
-//    public final void add(Robot r) {
-//        add((GraphicObject) r);
-//        for (Device d : r.getDevices()) {
-//            if (d instanceof GraphicObject) {
-//                add((GraphicObject) d);
-//            }
-//        }
-//        for (Connection c : r.getConnections()) {
-//            add((GraphicObject) c);
-//        }
-//    }
-    private void paintPoints(Graphics2D g, List<Point> points, int size) {
-        for (Point p : points) {
-            g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
-        }
-    }
-
     @Override
     public int getDrawableLayer() {
         return DrawingPanel.BACKGROUND_LAYER | DrawingPanel.DEFAULT_LAYER | DrawingPanel.TOP_LAYER;
@@ -231,6 +248,17 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         if (sp.getObjectBouds().contains(in.getMouse())) {
             return;
         }
+
+        if (in.isKeyPressed(KeyEvent.VK_CONTROL) && (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI)) {
+            zoomEnabled = false;
+            int wr = -in.getMouseWheelRotation();
+            if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
+                poliSegments += wr;
+            }
+        } else {
+            zoomEnabled = true;
+        }
+
         if (itemSelected != null) {
             if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
                 if (in.mouseClicked()) {
@@ -247,6 +275,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                                     Shape s = it.next();
                                     if (s instanceof Line2D.Double) {
                                         if (((Line2D.Double) s).intersectsLine(line)) {
+                                            env.removeFollowLine(s);
                                             it.remove();
                                         }
                                     } else {
@@ -265,6 +294,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                                     Shape s = it.next();
                                     if (s instanceof Line2D.Double) {
                                         if (((Line2D.Double) s).intersectsLine(line)) {
+                                            env.removeObstacleLine(s);
                                             it.remove();
                                         }
                                     } else {
@@ -282,6 +312,42 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                                 return;
                             }
 
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            } else if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
+                boolean obstacle = (itemSelected == ITEM_OBSTACLE_POLI);
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            Point point2 = in.getTransformedMouse();
+                            double r = point.distance(point2);
+                            double alpha = Math.atan2(point2.y - point.y, point2.x - point.x);
+                            double theta = (2 * Math.PI) / poliSegments;
+                            double ix = point.x + r * cos(alpha);
+                            double iy = point.y + r * sin(alpha);
+                            double ox = ix;
+                            double oy = iy;
+                            double tx;
+                            double ty;
+
+                            for (int i = 0; i < poliSegments; i++) {
+                                alpha += theta;
+                                tx = point.x + r * cos(alpha);
+                                ty = point.y + r * sin(alpha);
+                                if (obstacle) {
+                                    env.addObstacleLine(new double[]{ox, oy, tx, ty});
+                                } else {
+                                    env.addFollowLine(new double[]{ox, oy, tx, ty});
+                                }
+                                ox = tx;
+                                oy = ty;
+                            }
+                            point = null;
+                            return;
                         }
                         point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
                     } else {
@@ -319,9 +385,14 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
-
         synchronized (robots) {
             for (Robot robot : robots) {
+
+                if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
+                    robot.setLocation(0, 0);
+                    robot.setTheta(0);
+                }
+
 //                System.out.println("eee");
                 double v1 = robot.getLeftWheelSpeed();
                 double v2 = robot.getRightWheelSpeed();
@@ -344,14 +415,16 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     g.setStroke(dashedStroke); //linha pontilhada
                     //desenha o circulo
                     g.setColor(Color.gray);
-                    g.drawOval((int) (x - r), (int) (y - r), (int) r * 2, (int) r * 2);
+                    circle.setFrame(x - r, y - r, r * 2, r * 2);
+                    g.draw(circle);
                     //desenha o raio
                     g.setColor(Color.magenta);
-                    g.drawLine((int) robot.getObjectBouds().x, (int) robot.getObjectBouds().y, (int) x, (int) y);
+                    radius.setLine(robot.getObjectBouds().x, robot.getObjectBouds().y, x, y);
+                    g.draw(radius);
                     g.setStroke(defaultStroke); //fim da linha pontilhada
                     //desenha o centro
-                    g.fillOval((int) (x - 3), (int) (y - 3), 6, 6);
-//                    System.out.println("asd");
+                    dot.setFrame(x - 3, y - 3, 6, 6);
+                    g.fill(dot);
                 }
             }
         }
@@ -364,20 +437,39 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        synchronized (obstacle) {
 //            paintPoints(g, obstacle, 5);
 //        }
-
 //        per.draw(g);
-
         g.setStroke(new BasicStroke(5));
 
         if (point != null) {
             if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
                 g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
-            } else {
+            } else if (itemSelected == ITEM_CILINDER) {
                 double r = point.distance(in.getTransformedMouse());
                 double x = point.x - r;
                 double y = point.y - r;
                 r *= 2;
                 g.drawOval((int) x, (int) y, (int) r, (int) r);
+            } else if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
+                Point point2 = in.getTransformedMouse();
+                double r = point.distance(point2);
+                double alpha = Math.atan2(point2.y - point.y, point2.x - point.x);
+                double theta = (2 * Math.PI) / poliSegments;
+                double ix = point.x + r * cos(alpha);
+                double iy = point.y + r * sin(alpha);
+                double ox = ix;
+                double oy = iy;
+                double tx;
+                double ty;
+
+                for (int i = 0; i < poliSegments; i++) {
+                    alpha += theta;
+                    tx = point.x + r * cos(alpha);
+                    ty = point.y + r * sin(alpha);
+                    g.drawLine((int) ox, (int) oy, (int) tx, (int) ty);
+                    ox = tx;
+                    oy = ty;
+                }
+//                g.drawLine((int) ix, (int) iy, (int) ox, (int) oy);
             }
         }
 
@@ -385,7 +477,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        for (Shape s : obstacles) {
 //            g.draw(s);
 //        }
-
         g.setStroke(defaultStroke);
     }
 

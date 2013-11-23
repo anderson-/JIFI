@@ -40,13 +40,13 @@ public abstract class Action extends Message {
         buffer.clear();
         putMessage(buffer, robot);
         buffer.flip();
+        setWaiting();
         send(buffer);
         running = false;
         done = false;
-        setWaiting();
         if (!singleMessage){
-            run(this, robot); //espera confimação do comando
             setWaiting(Long.MAX_VALUE); //espera terminar a ação
+            run(this, robot); //espera confimação do comando
         }
     }
 

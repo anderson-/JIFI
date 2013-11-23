@@ -10,6 +10,8 @@ import robotinterface.gui.panels.sidepanel.SidePanel;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -136,6 +138,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         Command cmd = interpreter.getCurrentCommand();
         if (interpreter.getInterpreterState() == Interpreter.STOP) {
             executionCommand = null;
+        } else if (interpreter.getTimestep() < 20) {
+            executionCommand = interpreter.getMainFunction().getDrawableResource();
         } else {
             if (cmd instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
@@ -147,7 +151,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
         if (executionCommand != null) {
             AffineTransform o = g.getTransform();
-            AffineTransform n = ga.getT(0, o);
+            AffineTransform n = ga.getT(o);
             ga.applyGlobalPosition(n);
             ga.applyZoom(n);
             g.setTransform(n);
@@ -156,6 +160,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             g.fill(executionCommand.getObjectShape());
             g.draw(executionCommand.getObjectShape());
             g.setTransform(o);
+            ga.done(n);
         }
 
         if (tmp != null) {
@@ -166,63 +171,69 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             }
 
             if (in.mouseGeneralClick()) {
-                tmpi++;
-                Point p = in.getTransformedMouse();
-                Command c = function.find(p);
+                if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                    tmpi++;
+                    Point p = in.getTransformedMouse();
+                    Command c = function.find(p);
 
-                boolean addNext = true;
-                if (tmpi == 2) {
-                    if (c != null) {
+                    boolean addNext = true;
+                    if (tmpi == 2) {
+                        if (c != null) {
 
-                        if (c instanceof Function) {
-                            c = ((Function) c).get(0);
-                        }
+                            if (c instanceof Function) {
+                                c = ((Function) c).get(0);
+                            }
 
-                        if (c instanceof GraphicResource) {
-                            GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                            if (d != null) {
-                                g.draw(d.getObjectShape());
+                            if (c instanceof GraphicResource) {
+                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                                if (d != null) {
+                                    g.draw(d.getObjectShape());
 
-                                //alterar usando fIx e fIy
-                                if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
-                                    addNext = true;
-                                } else {
-                                    addNext = false;
+                                    //alterar usando fIx e fIy
+                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
+                                        addNext = true;
+                                    } else {
+                                        addNext = false;
+                                    }
+
                                 }
-
                             }
-                        }
-                        Command n = tmp;
+                            Command n = tmp;
 
-                        if (n instanceof GraphicResource) {
-                            GraphicObject d = ((GraphicResource) n).getDrawableResource();
-                            if (d != null) {
-                                this.add(d);
+                            if (n instanceof GraphicResource) {
+                                GraphicObject d = ((GraphicResource) n).getDrawableResource();
+                                if (d != null) {
+                                    this.add(d);
+                                }
                             }
-                        }
 
-                        pushUndo();
-                        redo.clear();
-                        
-                        interpreter.setInterpreterState(Interpreter.STOP);
+                            pushUndo();
+                            redo.clear();
 
-                        if (addNext) {
-                            c.addAfter(tmp);
-                        } else {
-                            c.addBefore(tmp);
-                        }
+                            interpreter.setInterpreterState(Interpreter.STOP);
 
-                        if (c instanceof DummyBlock) {
-                            removeGraphicResources(c);
-                        }
+                            if (addNext) {
+                                c.addAfter(tmp);
+                            } else {
+                                c.addBefore(tmp);
+                            }
 
-                        selection.clear();
-                        selection.add(tmp);
+                            if (c instanceof DummyBlock) {
+                                removeGraphicResources(c);
+                            }
 
-                        ident(function);
+                            selection.clear();
+                            selection.add(tmp);
+
+                            ident(function);
 //                    function.wire(fj, fk, fIx, fIy, fsi);
 //                System.out.println(c);
+                        }
+                        tmp = null;
+                        itmp = null;
+                        tmpi = 0;
                     }
+                } else {
                     tmp = null;
                     itmp = null;
                     tmpi = 0;
@@ -364,7 +375,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             keyActionUsed = false;
         }
 
-        if (in.mouseGeneralClick()) {
+        if (in.mouseGeneralClick() && in.getMouseButton() == MouseEvent.BUTTON1) {
             Point p = in.getTransformedMouse();
             Command c = function.find(p);
 
@@ -376,8 +387,12 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                         selection.add(0, c);
                     }
                 } else {
-                    selection.clear();
-                    selection.add(c);
+                    if (selection.contains(c)) {
+                        selection.clear();
+                    } else {
+                        selection.clear();
+                        selection.add(c);
+                    }
                 }
             } else {
                 selection.clear();

@@ -6,24 +6,47 @@ package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
 import robotinterface.robot.Robot;
+import robotinterface.robot.simulation.VirtualConnection;
+import robotinterface.robot.simulation.VirtualDevice;
 
 /**
  *
  * @author antunes
  */
-public class Compass extends Device {
+public class Compass extends Device implements VirtualDevice {
 
-    int alpha = 0;
+    private int alpha = 0;
 
     @Override
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
 //        System.out.println("Angulo:" + alpha);
     }
-    
+
+    @Override
+    public void getState(ByteBuffer buffer, Robot robot) {
+        buffer.put((byte) 2);
+        char d = (char) Math.toDegrees(robot.getTheta());
+        buffer.putChar(d);
+    }
+
+    @Override
+    public void setState(ByteBuffer data, Robot robot) {
+        int tmpAlpha = alpha;
+        setState(data);
+        if (tmpAlpha == alpha) {
+            alpha = (int) Math.toDegrees(robot.getTheta());
+        }
+
+    }
+
     @Override
     public void updateRobot(Robot robot) {
-        robot.setTheta(Math.toRadians(alpha));
+        if (robot.getMainConnection() instanceof VirtualConnection) {
+            if (((VirtualConnection) robot.getMainConnection()).serial()) {
+                robot.setTheta(Math.toRadians(alpha));
+            }
+        }
     }
 
     @Override

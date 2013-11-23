@@ -293,6 +293,17 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public String getToken() {
         return "rotate";
     }
+    
+    
+    @Override
+    public Procedure copy(Procedure copy) {
+        super.copy(copy);
+        if (copy instanceof Rotate){
+            ((Rotate)copy).angle = angle;
+            ((Rotate)copy).var = var;
+        }
+        return copy;
+    }
 
     private static void updateRotate(String str, Rotate m) {
         String[] argv = str.split(",");

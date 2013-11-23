@@ -160,7 +160,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 //                m.var = varName;
 //            }
 //        });
-
         final int TEXTFIELD_WIDTH = 100;
         final int TEXTFIELD_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
@@ -168,7 +167,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         final int INSET_Y = 5;
 
         //HEADER LINE
-
         int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + TEXTFIELD_WIDTH + 64;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
@@ -186,7 +184,9 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                             comboboxVar.setSelectedItem(rd.var);
                         }
 
-                        comboboxDev.setSelectedItem(rd.deviceName);
+                        if (rd.deviceName != null) {
+                            comboboxDev.setSelectedItem(rd.deviceName);
+                        }
                     }
                 }
 
@@ -236,7 +236,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 String varName = (String) comboboxVar.getSelectedItem();
                 rd.var = varName;
 
-                return "read(" + rd.deviceName + "," + rd.var + ")";
+                return rd.toString();
             }
         };
 
@@ -245,18 +245,29 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     private static void updateReadDevice(String args, ReadDevice rd) {
         String[] argv = args.split(",");
-        if (argv.length == 2) {
+        if (argv.length == 1) {
+            argv[0] = argv[0].trim();
+            rd.deviceName = argv[0];
+            rd.var = null;
+        } else if (argv.length == 2) {
             argv[0] = argv[0].trim();
             argv[1] = argv[1].trim();
             rd.deviceName = argv[0];
             rd.var = argv[1];
+        } else {
+            rd.deviceName = null;
+            rd.var = null;
         }
     }
 
     @Override
     public String toString() {
-        if (var != null && type != null) {
-            return "read(" + deviceName + ", " + var + ")";
+        if (deviceName != null) {
+            if (var != null) {
+                return "read(" + deviceName + "," + var + ")";
+            } else {
+                return "read(" + deviceName + ")";
+            }
         } else {
             return "read()";
         }
@@ -265,34 +276,32 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     @Override
     public Item getItem() {
         Area myShape = new Area();
-        
+
         Polygon tmpShape = new Polygon();
         tmpShape.addPoint(0, 0);
         tmpShape.addPoint(20, 0);
         tmpShape.addPoint(10, 18);
         myShape.add(new Area(tmpShape));
-        
+
 //        tmpShape.reset();
 //        tmpShape.addPoint(0, 3);
 //        tmpShape.addPoint(20, 3);
 //        tmpShape.addPoint(20, 7);
 //        tmpShape.addPoint(0, 7);
 //        myShape.exclusiveOr(new Area(tmpShape));
-        
 //        tmpShape.reset();
 //        tmpShape.addPoint(0, 11);
 //        tmpShape.addPoint(20, 11);
 //        tmpShape.addPoint(20, 15);
 //        tmpShape.addPoint(0, 15);
 //        myShape.exclusiveOr(new Area(tmpShape));
-        
         tmpShape.reset();
         tmpShape.addPoint(0, 10);
         tmpShape.addPoint(20, 10);
         tmpShape.addPoint(20, 20);
         tmpShape.addPoint(0, 20);
         myShape.exclusiveOr(new Area(tmpShape));
-        
+
 //        tmpShape.reset();
 //        tmpShape.addPoint(0, 3);
 //        tmpShape.addPoint(20, 3);
@@ -313,8 +322,17 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 //        tmpShape.addPoint(20, 15);
 //        tmpShape.addPoint(0, 15);
 //        myShape.subtract(new Area(tmpShape));
-        
         return new Item("Ler Sensor", myShape, myColor);
+    }
+
+    @Override
+    public Procedure copy(Procedure copy) {
+        super.copy(copy);
+        if (copy instanceof ReadDevice){
+            ((ReadDevice)copy).deviceName = deviceName;
+            ((ReadDevice)copy).var = var;
+        }
+        return copy;
     }
 
     @Override

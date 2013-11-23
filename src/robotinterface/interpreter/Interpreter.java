@@ -90,7 +90,7 @@ public class Interpreter extends Thread {
         parser.initSymTab(); // clear the contents of the symbol table
         parser.addStandardConstants();
         parser.setAllowAssignment(true);
-        if (robot != null && robot.getMainConnection() != null){
+        if (robot != null && robot.getMainConnection() != null) {
             robot.stopAll();
         }
     }
@@ -109,6 +109,11 @@ public class Interpreter extends Thread {
         if (state == STOP) {
             reset();
         }
+
+        if (state != PLAY && robot != null) {
+            robot.setRightWheelSpeed(0);
+            robot.setLeftWheelSpeed(0);
+        }
     }
 
     public int getInterpreterState() {
@@ -123,6 +128,10 @@ public class Interpreter extends Thread {
         this.timestep = timestep;
     }
 
+    public int getTimestep() {
+        return timestep;
+    }
+
     public boolean step() {
 
         if (currentCmd == null) {
@@ -132,7 +141,6 @@ public class Interpreter extends Thread {
         clock.setPaused(false);
 
         //System.out.println(currentCmd); //exibe o comando atual
-
         try {
             if (currentCmd instanceof Procedure) {
                 ((Procedure) currentCmd).setParser(parser);
@@ -193,7 +201,6 @@ public class Interpreter extends Thread {
         Interpreter i = new Interpreter();
         i.setRobot(r);
 
-
 //        f.add(new Cmd("a"));
 //        f.add(new Cmd("b"));
 //        If fi = new If();
@@ -218,7 +225,6 @@ public class Interpreter extends Thread {
 //        
 //        l1.addAfter(new Cmd("j0"));
 //        l1.addBefore(new Cmd("e0"));
-
 //        f.add(new Start());
 //
 //        Loop l = new Loop();
@@ -231,7 +237,6 @@ public class Interpreter extends Thread {
 //        f.add(l);
 //        f.add(new Stop());
 //        i.setMainFunction(f);
-
 //        Function func = new Function("main", null);
 //        func.add(new PrintString("inicio"));
 //        func.add(new Declaration("i", 3));
@@ -249,7 +254,6 @@ public class Interpreter extends Thread {
 //        func.add(new PrintString("v = %v","j"));
 //        func.add(new PrintString("fim"));
 //        i.setMainFunction(func);
-
         ArrayList<Class<? extends Device>> aw = new ArrayList<>();
         aw.add(HBridge.class);
         aw.add(Compass.class);
@@ -291,11 +295,9 @@ public class Interpreter extends Thread {
 //        func.add(new PrintString("fim"));
 //        func.add(new Declaration("i", new Vector<Object>(Arrays.asList(new Double[]{1.2,3.4}))));
 
-
 //        func.add(new PrintString("inicio"));
 //        func.add(new FunctionBlock(bubbleSort(10, false)));
 //        func.add(new PrintString("fim"));
-
         func = newTestFunction();
         i.setMainFunction(func);
 
@@ -306,13 +308,8 @@ public class Interpreter extends Thread {
 //        func.wire(40, 100, 0, 1, singleIdent);
 //        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
 //        func.appendDCommandsOn(p);
-
-
 //        System.out.println(Function.getBounds(ifCompass, null, 10, 100, 1, 1, true));
-
 //        System.out.println(Function.getBounds(new Wait(1), null, 10,10,0));
-
-
         SimulationPanel p = new SimulationPanel();
         p.addRobot(r);
         r.setEnvironment(p.getEnv());
@@ -334,11 +331,9 @@ public class Interpreter extends Thread {
 ////            } catch (InterruptedException ex) {
 ////            }
 //        }
-
         System.out.println(Parser.encode(func));
 
 //        System.exit(0);
-
     }
 
     public static Function bubbleSort(int size, boolean rand) {
@@ -370,14 +365,12 @@ public class Interpreter extends Thread {
 //        func.add(new Declaration("v", 1));
 
 //        func.add(new DummyBlock());
-
         func.add(new PrintString("Antes:"));
         While loopP0 = new While("i < size");
         loopP0.add(new Procedure("v = V[i]"));
         loopP0.add(new PrintString("V[%v]: %v", "i", "v"));
         loopP0.add(new Procedure("i = i + 1"));
         func.add(loopP0);
-
 
         func.add(new Procedure("k = size-1"));
 
@@ -392,9 +385,7 @@ public class Interpreter extends Thread {
 //        cond.addTrue(new Procedure("aux = V[j]"));
 //        cond.addTrue(new Procedure("V[j] = V[j+1]"));
 //        cond.addTrue(new Procedure("V[j+1] = aux"));
-
         cond.addTrue(new Procedure("aux = V[j];V[j] = V[j+1];V[j+1] = aux;"));
-
 
         loopJ.add(cond);
         loopJ.add(new Procedure("j = j + 1"));
@@ -452,7 +443,6 @@ public class Interpreter extends Thread {
 //        ifCompass2.addFalse(new Move(-55, 55));
 //        ifCompass2.addFalse(new PrintString("Girando para a direita"));
 //        ifCompass.addFalse(ifCompass2);
-
 //
 //        If ifCompass3 = new If("alpha > 100");
 //        ifCompass3.addTrue(new Move(55, -55));
@@ -460,8 +450,6 @@ public class Interpreter extends Thread {
 //        ifCompass3.addFalse(new Move(-55, 55));
 //        ifCompass3.addFalse(new PrintString("Girando para a direita"));
 //        ifCompass2.addTrue(ifCompass3);
-
-
         loopCompass.add(ifCompass);
         loopCompass.add(new ReadDevice(Compass.class, "alpha"));
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import javax.swing.UIManager;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -35,6 +36,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.gui.panels.FlowchartPanel;
@@ -68,6 +70,7 @@ public class GUI extends javax.swing.JFrame {
 
     static {
     }
+    private final boolean allowMainTabbedPaneStateChanged;
 
     private GUI() {
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
@@ -80,8 +83,6 @@ public class GUI extends javax.swing.JFrame {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
-
-        mainTabbedPaneStateChanged(null);
 
         JTextPane console = new JTextPane();
         consolePanel.setLayout(new GridLayout());
@@ -156,6 +157,8 @@ public class GUI extends javax.swing.JFrame {
 ////            System.out.println(Parser.encode(f));
 //        }
         updateRobotList();
+        allowMainTabbedPaneStateChanged = true;
+        mainTabbedPaneStateChanged(null);
     }
 
     public SimulationPanel getSimulationPanel() {
@@ -184,9 +187,11 @@ public class GUI extends javax.swing.JFrame {
             Connection c = r.getMainConnection();
             if (c == null || !c.isConnected()) {
                 if (ask) {
-                    int returnVal = JOptionPane.showConfirmDialog(this, "O Robô selecionado ainda não está conectado, \nquer que eu crie uma conexão virtual para você?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                    if (returnVal == JOptionPane.NO_OPTION) {
-                        return false;
+                    if (rcp.getConnectionComboBox().getItemCount() >= 2) {
+                        int returnVal = JOptionPane.showConfirmDialog(this, "O Robô selecionado ainda não está conectado, \nquer que eu crie uma conexão virtual para você?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                        if (returnVal == JOptionPane.NO_OPTION) {
+                            return false;
+                        }
                     }
                 }
                 rcp.setConnection(0);
@@ -200,7 +205,7 @@ public class GUI extends javax.swing.JFrame {
                 interpreter.setRobot(r);
             }
         } else if (o == null) {
-            int returnVal = JOptionPane.showConfirmDialog(this, "Nenhum robô está seleionado, quer que eu crie um?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int returnVal = JOptionPane.showConfirmDialog(this, "Nenhum robô está selecionado, quer que eu crie um?", "Executar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (returnVal == JOptionPane.YES_OPTION) {
                 robotManager.createRobot();
                 setDefaultRobot(interpreter, false);
@@ -561,11 +566,20 @@ public class GUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
-        System.gc();
+        if (!allowMainTabbedPaneStateChanged) {
+            return;
+        }
 
-        Component c = mainTabbedPane.getSelectedComponent();
+        System.gc();
+        Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
 
+        if (cmp == simulationPanel) {
+            simulationPanel.play();
+        } else {
+            simulationPanel.pause();
+        }
+        
         dynamicToolBar.removeAll();
 
         for (Component cc : dynamicTabbedPane.getComponents()) {
@@ -574,27 +588,26 @@ public class GUI extends javax.swing.JFrame {
             }
         }
 
-        if (c == addNewCodePanel) {
+        if (cmp == addNewCodePanel) {
             //adicionando uma nova aba
             FlowchartPanel fp = new FlowchartPanel(new Function());
             mainProject.getFunctions().add(fp.getFunction());
             mapFC.add(fp);
             add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            return;
         } else {
-            if (c instanceof TabController) {
-                for (JPanel p : ((TabController) c).getTabs()) {
+            if (cmp instanceof TabController) {
+                for (JPanel p : ((TabController) cmp).getTabs()) {
                     dynamicTabbedPane.addTab(p.getName(), p);
                 }
 
-                for (JComponent jc : ((TabController) c).getToolBarComponents()) {
+                for (JComponent jc : ((TabController) cmp).getToolBarComponents()) {
                     dynamicToolBar.add(jc);
                 }
             }
         }
 
-        Component cmp = mainTabbedPane.getSelectedComponent();
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
             updateControlBar(interpreter);
@@ -618,6 +631,7 @@ public class GUI extends javax.swing.JFrame {
             for (KeyListener l : getKeyListeners()) {
                 removeKeyListener(l);
             }
+//            System.out.println("addKeyListener:" + cmp);
             addKeyListener((KeyListener) cmp);
         }
 
@@ -626,6 +640,7 @@ public class GUI extends javax.swing.JFrame {
                 removeComponentListener(l);
             }
             addComponentListener((ComponentListener) cmp);
+            ((ComponentListener) cmp).componentResized(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
         }
 
         if (cmp instanceof FlowchartPanel) {
@@ -828,7 +843,7 @@ public class GUI extends javax.swing.JFrame {
             return;
         }
 
-        int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir?", "Excluir", JOptionPane.YES_NO_OPTION);
+        int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir esse programa?", "Excluir", JOptionPane.YES_NO_OPTION);
 
         if (returnVal == JOptionPane.YES_OPTION) {
 
@@ -874,25 +889,28 @@ public class GUI extends javax.swing.JFrame {
     }
 
     public void updateControlBar(Interpreter interpreter) {
-
         if (interpreter.getInterpreterState() == Interpreter.PLAY) {
             //play
             runButton.setEnabled(false);
             stepButton.setEnabled(false);
             pauseButton.setEnabled(true);
             stopButton.setEnabled(true);
-        } else if (!interpreter.getCurrentCommand().equals(interpreter.getMainFunction())) {
-            //pause
-            runButton.setEnabled(true);
-            stepButton.setEnabled(true);
-            pauseButton.setEnabled(false);
-            stopButton.setEnabled(true);
         } else {
-            //stop
-            runButton.setEnabled(true);
-            stepButton.setEnabled(true);
-            pauseButton.setEnabled(false);
-            stopButton.setEnabled(false);
+            Command currentCommand = interpreter.getCurrentCommand();
+            Function function = interpreter.getMainFunction();
+            if (currentCommand != function) {
+                //pause
+                runButton.setEnabled(true);
+                stepButton.setEnabled(true);
+                pauseButton.setEnabled(false);
+                stopButton.setEnabled(true);
+            } else {
+                //stop
+                runButton.setEnabled(true);
+                stepButton.setEnabled(true);
+                pauseButton.setEnabled(false);
+                stopButton.setEnabled(false);
+            }
         }
         jSpinner1.setEnabled(true);
     }
@@ -923,32 +941,6 @@ public class GUI extends javax.swing.JFrame {
     }
 
     /**
-     * Adds the specified path to the java library path
-     *
-     * @param pathToAdd the path to add
-     * @throws Exception
-     */
-    public static void addLibraryPath(String pathToAdd) throws Exception {
-        final Field usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
-        usrPathsField.setAccessible(true);
-
-        //get array of paths
-        final String[] paths = (String[]) usrPathsField.get(null);
-
-        //check if the path to add is already present
-        for (String path : paths) {
-            if (path.equals(pathToAdd)) {
-                return;
-            }
-        }
-
-        //add the new path
-        final String[] newPaths = Arrays.copyOf(paths, paths.length + 1);
-        newPaths[newPaths.length - 1] = pathToAdd;
-        usrPathsField.set(null, newPaths);
-    }
-
-    /**
      * Sets the java library path to the specified path
      *
      * @param path the new library path
@@ -963,47 +955,16 @@ public class GUI extends javax.swing.JFrame {
         sysPathsField.set(null, null);
     }
 
-    public static void addDir(String s) throws IOException {
-        try {
-            // This enables the java.library.path to be modified at runtime
-            // From a Sun engineer at http://forums.sun.com/thread.jspa?threadID=707176
-            //
-            Field field = ClassLoader.class.getDeclaredField("usr_paths");
-            field.setAccessible(true);
-            String[] paths = (String[]) field.get(null);
-            for (int i = 0; i < paths.length; i++) {
-                if (s.equals(paths[i])) {
-                    return;
-                }
-            }
-            String[] tmp = new String[paths.length + 1];
-            System.arraycopy(paths, 0, tmp, 0, paths.length);
-            tmp[paths.length] = s;
-            field.set(null, tmp);
-            System.setProperty("java.library.path", System.getProperty("java.library.path") + File.pathSeparator + s);
-        } catch (IllegalAccessException e) {
-            throw new IOException("Failed to get permissions to set library path");
-        } catch (NoSuchFieldException e) {
-            throw new IOException("Failed to get field handle to set library path");
-        }
-    }
-
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-//
+
         String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         path = path.substring(0, path.lastIndexOf('/') + 1);
         path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();
         try {
-            String syspath = System.getProperty("java.library.path");
-            System.out.println(syspath);
             String newPath = path;
-////            newPath += File.pathSeparator + syspath;
-            System.out.println("path:" + newPath);
-//
-
             /*
              * 
              * Make sure the library is on the java lib path
@@ -1016,33 +977,11 @@ public class GUI extends javax.swing.JFrame {
              * something like OpenJDK Runtime Environment (build 1.6.0_0-b11), 
              * try installing the official Sun JDK and see if that works.
              */
-//            newPath = "/home/antunes";
-//            addDir(newPath);
-////            addLibraryPath(newPath);
             setLibraryPath(newPath);
-//            System.setProperty("java.library.path", newPath);
-//
-//            final Field sysPathsField = ClassLoader.class.getDeclaredField("sys_paths");
-//            sysPathsField.setAccessible(true);
-//            sysPathsField.set(null, null);
-////
-////            Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-////            fieldSysPath.setAccessible(true);
-////            fieldSysPath.set(null, null);
-//
-            System.out.println((new File(newPath + "/librxtxSerial.so").exists()));
-//
             System.loadLibrary("rxtxSerial");
         } catch (Error | Exception e) {
             e.printStackTrace();
-////            try {
-////                path += "/rxtxSerial." + JniNamer.extension(JniNamer.os());
-////                System.out.println("tentando: " + path);
-////                System.load(path);
-////            } catch (Error | Exception e2) {
-////                e2.printStackTrace();
             System.exit(0);
-////            }
         }
 
         /* Set the Nimbus look and feel */

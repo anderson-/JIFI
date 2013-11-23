@@ -6,12 +6,13 @@ package robotinterface.robot.device;
 
 import java.nio.ByteBuffer;
 import robotinterface.robot.Robot;
+import robotinterface.robot.simulation.VirtualDevice;
 
 /**
  *
  * @author antunes
  */
-public class HBridge extends Device {
+public class HBridge extends Device implements VirtualDevice {
 
     private int LeftWheelSpeed;
     private int RightWheelSpeed;
@@ -22,12 +23,24 @@ public class HBridge extends Device {
     @Override
     public void setState(ByteBuffer data) {
         if (data.remaining() == 2) {
-            if (data.get() == 0){
+            if (data.get() == 0) {
                 LeftWheelSpeed = data.get();
             } else {
                 RightWheelSpeed = data.get();
             }
         }
+    }
+
+    @Override
+    public void getState(ByteBuffer buffer, Robot robot) {
+        buffer.put((byte) 2);
+        buffer.put((byte) LeftWheelSpeed);
+        buffer.put((byte) RightWheelSpeed);
+    }
+
+    @Override
+    public void setState(ByteBuffer data, Robot robot) {
+        setState(data);
     }
 
     public void setMotorState(int motor, byte speed) {
@@ -80,11 +93,11 @@ public class HBridge extends Device {
         return 2;
     }
 
-    public static double realToVirtualVelocityConvert (int v){
+    public static double realToVirtualVelocityConvert(int v) {
         //return -7.7 + 1.19*v + 0.1*(v*v) + -9.29*(v*v*v);
         return v;
     }
-    
+
     @Override
     public void updateRobot(Robot robot) {
 //        robot.setRightWheelSpeed(realToVirtualVelocityConvert(RightWheelSpeed));

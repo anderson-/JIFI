@@ -8,6 +8,8 @@ import java.awt.Color;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.procedure.Procedure;
@@ -53,7 +55,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         updateVariables(str);
         setProcedure(toString());
     }
-
+    
     private void updateVariables(String str) {
         int l = str.lastIndexOf("\"");
 
@@ -129,19 +131,24 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     @Override
     public Item getItem() {
-        GeneralPath myShape = new GeneralPath();
+        GeneralPath tmpShape = new GeneralPath();
         double mx = 10;
         double my = 12;
         double a = 4;
         double b = 8;
 
-        myShape.reset();
-        myShape.moveTo(a, 0);
-        myShape.lineTo(mx + a, 0);
-        myShape.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
-        myShape.lineTo(a, my);
-        myShape.lineTo(0, my / 2);
-        myShape.closePath();
+        tmpShape.reset();
+        tmpShape.moveTo(a, 0);
+        tmpShape.lineTo(mx + a, 0);
+        tmpShape.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
+        tmpShape.lineTo(a, my);
+        tmpShape.lineTo(0, my / 2);
+        tmpShape.closePath();
+
+        Area myShape = new Area();
+        myShape.add(new Area(tmpShape));
+        myShape.subtract(new Area( new Ellipse2D.Double(5, 3, 11, 6)));
+        //myShape.exclusiveOr(new Area( new Ellipse2D.Double(8, 3, 6, 6))); //oh hell no!
 
         return new Item("Exibir", myShape, myColor);
     }
@@ -161,7 +168,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         final int INSET_Y = 5;
 
         //LINES
-
         int varSelectiteonLineWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
         int varSelectiteonLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
         final WidgetLine varSelectiteonLine = new WidgetLine(varSelectiteonLineWidth, varSelectiteonLineHeight) {
@@ -192,7 +198,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 //                        }
 //                    }
 //                });
-
                 int x = BEGIN_X + INSET_X;
                 int y = INSET_Y;
 
@@ -222,7 +227,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         };
 
         //HEADER LINE
-
         int headerHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT + 20;
         int headerWidth = BEGIN_X + 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
         final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
@@ -407,15 +411,13 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     @Override
     public Procedure copy(Procedure copy) {
-        Procedure p = super.copy(copy);
-
-        if (copy instanceof PrintString) {
-            ((PrintString) copy).format = format;
-            ((PrintString) copy).varNames.addAll(varNames);
-        } else {
+        super.copy(copy);
+        if (copy instanceof PrintString){
+            ((PrintString)copy).format = format;
+            ((PrintString)copy).varNames.clear();
+            ((PrintString)copy).varNames.addAll(varNames);
         }
-
-        return p;
+        return copy;
     }
 
     public static void main(String[] args) {

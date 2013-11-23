@@ -28,6 +28,9 @@ package robotinterface.algorithm.procedure;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Shape;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
@@ -76,11 +79,24 @@ public class While extends Block {
 
     @Override
     public Item getItem() {
-        Polygon myShape = new Polygon();
-        myShape.addPoint(10, 0);
-        myShape.addPoint(20, 10);
-        myShape.addPoint(10, 20);
-        myShape.addPoint(0, 10);
+//        Area myShape = new Area();
+//        Polygon tmpPoli = new Polygon();
+//        tmpPoli.addPoint(10, 2);
+//        tmpPoli.addPoint(18, 10);
+//        tmpPoli.addPoint(10, 18);
+//        tmpPoli.addPoint(2, 10);
+//        myShape.add(new Area(tmpPoli));
+//        Shape tmpShape = new Ellipse2D.Double(0, 0, 20, 20);
+//        myShape.exclusiveOr(new Area(tmpShape));
+        Area myShape = new Area();
+        Polygon tmpPoli = new Polygon();
+        tmpPoli.addPoint(10, 0);
+        tmpPoli.addPoint(20, 10);
+        tmpPoli.addPoint(10, 20);
+        tmpPoli.addPoint(0, 10);
+        myShape.add(new Area(tmpPoli));
+        myShape.subtract(new Area(new Ellipse2D.Double(5, 5, 10, 10)));
+        myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
         return new Item("Repetição", myShape, myColor);
     }
 

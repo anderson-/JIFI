@@ -31,6 +31,8 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -233,11 +235,25 @@ public class If extends Procedure {
 
     @Override
     public Item getItem() {
-        Polygon myShape = new Polygon();
-        myShape.addPoint(10, 0);
-        myShape.addPoint(20, 10);
-        myShape.addPoint(10, 20);
-        myShape.addPoint(0, 10);
+        Area myShape = new Area();
+        Polygon tmpPoli = new Polygon();
+        tmpPoli.addPoint(10, 0);
+        tmpPoli.addPoint(20, 10);
+        tmpPoli.addPoint(10, 20);
+        tmpPoli.addPoint(0, 10);
+        myShape.add(new Area(tmpPoli));
+        tmpPoli.reset();
+        tmpPoli.addPoint(10, 3);
+        tmpPoli.addPoint(17, 10);
+        tmpPoli.addPoint(10, 17);
+        tmpPoli.addPoint(3, 10);
+        myShape.subtract(new Area(tmpPoli));
+        tmpPoli.reset();
+        tmpPoli.addPoint(10, 6);
+        tmpPoli.addPoint(14, 10);
+        tmpPoli.addPoint(10, 14);
+        tmpPoli.addPoint(6, 10);
+        myShape.add(new Area(tmpPoli));
         return new Item("Condicional", myShape, myColor);
     }
 

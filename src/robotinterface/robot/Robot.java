@@ -260,7 +260,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     }
 
     public void updateVirtualPerception() {
-//        perception.addPathPoint(x, y);
+        perception.addPathPoint(x, y);
     }
 
     public void updatePerception() {
@@ -299,11 +299,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                 buffer.clear();
                 byte cmd = message.get();
                 switch (cmd) {
-//                    case CMD_STOP: {
-//                        //skip bytes
-//                        message.get();
-//                        break;
-//                    }
+                    case CMD_STOP: {
+                        //skip bytes
+                        STOP_ALL.markUnread();
+                        message.get();
+                        break;
+                    }
 //
 //                    case CMD_ECHO: {
 //                        byte length = message.get();
@@ -723,8 +724,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
     @Override
     public void setLocation(double x, double y) {
-        bounds.x = x;
-        bounds.y = y;
+        bounds.x = this.x = x;
+        bounds.y = this.y = y;
     }
 
     @Override
@@ -760,9 +761,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
 
         AffineTransform o = g.getTransform();
-        AffineTransform t = ga.getT(0, o);
+        AffineTransform t = ga.getT(o);
 
-        AffineTransform w = ga.getT(1);
+        AffineTransform w = ga.getT();
         ga.applyGlobalPosition(w);
         ga.applyZoom(w);
         g.setTransform(w);
@@ -794,14 +795,18 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
 
+        w.setTransform(g.getTransform());
+        
         for (Device d : devices) {
+//            g.setTransform(w);
             if (d instanceof Drawable) {
                 ((Drawable) d).draw(g, ga, in);
             }
         }
 
         g.setTransform(o);
-
+        ga.done(t);
+        ga.done(w);
         move(ga.getClock().getDt());
     }
 

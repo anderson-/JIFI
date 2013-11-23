@@ -251,11 +251,12 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         //sombra
-        AffineTransform t = ga.getT(0);
+        AffineTransform t = ga.getT();
         t.translate(3, 2);
         g.setColor(color.darker());
         g.setStroke(new BasicStroke(5));
         g.draw(t.createTransformedShape(shape));
+        ga.done(t);
 
         //fundo branco
         g.setColor(Color.white);

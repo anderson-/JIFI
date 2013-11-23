@@ -28,8 +28,11 @@ package robotinterface.plugin.cmdpack.begginer;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.Collection;
 import javax.swing.ImageIcon;
@@ -366,10 +369,17 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
     @Override
     public Item getItem() {
-        Polygon myShape = new Polygon();
-        myShape.addPoint(0, 0);
-        myShape.addPoint(18, 10);
-        myShape.addPoint(0, 20);
+        Area myShape = new Area();
+        Polygon tmpPoli = new Polygon();
+        tmpPoli.addPoint(0, 0);
+        tmpPoli.addPoint(13, 10);
+        tmpPoli.addPoint(0, 20);
+        myShape.add(new Area(tmpPoli));
+        tmpPoli.reset();
+        tmpPoli.addPoint(6, 0);
+        tmpPoli.addPoint(20, 10);
+        tmpPoli.addPoint(6, 20);
+        myShape.exclusiveOr(new Area(tmpPoli));
         return new Item("Mover", myShape, myColor);
     }
 
@@ -381,6 +391,18 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
     @Override
     public String getToken() {
         return "move";
+    }
+    
+    @Override
+    public Procedure copy(Procedure copy) {
+        super.copy(copy);
+        if (copy instanceof Move){
+            ((Move)copy).m1 = m1;
+            ((Move)copy).m2 = m2;
+            ((Move)copy).var1 = var1;
+            ((Move)copy).var2 = var2;
+        }
+        return copy;
     }
 
     private static void updateMove(String str, Move m) {

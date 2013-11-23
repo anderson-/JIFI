@@ -1,13 +1,13 @@
 /**
  * @file .java
  * @author Fernando Padilha Ferreira <fpf.padilhaf@gmail.com>
- *         Anderson de Oliveira Antunes <anderson.utf@gmail.com>
+ * Anderson de Oliveira Antunes <anderson.utf@gmail.com>
  * @version 1.0
  *
  * @section LICENSE
  *
  * Copyright (C) 2013 by Fernando Padilha Ferreira <fpf.padilhaf@gmail.com>
- *                       Anderson de Oliveira Antunes <anderson.utf@gmail.com>
+ * Anderson de Oliveira Antunes <anderson.utf@gmail.com>
  *
  * RobotInterface is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -38,15 +38,17 @@ import robotinterface.robot.simulation.VirtualDevice;
 
 public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable {
 
-    AffineTransform t = new AffineTransform();
-    private int values[] = new int[5];
+    private final AffineTransform transform = new AffineTransform();
+    private final int values[] = new int[5];
     private double x, y;
+    private final Point2D.Double src = new Point2D.Double();
+    private final Point2D.Double dst = new Point2D.Double();
 
     @Override
     public void setState(ByteBuffer data) {
         byte b = data.get();
         for (int i = 0; i < 5; i++) {
-            values[i] = (b >> i) & 1;
+//            values[i] = (b >> i) & 1;
         }
     }
 
@@ -56,14 +58,14 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         int sw = (int) (Robot.size / 15);
         int sx = (int) (Robot.size * .8 / 2);
         int sy = -sw / 2;
-        t.rotate(robot.getTheta());
-        Point2D.Double src = new Point2D.Double(sx, sy);
-        Point2D.Double dst = new Point2D.Double();
-        t.rotate(-3 * Math.PI / 12);
+        transform.setToIdentity();
+        transform.rotate(robot.getTheta());
+        transform.rotate(-3 * Math.PI / 12);
+        src.setLocation(sx, sy);
         for (int si = 0; si < 5; si++) {
-            t.rotate(Math.PI / 12);
-            t.deltaTransform(src, dst);
-            values[si] = (robot.getEnvironment().isOver(dst.x, dst.y)) ? 1 : 0;
+            transform.rotate(Math.PI / 12);
+            transform.deltaTransform(src, dst);
+            values[si] = (robot.getEnvironment().isOver(dst.x + robot.getPosX(), dst.y + robot.getPosY())) ? 1 : 0;
             value |= (values[si] << si);
         }
 
@@ -126,16 +128,19 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         int sw = (int) (Robot.size / 15);
         int sx = (int) (Robot.size * .8 / 2);
         int sy = -sw / 2;
-        t.setTransform(g.getTransform());
-        t.rotate(-3 * Math.PI / 12);
-        g.setTransform(t);
+
+//        g.drawRect((int)dst.x, (int)dst.y, 3, 3);
+        AffineTransform o = ga.getT(g.getTransform());
+        o.setTransform(o);
+        o.rotate(-3 * Math.PI / 12);
+        g.setTransform(o);
         for (int si = 0; si < 5; si++) {
             g.setColor(Color.getHSBColor(.0f, 1, (float) (values[si])));
-            t.rotate(Math.PI / 12);
-            g.setTransform(t);
+            o.rotate(Math.PI / 12);
+            g.setTransform(o);
             g.fillOval(sx, sy, sw, sw);
         }
-        g.setTransform(t);
+        ga.done(o);
     }
 
     @Override

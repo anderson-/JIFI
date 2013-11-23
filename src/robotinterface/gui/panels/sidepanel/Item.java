@@ -12,6 +12,11 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 
@@ -44,6 +49,27 @@ public class Item implements GraphicObject {
         this.image = null;
         this.icon = icon;
         this.color = color;
+
+//        try {
+//            byte[] digest = name.getBytes("UTF-8");
+//            MessageDigest md = MessageDigest.getInstance("MD5");
+//            digest = md.digest(digest);
+//            digest = md.digest(digest);
+//            String str = new String(digest);
+//            BigInteger bigInt = new BigInteger(1, digest);
+//            String hashtext = bigInt.toString(16);
+//            while (hashtext.length() < 32) {
+//                hashtext = "0" + hashtext;
+//            }
+//            System.out.println(hashtext);
+//            float d = (float) (hashtext.hashCode() % 360) / 360;
+//            this.color = Color.getHSBColor(d, 1, .9f);
+//        } catch (Exception ex) {
+//
+//        }
+
+        //float d = (float)(name.hashCode()%360)/360;
+        //this.color = Color.getHSBColor(d,1,1);
     }
 
     public Object getRef() {
