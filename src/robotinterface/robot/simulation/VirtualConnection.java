@@ -58,6 +58,7 @@ public class VirtualConnection implements Connection, Observer<ByteBuffer, Conne
         if (realConnection != null) {
             realConnection.send(data);
         } else {
+            //TODO: colocar data em uma fila e usar uma thread para enviar
             robot.virtualRobot(data, this);
         }
     }

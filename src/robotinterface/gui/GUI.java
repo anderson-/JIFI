@@ -58,7 +58,7 @@ import robotinterface.util.fommil.jni.JniNamer;
  * @author antunes
  */
 public class GUI extends javax.swing.JFrame {
-
+    
     private static GUI INSTANCE = null;
     private Project mainProject = new Project();
     private ArrayList<CodeEditorPanel> mapCE = new ArrayList<>();
@@ -67,15 +67,15 @@ public class GUI extends javax.swing.JFrame {
     private ImageIcon flowchartIcon;
     private final RobotManager robotManager;
     private JFileChooser fileChooser = new JFileChooser();
-
+    
     static {
     }
     private final boolean allowMainTabbedPaneStateChanged;
-
+    
     private GUI() {
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
         flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
-
+        
         initComponents();
         setLocationRelativeTo(null);
         secondarySplitPane.setDividerLocation(.5);
@@ -83,7 +83,7 @@ public class GUI extends javax.swing.JFrame {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
-
+        
         JTextPane console = new JTextPane();
         consolePanel.setLayout(new GridLayout());
         consolePanel.setName("Console");
@@ -93,7 +93,7 @@ public class GUI extends javax.swing.JFrame {
         mc.redirectOut(Color.BLACK, System.out);
         mc.redirectErr(Color.RED, System.err);
         mc.setMessageLines(100);
-
+        
         jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 50));
         jSpinner1.addChangeListener(new ChangeListener() {
             @Override
@@ -112,22 +112,22 @@ public class GUI extends javax.swing.JFrame {
         robotManager.createRobot();
         jScrollPane3.setViewportView(robotManager);
         jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
-
+        
         FileFilter ff = new FileFilter() {
             @Override
             public boolean accept(File file) {
                 if (file.isDirectory()) {
                     return true;
                 }
-
+                
                 String extension = null;
                 String s = file.getName();
                 int i = s.lastIndexOf('.');
-
+                
                 if (i > 0 && i < s.length() - 1) {
                     extension = s.substring(i + 1).toLowerCase();
                 }
-
+                
                 if (extension != null) {
                     if (extension.equals(Project.FILE_EXTENSION)) {
                         return true;
@@ -135,10 +135,10 @@ public class GUI extends javax.swing.JFrame {
                         return false;
                     }
                 }
-
+                
                 return false;
             }
-
+            
             @Override
             public String getDescription() {
                 return "Projetos";
@@ -160,11 +160,11 @@ public class GUI extends javax.swing.JFrame {
         allowMainTabbedPaneStateChanged = true;
         mainTabbedPaneStateChanged(null);
     }
-
+    
     public SimulationPanel getSimulationPanel() {
         return simulationPanel;
     }
-
+    
     public void updateRobotList() {
         //combobox
         robotComboBox.removeAllItems();
@@ -178,7 +178,7 @@ public class GUI extends javax.swing.JFrame {
             }
         }
     }
-
+    
     public boolean setDefaultRobot(Interpreter interpreter, boolean ask) {
         Object o = robotComboBox.getSelectedItem();
         if (o instanceof RobotControlPanel) {
@@ -213,26 +213,26 @@ public class GUI extends javax.swing.JFrame {
         }
         return true;
     }
-
+    
     public static GUI getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new GUI();
         }
         return INSTANCE;
     }
-
+    
     public Collection<Function> getFunctions() {
         ArrayList<Function> funcs = new ArrayList<>();
-
+        
         for (Component cc : mainTabbedPane.getComponents()) {
             if (cc instanceof FlowchartPanel) {
                 funcs.add(((FlowchartPanel) cc).getFunction());
             }
         }
-
+        
         return funcs;
     }
-
+    
     public void updateTabNames() {
         for (int i = 0; i < mainTabbedPane.getTabCount(); i++) {
             Component c = mainTabbedPane.getComponentAt(i);
@@ -574,7 +574,7 @@ public class GUI extends javax.swing.JFrame {
         if (!allowMainTabbedPaneStateChanged) {
             return;
         }
-
+        
         System.gc();
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
@@ -586,13 +586,13 @@ public class GUI extends javax.swing.JFrame {
         }
         
         dynamicToolBar.removeAll();
-
+        
         for (Component cc : dynamicTabbedPane.getComponents()) {
             if (cc != consolePanel) {//jPanel5
                 dynamicTabbedPane.remove(cc);
             }
         }
-
+        
         if (cmp == addNewCodePanel) {
             //adicionando uma nova aba
             FlowchartPanel fp = new FlowchartPanel(new Function());
@@ -606,13 +606,13 @@ public class GUI extends javax.swing.JFrame {
                 for (JPanel p : ((TabController) cmp).getTabs()) {
                     dynamicTabbedPane.addTab(p.getName(), p);
                 }
-
+                
                 for (JComponent jc : ((TabController) cmp).getToolBarComponents()) {
                     dynamicToolBar.add(jc);
                 }
             }
         }
-
+        
         if (cmp instanceof Interpertable) {
             Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
             updateControlBar(interpreter);
@@ -623,7 +623,7 @@ public class GUI extends javax.swing.JFrame {
             pauseButton.setEnabled(false);
             stopButton.setEnabled(false);
         }
-
+        
         if (cmp instanceof FlowchartPanel || cmp instanceof CodeEditorPanel) {
             switchCodeButton.setEnabled(true);
             deleteButton.setEnabled(true);
@@ -631,7 +631,7 @@ public class GUI extends javax.swing.JFrame {
             switchCodeButton.setEnabled(false);
             deleteButton.setEnabled(false);
         }
-
+        
         if (cmp instanceof KeyListener) {
             for (KeyListener l : getKeyListeners()) {
                 removeKeyListener(l);
@@ -639,7 +639,7 @@ public class GUI extends javax.swing.JFrame {
 //            System.out.println("addKeyListener:" + cmp);
             addKeyListener((KeyListener) cmp);
         }
-
+        
         if (cmp instanceof ComponentListener) {
             for (ComponentListener l : getComponentListeners()) {
                 removeComponentListener(l);
@@ -647,13 +647,13 @@ public class GUI extends javax.swing.JFrame {
             addComponentListener((ComponentListener) cmp);
             ((ComponentListener) cmp).componentResized(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
         }
-
+        
         if (cmp instanceof FlowchartPanel) {
             switchCodeButton.setIcon(codeIcon);
         } else if (cmp instanceof CodeEditorPanel) {
             switchCodeButton.setIcon(flowchartIcon);
         }
-
+        
         updateTabNames();
         dynamicToolBar.updateUI();
     }//GEN-LAST:event_mainTabbedPaneStateChanged
@@ -706,13 +706,13 @@ public class GUI extends javax.swing.JFrame {
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
-
+        
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             simulationPanel.resetSimulation();
             File file = fileChooser.getSelectedFile();
             mainProject.importFile(file.getAbsolutePath());
         }
-
+        
         loadLoop:
         for (Function f : mainProject.getFunctions()) {
             for (Component c : mainTabbedPane.getComponents()) {
@@ -739,7 +739,7 @@ public class GUI extends javax.swing.JFrame {
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         int returnVal = fileChooser.showSaveDialog(this);
-
+        
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             String filename = file.toString();
@@ -747,14 +747,14 @@ public class GUI extends javax.swing.JFrame {
                 filename += "." + Project.FILE_EXTENSION;
             }
             file = new File(filename);
-
+            
             if (file.exists()) {
                 returnVal = JOptionPane.showConfirmDialog(this, "Deseja sobreescrever o arquivo?", "Salvar", JOptionPane.YES_NO_OPTION);
                 if (returnVal != JOptionPane.YES_OPTION) {
                     return;
                 }
             }
-
+            
             ArrayList<Function> functions = mainProject.getFunctions();
             boolean showNameRepeatDialog = true;
             int k;
@@ -775,18 +775,18 @@ public class GUI extends javax.swing.JFrame {
                     }
                 }
             }
-
+            
             mainProject.save(file.getAbsolutePath());
         }
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void switchCodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchCodeButtonActionPerformed
         Component cmp = mainTabbedPane.getSelectedComponent();
-
+        
         if (cmp instanceof FlowchartPanel) {
             FlowchartPanel fcp = (FlowchartPanel) cmp;
             CodeEditorPanel cep;
-
+            
             int i = mapFC.indexOf(cmp);
             if (i != -1 && i < mapCE.size()) {
                 cep = mapCE.get(i);
@@ -794,14 +794,14 @@ public class GUI extends javax.swing.JFrame {
                 cep = new CodeEditorPanel(fcp.getFunction());
                 mapCE.add(cep);
             }
-
+            
             cep.getTextArea().setText(Parser.encode(fcp.getFunction()));
             cep.getTextArea().setCaretPosition(0);
-
+            
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
             mainTabbedPane.remove(fcp);
-
+            
             fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
 
 //            switchCodeButton.setIcon(codeIcon);
@@ -813,7 +813,7 @@ public class GUI extends javax.swing.JFrame {
                 FlowchartPanel fcp;
                 Function f = null;
                 int i = mapCE.indexOf(cmp);
-
+                
                 try {
                     f = Parser.decode(cep.getTextArea().getText());
                 } catch (Exception ex) {
@@ -821,7 +821,7 @@ public class GUI extends javax.swing.JFrame {
                     ex.printStackTrace();
                     return;
                 }
-
+                
                 if (i != -1 && i < mapFC.size()) {
                     fcp = mapFC.get(i);
                     mainProject.getFunctions().remove(fcp.getFunction());
@@ -830,9 +830,9 @@ public class GUI extends javax.swing.JFrame {
                     fcp = new FlowchartPanel(f);
                     mapFC.add(fcp);
                 }
-
+                
                 mainProject.getFunctions().add(f);
-
+                
                 add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
                 mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
                 mainTabbedPane.remove(cep);
@@ -843,19 +843,19 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_switchCodeButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-
+        
         Component cmp = mainTabbedPane.getSelectedComponent();
-
+        
         if (!(cmp instanceof FlowchartPanel) && !(cmp instanceof CodeEditorPanel)) {
             return;
         }
-
+        
         int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir esse programa?", "Excluir", JOptionPane.YES_NO_OPTION);
-
+        
         if (returnVal == JOptionPane.YES_OPTION) {
-
+            
             Function f = null;
-
+            
             if (cmp instanceof FlowchartPanel) {
                 f = ((FlowchartPanel) cmp).getFunction();
             } else if (cmp instanceof CodeEditorPanel) {
@@ -864,7 +864,7 @@ public class GUI extends javax.swing.JFrame {
                     f = mapFC.get(i).getFunction();
                 }
             }
-
+            
             if (f != null && mainProject.getFunctions().remove(f)) {
                 mainTabbedPane.setSelectedIndex(0);
                 mainTabbedPane.remove(cmp);
@@ -887,22 +887,33 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
   private void closeProjectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeProjectButtonActionPerformed
-    
-    int returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
-    
-    if (returnVal == JOptionPane.YES_OPTION) {
-        simulationPanel.resetSimulation();
-        simulationPanel.repaint();
-     
-        mainProject.getFunctions().clear();
-        for (Component cmp : mainTabbedPane.getComponents()) {
-            if ( (cmp instanceof FlowchartPanel) || (cmp instanceof CodeEditorPanel) ) {
-                mainTabbedPane.remove(cmp);
-            }
-        }
-    }
+      
+      int returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
+      
+      if (returnVal == JOptionPane.YES_OPTION) {
+          
+          for (FlowchartPanel fp : mapFC) {
+              Interpreter i = ((FlowchartPanel) fp).getInterpreter();
+              if (i != null) {
+                  i.setInterpreterState(Interpreter.STOP);
+              }
+          }
+          
+          simulationPanel.resetSimulation();
+          simulationPanel.repaint();
+          
+          mainTabbedPane.setSelectedIndex(0);
+          mainProject.getFunctions().clear();
+          for (Component cmp : mainTabbedPane.getComponents()) {
+              if ((cmp instanceof FlowchartPanel) || (cmp instanceof CodeEditorPanel)) {
+                  mainTabbedPane.remove(cmp);
+              }
+          }
+          mapFC.clear();
+          mapCE.clear();
+      }
   }//GEN-LAST:event_closeProjectButtonActionPerformed
-
+    
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
@@ -911,7 +922,7 @@ public class GUI extends javax.swing.JFrame {
         }
         mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
     }
-
+    
     public void updateControlBar(Interpreter interpreter) {
         if (interpreter.getInterpreterState() == Interpreter.PLAY) {
             //play
@@ -939,12 +950,12 @@ public class GUI extends javax.swing.JFrame {
         jSpinner1.setEnabled(true);
     }
     private static Logger logger = null;
-
+    
     public static Logger getLogger() {
         if (logger == null) {
             logger = Logger.getLogger(GUI.class.getName());
             FileHandler fh;
-
+            
             try {
 
                 // This block configure the logger with handler and formatter  
@@ -983,7 +994,7 @@ public class GUI extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-
+        
         String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         path = path.substring(0, path.lastIndexOf('/') + 1);
         path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();

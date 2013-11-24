@@ -138,8 +138,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         Command cmd = interpreter.getCurrentCommand();
         if (interpreter.getInterpreterState() == Interpreter.STOP) {
             executionCommand = null;
-        } else if (interpreter.getTimestep() < 20) {
-            executionCommand = interpreter.getMainFunction().getDrawableResource();
+//        } else if (interpreter.getTimestep() < 20) {
+//            executionCommand = interpreter.getMainFunction().getDrawableResource();
         } else {
             if (cmd instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
