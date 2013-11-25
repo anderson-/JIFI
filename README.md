@@ -1,8 +1,7 @@
-RobotInterface
+JIFI - Java Interactive Flowchart Interpreter
 ==============
 
-Interface para programação e simulação de robôs baseados em Arduino.
+A integração das diversas partes do projeto (Robot, Project, SimulationPanel, FlowchartPanel, CodeEditorPanel, RobotControlPanel, RobotManager, Function, etc.) na classe GUI ficou tão confusa e propensa a erros que eu decidi por em prática minha ideia inicial de usar a simulação de robôs como plugin do interpretador de fluxogramas.
 
-####[O que tem para fazer?](https://github.com/anderson-/RobotInterface/blob/master/TODO.md)
+![Diagrama](https://raw.github.com/anderson-/RobotInterface/master/objetivo.jpg)
 
-####[Como o projeto está organizado?](https://github.com/anderson-/RobotInterface/blob/master/Organizacao.md)
