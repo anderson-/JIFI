@@ -371,7 +371,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                 }
             }
         }
-        if (in.keysPressed() <= 1) {
+        if (in.numberOfKeysPressed() <= 1) {
             keyActionUsed = false;
         }
 

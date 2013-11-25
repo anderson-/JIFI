@@ -145,6 +145,8 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
             hBridge.setWaiting();
             hBridge.setFullState(t1, t2);
+            robot.setRightWheelSpeed(t2);
+            robot.setLeftWheelSpeed(t1);
         }
     }
 

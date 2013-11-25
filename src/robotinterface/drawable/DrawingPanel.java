@@ -423,10 +423,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         mouseButton = e.getButton();
         mouseClickCount = e.getClickCount();
         if (midMouseButtonResetView && e.getButton() == MouseEvent.BUTTON2) {
-            zoom = 1;
-            globalX = width / 2;
-            globalY = height / 4;
+            resetView();
         }
+    }
+
+    public void resetView() {
+        zoom = 1;
+        globalX = width / 2;
+        globalY = height / 4;
     }
 
     @Override
@@ -785,7 +789,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        public int keysPressed() {
+        public int numberOfKeysPressed() {
             synchronized (keys) {
                 return keys.size();
             }

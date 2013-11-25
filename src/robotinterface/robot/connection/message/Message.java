@@ -18,7 +18,7 @@ public abstract class Message {
     public class TimeoutException extends Exception {
     }
     
-    public static long TIMEOUT = 25;
+    public static long TIMEOUT = 30;
     private static long time = 0;
     private static int receivedPackages = 0;
     private static int lostPackages = 0;

@@ -26,6 +26,8 @@
 package robotinterface.interpreter;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
@@ -107,16 +109,19 @@ public class Interpreter extends Thread {
 
     public void setInterpreterState(int state) {
         this.state = state;
-        if (!running) {
-            if (state == STOP) {
-                reset();
+        if (running) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
             }
+        }
+        
+        if (state == STOP) {
+            reset();
+        }
 
-            if (state != PLAY && robot != null) {
-                robot.reset();
-//            robot.setRightWheelSpeed(0);
-//            robot.setLeftWheelSpeed(0);
-            }
+        if (state != PLAY && robot != null) {
+            robot.reset();
         }
     }
 

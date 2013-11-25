@@ -159,7 +159,7 @@ public class Serial implements Connection, SerialPortEventListener {
         try {
             portEnum = CommPortIdentifier.getPortIdentifiers();
         } catch (Throwable t) {
-            t.printStackTrace();
+//            t.printStackTrace();
             throw new Error();
         }
 

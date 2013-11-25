@@ -25,6 +25,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+import java.text.DecimalFormat;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.util.LineIterator;
 
@@ -34,47 +35,40 @@ import robotinterface.util.LineIterator;
  */
 public class Environment {
 
-    private final ArrayList<Shape> followLines = new ArrayList<>();
-    private final ArrayList<Shape> obstacles = new ArrayList<>();
-    private final ArrayList<Shape> followLinesTmp = new ArrayList<>();
-    private final ArrayList<Shape> obstaclesTmp = new ArrayList<>();
-    private final ArrayList<double[]> obstacleCircles = new ArrayList<>();
-    private final ArrayList<double[]> obstacleLines = new ArrayList<>();
-    private final ArrayList<double[]> followLineLines = new ArrayList<>();
+    private final ArrayList<Line2D.Double> followLines = new ArrayList<>();
+    private final ArrayList<Line2D.Double> walls = new ArrayList<>();
+    private final ArrayList<Line2D.Double> followLinesTmp = new ArrayList<>();
+    private final ArrayList<Line2D.Double> wallsTmp = new ArrayList<>();
+    private final ArrayList<double[]> wallsData = new ArrayList<>();
+    private final ArrayList<double[]> followLinesData = new ArrayList<>();
     private static final Color obstacleColor = Color.decode("#BA9C3A");
 
     public static Color getObstacleColor() {
         return obstacleColor;
     }
-    
-    public void addObstacleLine(double[] line) {
-        obstacleLines.add(line);
 
-        obstacles.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
-    }
+    public void addWall(double[] line) {
+        wallsData.add(line);
 
-    public void addObstacleCircle(double[] circle) {
-        obstacleCircles.add(circle);
-        obstacles.add(new Ellipse2D.Double(circle[0], circle[1], circle[2], circle[2]));
+        walls.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
     }
 
     public void addFollowLine(double[] line) {
-        followLineLines.add(line);
+        followLinesData.add(line);
         followLines.add(new Line2D.Double(line[0], line[1], line[2], line[3]));
     }
-    
-    public void removeObstacleLine(Shape s) {
-        int i = obstacleLines.indexOf(s);
-        if (i != -1){
-            obstacleLines.remove(i);
+
+    public void removeWall(Shape s) {
+        int i = walls.indexOf(s);
+        if (i != -1) {
+            wallsData.remove(i);
         }
     }
-    
+
     public void removeFollowLine(Shape s) {
         int i = followLines.indexOf(s);
-        System.out.println(i);
-        if (i != -1){
-            followLineLines.remove(i);
+        if (i != -1) {
+            followLinesData.remove(i);
         }
     }
 
@@ -82,32 +76,23 @@ public class Environment {
         FileWriter fw = new FileWriter(file.getAbsoluteFile());
 
         StringBuilder sb = new StringBuilder();
+        DecimalFormat df = new DecimalFormat("#.00");
         sb.append("# Environment ").append(System.currentTimeMillis()).append(" #\n");
 
-        if (!obstacleCircles.isEmpty() || !obstacleLines.isEmpty()) {
+        if (!wallsData.isEmpty()) {
             sb.append("# Obstacles #\n");
             sb.append("\n");
-        }
-
-        if (!obstacleCircles.isEmpty()) {
-            for (double[] data : obstacleCircles) {
-                sb.append("circle(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(")\n");
+            for (double[] data : wallsData) {
+                sb.append("wall(").append(df.format(data[0])).append(", ").append(df.format(data[1])).append(", ").append(df.format(data[2])).append(", ").append(df.format(data[3])).append(")\n");
             }
             sb.append("\n");
         }
 
-        if (!obstacleLines.isEmpty()) {
-            for (double[] data : obstacleLines) {
-                sb.append("wall(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(", ").append(data[3]).append(")\n");
-            }
-            sb.append("\n");
-        }
-
-        if (!followLineLines.isEmpty()) {
+        if (!followLinesData.isEmpty()) {
             sb.append("# Followable Lines #\n");
             sb.append("\n");
-            for (double[] data : followLineLines) {
-                sb.append("line(").append(data[0]).append(", ").append(data[1]).append(", ").append(data[2]).append(", ").append(data[3]).append(")\n");
+            for (double[] data : followLinesData) {
+                sb.append("line(").append(df.format(data[0])).append(", ").append(df.format(data[1])).append(", ").append(df.format(data[2])).append(", ").append(df.format(data[3])).append(")\n");
             }
         }
 
@@ -126,18 +111,7 @@ public class Environment {
             if (!line.startsWith("#") && !line.trim().isEmpty()) {
                 String str = line.substring(line.indexOf("(") + 1, line.indexOf(")"));
                 String[] argv = str.split(",");
-                if (line.contains("circle") && argv.length == 3) {
-                    argv[0] = argv[0].trim();
-                    argv[1] = argv[1].trim();
-                    argv[2] = argv[2].trim();
-
-                    double x = Double.parseDouble(argv[0]);
-                    double y = Double.parseDouble(argv[1]);
-                    double r = Double.parseDouble(argv[2]);
-
-                    addObstacleCircle(new double[]{x, y, r});
-
-                } else if (line.contains("wall") && argv.length == 4) {
+                if (line.contains("wall") && argv.length == 4) {
                     argv[0] = argv[0].trim();
                     argv[1] = argv[1].trim();
                     argv[2] = argv[2].trim();
@@ -148,7 +122,7 @@ public class Environment {
                     double x2 = Double.parseDouble(argv[2]);
                     double y2 = Double.parseDouble(argv[3]);
 
-                    addObstacleLine(new double[]{x1, y1, x2, y2});
+                    addWall(new double[]{x1, y1, x2, y2});
 
                 } else if (line.contains("line") && argv.length == 4) {
                     argv[0] = argv[0].trim();
@@ -174,61 +148,20 @@ public class Environment {
         double x2 = x + IRProximitySensor.MAX_DISTANCE * cos(theta);
         double y2 = y + IRProximitySensor.MAX_DISTANCE * sin(theta);
         Line2D.Double line = new Line2D.Double(x, y, x2, y2);
-        boolean isInsideShape = false;
-        boolean end = false;
         Point2D p;
 
-        obstaclesTmp.clear();
-        obstaclesTmp.addAll(obstacles);
-        for (Iterator<Shape> shapeIt = obstaclesTmp.iterator(); shapeIt.hasNext();) {
-            Shape s = shapeIt.next();
-            if (s instanceof Line2D.Double) {
-                Line2D.Double obstacleLine = ((Line2D.Double) s);
-                Line2D.Double tmpLine = new Line2D.Double();
-                for (Iterator<Point2D> lineIt = new LineIterator(line); lineIt.hasNext();) {
-                    p = lineIt.next();
-                    tmpLine.setLine(x, y, p.getX(), p.getY());
-
-                    if (tmpLine.intersectsLine(obstacleLine)) {
-                        dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
-                        //procura o ponto mais perto
-                        if (df > dt) {
-                            df = dt;
-                        }
+        wallsTmp.clear();
+        wallsTmp.addAll(walls);
+        for (Line2D.Double wall : wallsTmp) {
+            Line2D.Double tmpLine = new Line2D.Double();
+            for (Iterator<Point2D> lineIt = new LineIterator(line); lineIt.hasNext();) {
+                p = lineIt.next();
+                tmpLine.setLine(x, y, p.getX(), p.getY());
+                if (tmpLine.intersectsLine(wall)) {
+                    dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
+                    if (df > dt) {
+                        df = dt;
                     }
-                }
-            } else {
-                boolean insideShape = s.contains(x, y);
-                if (insideShape) {
-                    if (end) {
-                        continue;
-                    } else {
-                        df = 0;
-                    }
-                }
-                for (Iterator<Point2D> lineIt = new LineIterator(line); lineIt.hasNext();) {
-                    p = lineIt.next();
-                    if (s.contains(p)) {
-                        dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
-
-                        if (insideShape) {
-                            //procura o ponto mais longe
-                            if (df < dt) {
-                                df = dt;
-                            }
-                            isInsideShape = true;
-                        } else {
-                            //procura o ponto mais perto
-                            if (df > dt) {
-                                df = dt;
-                            }
-                        }
-                    }
-                }
-
-                if (isInsideShape && !shapeIt.hasNext()) {
-                    shapeIt = obstaclesTmp.iterator();
-                    end = true;
                 }
             }
         }
@@ -260,26 +193,25 @@ public class Environment {
         }
 
         g.setColor(obstacleColor);
-        for (Shape s : obstacles) {
+        for (Shape s : walls) {
             g.draw(s);
         }
 
         g.setStroke(str);
     }
 
-    public Iterator<Shape> linesIterator() {
+    public Iterator<Line2D.Double> linesIterator() {
         return followLines.iterator();
     }
 
-    public Iterator<Shape> obstaclesIterator() {
-        return obstacles.iterator();
+    public Iterator<Line2D.Double> obstaclesIterator() {
+        return walls.iterator();
     }
-    
+
     public void clearEnvironment() {
-        obstacleCircles.clear();
-        obstacleLines.clear();
-        obstacles.clear();
-        followLineLines.clear();
+        wallsData.clear();
+        walls.clear();
+        followLinesData.clear();
         followLines.clear();
     }
 }
