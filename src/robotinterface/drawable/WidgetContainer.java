@@ -127,20 +127,16 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
             widget.setBounds(getBounds());
         }
     }
-    private static boolean hideAllWidgets = false;
-
-    public static void hideAllWidgets(boolean hideAllWidgets) {
-        WidgetContainer.hideAllWidgets = hideAllWidgets;
-    }
+    
     private DrawingPanel parent;
     private ArrayList<Widget> widgets;
     private AffineTransform transform;
+    private boolean widgetVisible = false;
     protected Shape shape;
-    protected boolean widgetVisible = false;
     protected Rectangle2D.Double bounds;
 
     public boolean isWidgetVisible() {
-        return widgetVisible && !hideAllWidgets;
+        return widgetVisible;
     }
 
     public void setWidgetVisible(boolean showSwing) {

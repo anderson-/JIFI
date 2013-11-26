@@ -40,13 +40,14 @@ import robotinterface.drawable.DrawingPanel;
  * Implementação de WidgetContainer para facilitar o desenho de objetos
  * gráficos.
  */
+@Deprecated
 public class SimpleContainer extends WidgetContainer {
 
     private Color color;
 
     public SimpleContainer(Shape shape, Color color) {
         super(shape);
-        widgetVisible = false;
+        setWidgetVisible(false);
         this.color = color;
     }
 
@@ -66,7 +67,7 @@ public class SimpleContainer extends WidgetContainer {
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         if(in.mouseClicked() && in.getMouseClickCount() == 2){
-            super.widgetVisible = !super.widgetVisible;
+            setWidgetVisible(!isWidgetVisible());
         }
 
 //        g.setColor(color);
@@ -80,7 +81,7 @@ public class SimpleContainer extends WidgetContainer {
         
         AffineTransform o = g.getTransform();
         
-        if (widgetVisible){
+        if (isWidgetVisible()){
             drawWJC(g, ga, in);
         } else {
             drawWoJC(g, ga, in);

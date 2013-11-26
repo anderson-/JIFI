@@ -130,6 +130,32 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         }
     }
 
+    private static void hideAllWidgets(Command c, Command ign) {
+        if (c != ign) {
+            GraphicObject go = c.getDrawableResource();
+            if (go != null) {
+                if (go instanceof WidgetContainer) {
+                    ((WidgetContainer) go).setWidgetVisible(false);
+                }
+            }
+        }
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            if (b.size() == 1) { //só tem o EndBlock
+                DummyBlock db = new DummyBlock();
+                b.add(db);
+            }
+            Command it = b.getStart();
+            while (it != null) {
+                hideAllWidgets(it, ign);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            hideAllWidgets(((If) c).getBlockTrue(), ign);
+            hideAllWidgets(((If) c).getBlockFalse(), ign);
+        }
+    }
+
     private static void ident(Function f, boolean b) {
         f.ident(GraphicFlowchart.GF_X,
                 GraphicFlowchart.GF_Y,
@@ -389,6 +415,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         if (in.mouseGeneralClick() && in.getMouseButton() == MouseEvent.BUTTON1) {
             Point p = in.getTransformedMouse();
             Command c = function.find(p);
+            hideAllWidgets(function, c);
 
             if (c != null) {
                 if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {

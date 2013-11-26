@@ -655,7 +655,7 @@ public class If extends Procedure {
             public Shape updateShape(Rectangle2D bounds) {
                 myShape.reset();
 
-                if (widgetVisible) {
+                if (isWidgetVisible()) {
                     shapeStartX = 0;
                     shapeStartY = EXTENDED_HEIGHT;
                     myShape.addPoint((int) bounds.getCenterX(), 0);

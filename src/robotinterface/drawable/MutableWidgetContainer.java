@@ -88,7 +88,7 @@ public class MutableWidgetContainer extends WidgetContainer {
     protected int shapeStartX = 0;
     protected int shapeStartY = 0;
     protected boolean center = false;
-    protected boolean widgetsEnebled = true;
+    protected boolean widgetsEnabled = true;
     protected Color stringColor = Color.BLACK;
     private String name = "";
     private double stringWidth = 0;
@@ -109,7 +109,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         rowWidgets = new ArrayList<>();
         rowLabels = new ArrayList<>();
         shapeBounds = new Rectangle2D.Double();
-        widgetVisible = false;
+        setWidgetVisible(false);
         this.color = color;
     }
 
@@ -134,11 +134,11 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public boolean isWidgetsEnebled() {
-        return widgetsEnebled;
+        return widgetsEnabled;
     }
 
     public void setWidgetsEnebled(boolean widgetsEnebled) {
-        this.widgetsEnebled = widgetsEnebled;
+        this.widgetsEnabled = widgetsEnebled;
     }
 
     public String getString() {
@@ -245,8 +245,8 @@ public class MutableWidgetContainer extends WidgetContainer {
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         
-        if (widgetsEnebled & in.mouseClicked() && in.getMouseClickCount() == 2) {
-            super.widgetVisible = !super.widgetVisible;
+        if (widgetsEnabled & in.mouseClicked() && in.getMouseClickCount() == 2) {
+            setWidgetVisible(!isWidgetVisible());
             shapeBounds.setRect(0, 0, 0, 0);
         }
 
@@ -269,7 +269,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
 
         //componente
-        if (super.widgetVisible) {
+        if (isWidgetVisible()) {
             drawWJC(g, ga, in);
         } else {
             drawWoJC(g, ga, in);

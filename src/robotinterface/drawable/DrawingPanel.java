@@ -82,6 +82,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private final ArrayList<Integer> keys;
     private final Point mouse;
     private boolean dragEnabled = true;
+    private boolean dragging = false;
     private int mouseDragX = 0;
     private int mouseDragY = 0;
     private Thread repaintThread;
@@ -382,6 +383,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 //            }
 //            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
 //        }
+        if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
+            setPosition(mouseDragX, mouseDragY);
+            mouseDragX = 0;
+            mouseDragY = 0;
+        } 
+
         if (beginDrawing) {
             beginDrawing = false;
             mouseClick = false;
@@ -418,11 +425,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     @Override
-    public void mouseClicked(final MouseEvent e) {
+    public final void mouseClicked(final MouseEvent e) {
         mouseClick = true;
-        mouseButton = e.getButton();
         mouseClickCount = e.getClickCount();
-        if (midMouseButtonResetView && e.getButton() == MouseEvent.BUTTON2) {
+        if (midMouseButtonResetView && mouseButton == MouseEvent.BUTTON2) {
             resetView();
         }
     }
@@ -435,10 +441,12 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mousePressed(MouseEvent e) {
+        mouseButton = e.getButton();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        dragging = false;
     }
 
     @Override
@@ -455,17 +463,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return;
         }
 
-        mouseDragX = 0;
-        mouseDragY = 0;
-
         synchronized (mouse) {
             //define a posição relativa com base no deslocamento do mouse
             mouseDragX = (int) (mouse.getX() - e.getPoint().getX());
             mouseDragY = (int) (mouse.getY() - e.getPoint().getY());
-
-            if (dragEnabled) {
-                setPosition(mouseDragX, mouseDragY);
-            }
+            dragging = true;
             mouse.setLocation(e.getPoint());
         }
     }
