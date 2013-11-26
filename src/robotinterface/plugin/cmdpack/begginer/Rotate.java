@@ -221,7 +221,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         //HEADER LINE
 
         int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 64;
+        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 80;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
             @Override
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
@@ -253,8 +253,8 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
                 int x = INSET_X;
                 int y = INSET_Y + 40;
-                int strLen = 64;
-                labels.add(new TextLabel("Ângulo:", x + 5, y));
+                int strLen = 81;
+                labels.add(new TextLabel("Ângulo (°):", x + 5, y));
 
                 x += strLen;
                 y -= 18;

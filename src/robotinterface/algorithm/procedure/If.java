@@ -40,6 +40,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -47,11 +49,13 @@ import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
+import static robotinterface.algorithm.procedure.Procedure.INSET_X;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
 import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
@@ -294,7 +298,7 @@ public class If extends Procedure {
             }
         };
         //LINES
-        int textFieldLineWidth = 4 * INSET_X + 2 * TEXTFIELD_WIDTH + COMBOBOX_WIDTH;
+        int textFieldLineWidth = 6 * INSET_X + 2 * TEXTFIELD_WIDTH + COMBOBOX_WIDTH + 2 * BUTTON_WIDTH;
         int textFieldLineHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + COMBOBOX_HEIGHT;
         final WidgetLine conditionalLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
             @Override
@@ -303,15 +307,65 @@ public class If extends Procedure {
                 JTextField segundo = new JTextField();
                 JComboBox comparacao = new JComboBox(comparadores);
                 final JComboBox proximo = new JComboBox(proximos);
+                proximo.setName("pox");
+                JComboBox combobox1 = new JComboBox();
+                JComboBox combobox2 = new JComboBox();
+                boolean exp1 = true, exp2 = true;
+
+                MutableWidgetContainer.setAutoFillComboBox(combobox1, p);
+                MutableWidgetContainer.setAutoFillComboBox(combobox2, p);
 
                 if (data instanceof Object[]) {
                     if (((Object[]) data)[0] instanceof String[]) {
                         String[] strArray = (String[]) ((Object[]) data)[0];
                         if (strArray.length == 1) {
-                            primeiro.setText(strArray[0].trim());
+                            String str1 = strArray[0].trim();
+                            Object o = null;
+                            for (int i = 0; i < combobox1.getItemCount(); i++) {
+                                o = combobox1.getItemAt(i);
+                                if (o != null && o.toString().equals(str1)) {
+                                    combobox1.setSelectedIndex(i);
+                                    exp1 = false;
+                                    break;
+                                } else {
+                                    o = null;
+                                }
+                            }
+                            if (o == null) {
+                                primeiro.setText(str1);
+                            }
                         } else if (strArray.length == 2) {
-                            primeiro.setText(strArray[0].trim());
-                            segundo.setText(strArray[1].trim());
+                            String str1 = strArray[0].trim();
+                            Object o = null;
+                            for (int i = 0; i < combobox1.getItemCount(); i++) {
+                                o = combobox1.getItemAt(i);
+                                if (o != null && o.toString().equals(str1)) {
+                                    combobox1.setSelectedIndex(i);
+                                    exp1 = false;
+                                    break;
+                                } else {
+                                    o = null;
+                                }
+                            }
+                            if (o == null) {
+                                primeiro.setText(str1);
+                            }
+
+                            String str2 = strArray[1].trim();
+                            o = null;
+                            for (int i = 0; i < combobox2.getItemCount(); i++) {
+                                o = combobox2.getItemAt(i);
+                                if (o != null && o.toString().equals(str2)) {
+                                    combobox2.setSelectedIndex(i);
+                                    exp2 = false;
+                                    break;
+                                } else {
+                                    o = null;
+                                }
+                            }
+                            if (o == null) {
+                                segundo.setText(str2);
+                            }
                         }
                     }
                     if (((Object[]) data)[1] instanceof Integer) {
@@ -345,19 +399,85 @@ public class If extends Procedure {
                 int x = INSET_X;
                 int y = INSET_Y;
 
-                widgets.add(new Widget(primeiro, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                final JButton changeButton1 = new JButton();
+                final JButton changeButton2 = new JButton();
+                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
+                changeButton1.setIcon(icon);
+                changeButton2.setIcon(icon);
+
+                final Widget wcombobox1 = new Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wtextfield1 = new Widget(primeiro, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wcombobox1);
+                widgets.add(wtextfield1);
                 x += TEXTFIELD_WIDTH + INSET_X;
+
+                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+                x += BUTTON_WIDTH + INSET_X;
+
                 widgets.add(new Widget(comparacao, x, y, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
                 x += COMBOBOX_WIDTH + INSET_X;
-                widgets.add(new Widget(segundo, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                x = TEXTFIELD_WIDTH + 2 * INSET_X;
+
+                widgets.add(new Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+                x += BUTTON_WIDTH + INSET_X;
+
+                final Widget wcombobox2 = new Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wtextfield2 = new Widget(segundo, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                widgets.add(wcombobox2);
+                widgets.add(wtextfield2);
+                x += TEXTFIELD_WIDTH + INSET_X;
+
+                x = TEXTFIELD_WIDTH + 3 * INSET_X + BUTTON_WIDTH;
                 y += COMBOBOX_HEIGHT + INSET_Y;
                 widgets.add(new Widget(proximo, x, y, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
+
+                changeButton1.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (container.contains(wtextfield1)) {
+                            container.removeWidget(wtextfield1);
+                            container.addWidget(wcombobox1);
+                        } else {
+                            container.removeWidget(wcombobox1);
+                            container.addWidget(wtextfield1);
+                        }
+                    }
+                });
+
+                changeButton2.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (container.contains(wtextfield2)) {
+                            container.removeWidget(wtextfield2);
+                            container.addWidget(wcombobox2);
+                        } else {
+                            container.removeWidget(wcombobox2);
+                            container.addWidget(wtextfield2);
+                        }
+                    }
+                });
+
+                wtextfield1.setDynamic(true);
+                wcombobox1.setDynamic(true);
+                wtextfield2.setDynamic(true);
+                wcombobox2.setDynamic(true);
+
+                if (exp1) {
+                    container.addWidget(wtextfield1);
+                } else {
+                    container.addWidget(wcombobox1);
+                }
+
+                if (exp2) {
+                    container.addWidget(wtextfield2);
+                } else {
+                    container.addWidget(wcombobox2);
+                }
+
             }
 
             @Override
             public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                if (widgets.size() >= 4) {
+                if (widgets.size() >= 6) {
                     try {
                         StringBuilder sb = new StringBuilder();
                         Iterator<Widget> iterator = widgets.iterator();
@@ -366,6 +486,9 @@ public class If extends Procedure {
                         JComponent jComponent;
                         //JTextField 1
                         tmpWidget = iterator.next();
+                        if (!container.contains(tmpWidget)) {
+                            tmpWidget = iterator.next();
+                        }
                         jComponent = tmpWidget.getJComponent();
                         if (jComponent instanceof JTextField) {
                             str = ((JTextField) jComponent).getText();
@@ -377,6 +500,21 @@ public class If extends Procedure {
                                 p.setProcedure(def);
                                 return def;
                             }
+                        } else if (jComponent instanceof JComboBox) {
+                            JComboBox cb = (JComboBox) jComponent;
+                            Object o = cb.getSelectedItem();
+                            if (o != null) {
+                                sb.append(o.toString());
+                                sb.append(" ");
+                            } else {
+                                p.setProcedure(def);
+                                return def;
+                            }
+                        }
+                        //JButton 1
+                        tmpWidget = iterator.next();
+                        if (!(tmpWidget.getJComponent() instanceof JButton)) {
+                            iterator.next();
                         }
                         //JComboBox 1
                         tmpWidget = iterator.next();
@@ -388,8 +526,15 @@ public class If extends Procedure {
                                 sb.append(" ");
                             }
                         }
+                        //JButton 2
+                        iterator.next();
                         //JTextField 2
+                        boolean skip = false;
                         tmpWidget = iterator.next();
+                        if (!container.contains(tmpWidget)) {
+                            tmpWidget = iterator.next();
+                            skip = true;
+                        }
                         jComponent = tmpWidget.getJComponent();
                         if (jComponent instanceof JTextField) {
                             str = ((JTextField) jComponent).getText();
@@ -400,9 +545,22 @@ public class If extends Procedure {
                                 p.setProcedure(def);
                                 return def;
                             }
+                        } else if (jComponent instanceof JComboBox) {
+                            JComboBox cb = (JComboBox) jComponent;
+                            Object o = cb.getSelectedItem();
+                            if (o != null) {
+                                sb.append(o.toString());
+                                sb.append(" ");
+                            } else {
+                                p.setProcedure(def);
+                                return def;
+                            }
                         }
                         //JComboBox 2
                         tmpWidget = iterator.next();
+                        if (!container.contains(tmpWidget)) {
+                            tmpWidget = iterator.next();
+                        }
                         jComponent = tmpWidget.getJComponent();
                         if (jComponent instanceof JComboBox) {
                             str = ((JComboBox) jComponent).getSelectedItem().toString();
@@ -663,6 +821,7 @@ public class If extends Procedure {
                     GraphicFlowchart.F_SI);
 
             //true
+            g.drawString("V", (int) bTrueStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
 
             path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());
@@ -672,6 +831,7 @@ public class If extends Procedure {
             path.lineTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
 
             //false
+            g.drawString("F", (int) bFalseStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
 
             path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bThis.getCenterY());
@@ -683,7 +843,6 @@ public class If extends Procedure {
             //linha final
             path.moveTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
             path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
-
 
             Command c = getNext();
             if (c instanceof GraphicResource) {

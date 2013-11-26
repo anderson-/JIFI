@@ -126,7 +126,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
     public static MutableWidgetContainer createDrawableMove(final Wait w) {
 
-        final int TEXTFIELD_WIDTH = 80;
+        final int TEXTFIELD_WIDTH = 70;
         final int TEXTFIELD_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
         final int INSET_X = 5;
@@ -135,7 +135,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         //HEADER LINE
 
         int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 64;
+        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 87;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
             @Override
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
@@ -170,8 +170,8 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
                 int x = INSET_X;
                 int y = INSET_Y + 40;
-                int strLen = 65;
-                labels.add(new TextLabel("Tempo:", x + 5, y));
+                int strLen = 88;
+                labels.add(new TextLabel("Tempo (ms):", x + 5, y));
 
                 x += strLen;
                 y -= 18;

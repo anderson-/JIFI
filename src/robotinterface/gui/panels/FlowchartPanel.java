@@ -99,12 +99,12 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     }
 
     public void ident(Function f) {
-        addDummyBlocks(function);
+        addDummyBlocks(function, this);
         ident(function, true);
         addAllDrawableResources(function, this);
     }
 
-    private static void addDummyBlocks(Command c) {
+    private static void addDummyBlocks(Command c, FlowchartPanel fp) {
         if (c instanceof Block) {
             Block b = (Block) c;
             if (b.size() == 1) { //só tem o EndBlock
@@ -113,12 +113,20 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             }
             Command it = b.getStart();
             while (it != null) {
-                addDummyBlocks(it);
+                addDummyBlocks(it, fp);
+                if (it instanceof DummyBlock) {
+                    //confirma
+                    if (it.getParent() instanceof Block) {
+                        if (((Block) it.getParent()).size() > 2) {
+                            fp.removeGraphicResources(it);
+                        }
+                    }
+                }
                 it = it.getNext();
             }
         } else if (c instanceof If) {
-            addDummyBlocks(((If) c).getBlockTrue());
-            addDummyBlocks(((If) c).getBlockFalse());
+            addDummyBlocks(((If) c).getBlockTrue(), fp);
+            addDummyBlocks(((If) c).getBlockFalse(), fp);
         }
     }
 
@@ -180,24 +188,27 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                     if (tmpi == 2) {
                         if (c != null) {
 
+                            //(***) descomentar para adicionar blocos antes 
+                            //se clicado na parte superior da seleção
                             if (c instanceof Function) {
                                 c = ((Function) c).get(0);
+                                addNext = false; //(***)
                             }
 
-                            if (c instanceof GraphicResource) {
-                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                                if (d != null) {
-                                    g.draw(d.getObjectShape());
-
-                                    //alterar usando fIx e fIy
-                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
-                                        addNext = true;
-                                    } else {
-                                        addNext = false;
-                                    }
-
-                                }
-                            }
+//                            if (c instanceof GraphicResource) { //(***)
+//                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+//                                if (d != null) {
+//                                    g.draw(d.getObjectShape());
+//
+//                                    //alterar usando fIx e fIy
+//                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
+//                                        addNext = true;
+//                                    } else {
+//                                        addNext = false;
+//                                    }
+//
+//                                }
+//                            }
                             Command n = tmp;
 
                             if (n instanceof GraphicResource) {

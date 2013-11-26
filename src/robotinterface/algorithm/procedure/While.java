@@ -173,6 +173,10 @@ public class While extends Block {
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
+                    
+                    g.drawString("F", (int) bBlock.getMaxX() - 3, (int) bThis.getCenterY() - 4);
+                    g.drawString("V", (int) bBlock.getMinX() - 3, (int) bThis.getCenterY() - 4);
+                    
                     path.moveTo(bThis.getCenterX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
