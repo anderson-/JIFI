@@ -1050,7 +1050,9 @@ public class GUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                GUI.getInstance().setVisible(true);
+				GUI RobofIDE = GUI.getInstance();
+				RobofIDE.setTitle("RoboF IDE v1.0 (JIFI)");
+				RobofIDE.setVisible(true);
                 splashScreen.dispose();
             }
         });

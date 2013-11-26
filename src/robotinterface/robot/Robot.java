@@ -718,6 +718,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         double cos_theta = cos(theta);
 
         if (leftWheelSpeed != rightWheelSpeed) {
+			if (b < 0)			b += 2 * Math.PI;
+			if (b >= 2*Math.PI)	b -= 2 * Math.PI;
             theta = b;
             x = x + a * (sin(b) - sin_theta);
             y = y - a * (cos(b) - cos_theta);

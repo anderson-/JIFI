@@ -86,7 +86,7 @@
                   <Component id="toolBar" pref="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="primarySplitPane" pref="618" max="32767" attributes="0"/>
+              <Component id="primarySplitPane" pref="634" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jToolBar1" min="-2" pref="25" max="-2" attributes="0"/>
           </Group>
@@ -390,7 +390,7 @@
                 </DimensionLayout>
                 <DimensionLayout dim="1">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <EmptySpace min="0" pref="577" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="593" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
               </Layout>
@@ -480,7 +480,7 @@
                     </DimensionLayout>
                     <DimensionLayout dim="1">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="322" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="338" max="32767" attributes="0"/>
                       </Group>
                     </DimensionLayout>
                   </Layout>
