@@ -20,47 +20,36 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class DummyBlock extends Procedure {
 
-    private GraphicObject resource = null;
+    public static GraphicObject createSimpleBlock(final String str, final Color strColor, final Color color) {
+        MutableWidgetContainer mwc = new MutableWidgetContainer(color) {
 
+            {
+                super.stringColor = strColor;
+            }
+
+            @Override
+            public String getString() {
+                return str;
+            }
+
+            @Override
+            public void splitString(String original, Collection<String> splitted) {
+                splitted.add(original);
+            }
+
+        };
+        mwc.setWidgetsEnebled(false);
+        return mwc;
+    }
+    
+    private GraphicObject resource = null;
+    
     @Override
     public GraphicObject getDrawableResource() {
-
         if (resource == null) {
-            MutableWidgetContainer mwc = new MutableWidgetContainer(Color.LIGHT_GRAY) {
-
-                {
-                    stringColor = Color.LIGHT_GRAY;
-                }
-                
-                @Override
-                public String getString() {
-                    return "  vazio  ";
-                }
-
-                @Override
-                public void splitString(String original, Collection<String> splitted) {
-                    splitted.add(original);
-                }
-                
-            };
-            mwc.setWidgetsEnebled(false);
-            resource = mwc;
+            resource = createSimpleBlock("   vazio   ", Color.LIGHT_GRAY, Color.LIGHT_GRAY);
         }
         return resource;
-    }
-
-    @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
-    }
-
-    @Override
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
-        return true;
-    }
-
-    @Override
-    public Item getItem() {
-        return new Item("Dummy", new Rectangle2D.Double(0, 0, 20, 15), Color.red);
     }
 
     @Override

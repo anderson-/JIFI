@@ -49,7 +49,7 @@ public class Block extends Procedure {
 
         private Command begin;
 
-        private BlockEnd() {
+        protected BlockEnd() {
         }
 
         /**
@@ -82,9 +82,7 @@ public class Block extends Procedure {
     private BlockEnd end;
 
     public Block() {
-        end = new BlockEnd();
-        end.setBlockBegin(this);
-        end.setParent(this);
+        setEnd(new BlockEnd());
         start = end;
     }
 
@@ -107,6 +105,16 @@ public class Block extends Procedure {
 
     public final BlockEnd getEnd() {
         return end;
+    }
+
+    public final void setEnd(BlockEnd end) {
+        if (this.end != null) {
+            end.setNext(this.end.getNext());
+            end.setPrevious(this.end.getPrevious());
+        }
+        end.setBlockBegin(this);
+        end.setParent(this);
+        this.end = end;
     }
 
     public final boolean add(Command c) {
@@ -161,7 +169,6 @@ public class Block extends Procedure {
         }
 
         //begin<->c<->...<->end<->begin.next
-
         if (it != null && begin.getNext() != null) {
             it.setNext(begin.getNext());
             begin.getNext().setPrevious(it);
@@ -435,7 +442,6 @@ public class Block extends Procedure {
 //            }
 //            
 //        }
-
         start.ident(x, y, j, k, Ix, Iy, a);
 
         if (getNext() != null) {

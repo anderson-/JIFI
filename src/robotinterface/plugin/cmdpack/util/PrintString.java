@@ -244,19 +244,19 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     @Override
                     public void insertUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-//                        container.updateLines();
+                        container.updateLines();
                     }
 
                     @Override
                     public void removeUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-//                        container.updateLines();
+                        container.updateLines();
                     }
 
                     @Override
                     public void changedUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-//                        container.updateLines();
+                        container.updateLines();
                     }
                 });
 

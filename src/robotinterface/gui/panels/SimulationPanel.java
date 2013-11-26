@@ -143,7 +143,18 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             @Override
             protected void ItemSelected(Item item, Object ref) {
                 try {
-                    itemSelected = item;
+                    if (itemSelected == item) {
+                        itemSelected.setSelected(false);
+                        itemSelected = null;
+                    } else {
+                        if (itemSelected != null) {
+                            itemSelected.setSelected(false);
+                            itemSelected = null;
+                        }
+                        itemSelected = item;
+                        itemSelected.setSelected(true);
+                    }
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -160,7 +171,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         add(sp);
 
         //mapeia a posição a cada x ms
-        Timer timer = new Timer(500) {
+        Timer timer = new Timer(300) {
             ArrayList<Robot> tmpBots = new ArrayList<>();
 
             @Override
@@ -242,7 +253,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
                 resetView();
             }
-            
+
             if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
                 zoomEnabled = false;
                 int wr = -in.getMouseWheelRotation();

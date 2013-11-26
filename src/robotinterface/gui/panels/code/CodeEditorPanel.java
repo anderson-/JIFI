@@ -6,46 +6,57 @@ package robotinterface.gui.panels.code;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.Parser;
-import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.procedure.Function;
-import robotinterface.gui.GUI;
-import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.code.jedit.*;
+import static robotinterface.gui.panels.code.jedit.InputHandler.BACKSPACE;
+import static robotinterface.gui.panels.code.jedit.InputHandler.BACKSPACE_WORD;
+import static robotinterface.gui.panels.code.jedit.InputHandler.DELETE;
+import static robotinterface.gui.panels.code.jedit.InputHandler.DELETE_WORD;
+import static robotinterface.gui.panels.code.jedit.InputHandler.INSERT_BREAK;
+import static robotinterface.gui.panels.code.jedit.InputHandler.INSERT_TAB;
+import static robotinterface.gui.panels.code.jedit.InputHandler.getTextArea;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.plugin.PluginManager;
 import robotinterface.robot.device.Device;
+import robotinterface.util.cyzx.Undoable;
+import robotinterface.util.cyzx.HistoryManager;
 
 /**
  *
  * @author antunes
  */
-public class CodeEditorPanel extends JPanel implements KeyListener {
+class TextAreaState {
+
+    public String string;
+    public int cursor;
+
+    public TextAreaState(String string, int cursor) {
+        this.string = string;
+        this.cursor = cursor;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + "string=" + string.length() + ", cursor=" + cursor + '}';
+    }
+}
+
+public class CodeEditorPanel extends JPanel implements Undoable<TextAreaState> {
 
     private Function function;
     private JEditTextArea textArea;
@@ -165,6 +176,40 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
 //        add(new JButton("sei lá..."));
         add(jsp);
 
+        final HistoryManager<TextAreaState> hm = new HistoryManager(this, 2);
+
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                hm.saveState();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                hm.saveState();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                hm.saveState();
+            }
+        });
+
+        textArea.getInputHandler().addKeyBinding("C+z", new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                hm.undo();
+            }
+        });
+
+        textArea.getInputHandler().addKeyBinding("C+y", new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                hm.redo();
+            }
+        });
+
         updateFunctionTokens();
 
     }
@@ -178,7 +223,8 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
     public static void updateFunctionTokens() {
         KeywordMap keywords = FunctionTokenMarker.getKeywords();
 
-        for (Class c : PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", FunctionToken.class)) {
+        for (Class c : PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", FunctionToken.class
+        )) {
             if (!functionTokenClass.contains(c)) {
                 functionTokenClass.add(c);
                 try {
@@ -283,28 +329,22 @@ public class CodeEditorPanel extends JPanel implements KeyListener {
         return function;
     }
 
-//    public void setFunction(Function function) {
-//        this.function = function;
-//    }
     @Override
-    public void keyTyped(KeyEvent e) {
-    }
+    public void setState(TextAreaState state) {
+        textArea.setText(state.string);
+        try {
+            textArea.setCaretPosition(state.cursor);
+        } catch (java.lang.IllegalArgumentException e) {
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        if ((e.getKeyCode() == KeyEvent.VK_C) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-            textArea.copy();
-            System.out.println("c");
-        } else if ((e.getKeyCode() == KeyEvent.VK_X) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-            textArea.cut();
-            System.out.println("x");
-        } else if ((e.getKeyCode() == KeyEvent.VK_V) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-            textArea.paste();
-            System.out.println("v");
         }
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
+    public TextAreaState copy() {
+        if (textArea.getText().isEmpty()) {
+            return null;
+        }
+        return new TextAreaState(textArea.getText(), textArea.getCaretPosition() + 1);
     }
+
 }

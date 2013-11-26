@@ -44,6 +44,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
@@ -58,10 +59,32 @@ import robotinterface.gui.GUI;
  */
 public class Function extends Block {
 
+    public class FunctionEnd extends BlockEnd {
+
+        protected FunctionEnd() {
+        }
+
+        private GraphicObject resource = null;
+
+        @Override
+        public GraphicObject getDrawableResource() {
+            if (resource == null) {
+                resource = createSimpleBlock("   fim   ", Color.black, Color.black);
+            }
+            return resource;
+        }
+
+        @Override
+        public void toString(String ident, StringBuilder sb) {
+        }
+    }
+
     private String name = "meuPrograma";
     private ArrayList<String> args;
 
     public Function() {
+        super.setEnd(new FunctionEnd());
+        //super(new FunctionEnd());
         args = new ArrayList<>();
     }
 
@@ -113,7 +136,7 @@ public class Function extends Block {
         return true;
         //return super.addBegin(c);
     }
-    
+
     public static final int ARR_SIZE = 7;
 
     public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
@@ -196,7 +219,7 @@ public class Function extends Block {
         }
         return Function.find(p, this);
     }
-    
+
     Rectangle2D.Double shape = new Rectangle2D.Double();
     static ArrayList<Rectangle2D.Double> tmpBounds = new ArrayList<>();
     static ArrayList<String> tmpBoundsName = new ArrayList<>();
@@ -337,7 +360,6 @@ public class Function extends Block {
         };
 
         //END LINE
-
         final WidgetLine endLine = new WidgetLine(true) {
             private Widget addButton;
             private Widget remButton;
@@ -412,7 +434,7 @@ public class Function extends Block {
 
                 //adiciona cabeçalho
                 addLine(headerLine, null);
-                
+
                 //adiciona uma nova linha sem dados
                 addLine(nullLine, null);
 
@@ -422,7 +444,7 @@ public class Function extends Block {
 
                 addLine(endLine, null);
                 string = getString();
-                
+
                 //CUIDADO
                 GUI.getInstance().updateTabNames();
             }

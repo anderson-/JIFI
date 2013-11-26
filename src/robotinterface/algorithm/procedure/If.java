@@ -149,6 +149,26 @@ public class If extends Procedure {
         }
     }
 
+//    @Override
+//    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+//        //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
+//        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+//
+//        Rectangle2D.Double p = new Rectangle2D.Double();
+//        p.setRect(tmp);
+//        //false
+//        p = getBlockFalse().getBounds(p, j, k, Ix, Iy, a);
+//        tmp.width /= 2;
+//        tmp.width += p.width/2;
+//        tmp.add(p);
+//        //true
+//        p = getBlockTrue().getBounds(p, j, k, Ix, Iy, a);
+//        tmp.width += p.width/2;
+//        tmp.add(p);
+//
+//        return tmp;
+//    }
+    
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
         //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);

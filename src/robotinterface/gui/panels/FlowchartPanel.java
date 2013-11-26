@@ -21,6 +21,7 @@ import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.procedure.Block;
 import robotinterface.algorithm.procedure.DummyBlock;
 import robotinterface.algorithm.procedure.Function;
+import robotinterface.algorithm.procedure.Function.FunctionEnd;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.Drawable;
@@ -39,20 +40,20 @@ import robotinterface.plugin.PluginManager;
  */
 public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
+    private final Color selectionColor = new Color(0, .2f, .5f, .5f);
+    private final Color executionColor = new Color(0, 1, 0, .5f);
     public ArrayList<JPanel> tabs = new ArrayList<>();
-    private SidePanel sidePanel;
-    private Interpreter interpreter;
+    private final ArrayList<Command> selection = new ArrayList<>();
+    private final ArrayList<Command> copy = new ArrayList<>();
+    private final Stack<Function> undo = new Stack<>();
+    private final Stack<Function> redo = new Stack<>();
+    private final SidePanel sidePanel;
+    private final Interpreter interpreter;
     private Function function;
-    private ArrayList<Command> selection = new ArrayList<>();
-    private ArrayList<Command> copy = new ArrayList<>();
     private boolean keyActionUsed = false;
-    public Stack<Function> undo = new Stack<>();
-    public Stack<Function> redo = new Stack<>();
-    Command tmp = null;
-    Item itmp = null;
-    int tmpi = 0;
-    private Color selectionColor = new Color(0, .2f, .5f, .5f);
-    private Color executionColor = new Color(0, 1, 0, .5f);
+    private Command newCommand = null;
+    private Item itemSelected = null;
+    private int clickDrop = 0;
     private GraphicObject executionCommand = null;
 
     public FlowchartPanel(Function function) {
@@ -60,8 +61,12 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             @Override
             protected void ItemSelected(Item item, Object ref) {
                 try {
-                    itmp = item;
-                    tmp = SidePanel.newInstance(ref);
+                    if (itemSelected != null) {
+                        itemSelected.setSelected(false);
+                    }
+                    itemSelected = item;
+                    itemSelected.setSelected(true);
+                    newCommand = SidePanel.newInstance(ref);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -197,22 +202,30 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             ga.done(n);
         }
 
-        if (tmp != null) {
-            if (itmp != null) {
+        if (newCommand != null) {
+            if (itemSelected != null) {
                 g.translate(in.getMouse().x - 10, in.getMouse().y - 10);
-                g.setColor(itmp.getColor());
-                g.fill(itmp.getIcon());
+                g.setColor(itemSelected.getColor());
+                g.fill(itemSelected.getIcon());
             }
 
             if (in.mouseGeneralClick()) {
                 if (in.getMouseButton() == MouseEvent.BUTTON1) {
-                    tmpi++;
+                    clickDrop++;
                     Point p = in.getTransformedMouse();
                     Command c = function.find(p);
 
                     boolean addNext = true;
-                    if (tmpi == 2) {
+                    if (clickDrop == 2) {
                         if (c != null) {
+
+                            if (c instanceof FunctionEnd) {
+                                if (c.getPrevious() != null) {
+                                    c = c.getPrevious();
+                                } else {
+                                    c = c.getParent();
+                                }
+                            }
 
                             //(***) descomentar para adicionar blocos antes 
                             //se clicado na parte superior da seleção
@@ -235,7 +248,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 //
 //                                }
 //                            }
-                            Command n = tmp;
+                            Command n = newCommand;
 
                             if (n instanceof GraphicResource) {
                                 GraphicObject d = ((GraphicResource) n).getDrawableResource();
@@ -250,9 +263,9 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             interpreter.setInterpreterState(Interpreter.STOP);
 
                             if (addNext) {
-                                c.addAfter(tmp);
+                                c.addAfter(newCommand);
                             } else {
-                                c.addBefore(tmp);
+                                c.addBefore(newCommand);
                             }
 
                             if (c instanceof DummyBlock) {
@@ -260,20 +273,22 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             }
 
                             selection.clear();
-                            selection.add(tmp);
+                            selection.add(newCommand);
 
                             ident(function);
 //                    function.wire(fj, fk, fIx, fIy, fsi);
 //                System.out.println(c);
                         }
-                        tmp = null;
-                        itmp = null;
-                        tmpi = 0;
+                        newCommand = null;
+                        itemSelected.setSelected(false);
+                        itemSelected = null;
+                        clickDrop = 0;
                     }
                 } else {
-                    tmp = null;
-                    itmp = null;
-                    tmpi = 0;
+                    newCommand = null;
+                    itemSelected.setSelected(false);
+                    itemSelected = null;
+                    clickDrop = 0;
                 }
             }
         }
@@ -330,7 +345,9 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             redo.clear();
 
             for (Command c : selection) {
-                removeGraphicResources(c);
+                if (!(c instanceof FunctionEnd)) {
+                    removeGraphicResources(c);
+                }
             }
 
             selection.clear();
@@ -361,8 +378,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                                 Procedure p = (Procedure) c;
                                 copy.add(p.copy((Procedure) p.createInstance()));
                                 removeGraphicResources(c);
-                            } else {
-                                System.out.println("Erro de copia");
+                            } else if (!(c instanceof FunctionEnd)) {
+                                System.out.println("Erro de copia " + c);
                             }
                         }
 
@@ -379,8 +396,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             if (c instanceof Procedure) {
                                 Procedure p = (Procedure) c;
                                 copy.add(p.copy((Procedure) p.createInstance()));
-                            } else {
-                                System.out.println("Erro de copia");
+                            } else if (!(c instanceof FunctionEnd)) {
+                                System.out.println("Erro de copia " + c);
                             }
                         }
                     }
@@ -424,6 +441,44 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                     } else {
                         selection.add(0, c);
                     }
+                } else if (!selection.contains(c) && in.isKeyPressed(KeyEvent.VK_SHIFT)) {
+                    //organizar seleção
+                    if (!selection.isEmpty()) {
+                        Command start = selection.get(0);
+                        boolean ok = false;
+                        Command it = start;
+                        while (it != null) {
+                            if (!selection.contains(it)) {
+                                selection.add(it);
+                            }
+                            it = it.getNext();
+
+                            if (it == c) {
+                                ok = true;
+                                break;
+                            }
+                        }
+                        if (!ok) {
+                            selection.clear();
+                            it = start;
+                            while (it != null) {
+                                if (!selection.contains(it)) {
+                                    selection.add(it);
+                                }
+                                it = it.getPrevious();
+
+                                if (it == c) {
+                                    ok = true;
+                                    break;
+                                }
+                            }
+                            if (!ok) {
+                                //procurar para cima e para baixo :( agora não
+                                selection.clear();
+                            }
+                        }
+                    }
+                    selection.add(c);
                 } else {
                     if (selection.contains(c)) {
                         selection.clear();

@@ -709,6 +709,7 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_abortButtonActionPerformed
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
+        closeProjectButtonActionPerformed(null);
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -892,7 +893,11 @@ public class GUI extends javax.swing.JFrame {
 
   private void closeProjectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeProjectButtonActionPerformed
 
-      int returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
+      int returnVal = JOptionPane.YES_OPTION;
+
+      if (evt != null) {
+          returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
+      }
 
       if (returnVal == JOptionPane.YES_OPTION) {
 
@@ -1050,8 +1055,8 @@ public class GUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-				GUI RobofIDE = GUI.getInstance();
-				RobofIDE.setVisible(true);
+                GUI RobofIDE = GUI.getInstance();
+                RobofIDE.setVisible(true);
                 splashScreen.dispose();
             }
         });

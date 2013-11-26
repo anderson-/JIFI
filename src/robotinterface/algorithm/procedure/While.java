@@ -37,6 +37,7 @@ import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
+import robotinterface.algorithm.procedure.Function.FunctionEnd;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
@@ -159,12 +160,12 @@ public class While extends Block {
             c = getNext();
             boolean end = false;
 
-            if (c != null & c instanceof BlockEnd) {
+            if (c != null && c instanceof BlockEnd && !(c instanceof FunctionEnd)) {
                 end = true;
                 c = this.getParent();
-                if (c != null & !(c instanceof While)) {
+                if (c != null && !(c instanceof While)) {
                     c = c.getParent();
-                    if (c != null & !(c instanceof If)) {
+                    if (c != null && !(c instanceof If)) {
                         c = null;
                     }
                 }

@@ -36,6 +36,7 @@ public class Item implements GraphicObject {
     private Shape icon;
     private Color color;
     private Object ref;
+    private boolean selected;
 
     public Item(String name, BufferedImage image) {
         this.name = name;
@@ -98,6 +99,14 @@ public class Item implements GraphicObject {
 
     public Color getColor() {
         return color;
+    }
+    
+    public boolean isSelected() {
+        return selected;
+    }
+    
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public void setPanel(SidePanel panel) {
@@ -179,6 +188,10 @@ public class Item implements GraphicObject {
                 }
             }
         }
+        
+        if (selected){
+            g.setColor(color.brighter());
+        }
 
         g.fillRoundRect(0, 0, (int) maxWidth, (int) maxHeight, 10, 10);
 
@@ -219,4 +232,5 @@ public class Item implements GraphicObject {
     @Override
     public void drawTopLayer(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
     }
+
 }
