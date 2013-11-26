@@ -59,7 +59,7 @@ public class Compass extends Device implements VirtualDevice {
         return 3;
     }
 
-    public double getAlpha() {
+    public int getAlpha() {
         return alpha;
     }
 

@@ -60,42 +60,51 @@ import robotinterface.interpreter.ExecutionException;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.action.RotateAction;
+import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
+import robotinterface.robot.simulation.VirtualConnection;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Procedimento de mover o robô.
  */
 public class Rotate extends Procedure implements GraphicResource, Classifiable, FunctionToken<Rotate> {
+	
+	private static final int THRESHOLD = 0;
 
     private RotateAction rotateAction = null;
     private static Color myColor = Color.decode("#FF8533");
-    private int angle;
+    private int destAngle;
+	private int turnAngle;
+	private int lastAngle;
+	private int turnRemaining;
     private String var = null;
     private GraphicObject resource = null;
+	private HBridge hbridge;
+	private Compass compass;
 
     public Rotate() {
-        angle = 0;
+        destAngle = 0;
     }
 
     public Rotate(int angle) {
         super();
-        this.angle = angle;
+        this.destAngle = angle;
         updateProcedure();
     }
 
     public int getAngle() {
-        return angle;
+        return turnAngle;
     }
 
     public void setAngle(int angle) {
-        this.angle = angle;
+        this.turnAngle = angle;
         updateProcedure();
     }
 
     public void updateProcedure() {
-        setProcedure("rotate(" + ((var != null) ? var : angle) + ")");
+        setProcedure("rotate(" + ((var != null) ? var : turnAngle) + ")");
     }
 
     @Override
@@ -103,19 +112,94 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         updateProcedure();
         super.toString(ident, sb);
     }
+	
+	public boolean rotate(Robot robot) {
+		/*int error = destAngle - (int) Math.toDegrees(robot.getTheta()); 
+		if (error < -180 && turnAngle > 0)  error += 360;
+		if (error >  180 && turnAngle < 0)	error -= 360;
+		
+		if ((error >= -THRESHOLD) && (error <= THRESHOLD)){ // se ja esta dentro do erro limite
+		  hbridge.setFullState((byte)0, (byte)0);
+		} else {
+		  byte speed;
+		  if (error > THRESHOLD){ // se esta a direita do objetivo
+			speed = (byte) Math.max(30, (int)(Math.min(127, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+		  } else {
+			speed = (byte) Math.min(-30, (int)(Math.max(-128, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+		  }
+		  hbridge.setFullState(speed, (byte)-speed);
+		  return false;
+
+		}*/
+		int currAngle = (int) Math.toDegrees(robot.getTheta());
+		int diff = currAngle - lastAngle;
+		if (diff < -180)	diff += 360;
+		else if (diff >  180)	diff -= 360;
+		turnRemaining -= diff;
+		lastAngle = currAngle;
+				
+		if ((turnRemaining >= -THRESHOLD) && (turnRemaining <= THRESHOLD)){ // se ja esta dentro do erro limite
+		  hbridge.setFullState((byte)0, (byte)0);
+		} else {
+		  byte speed;
+		  if (turnRemaining > THRESHOLD){ // se esta a direita do objetivo
+			speed = (byte) Math.max(30, (int)(Math.min(127, turnRemaining*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+		  } else {
+			speed = (byte) Math.min(-30, (int)(Math.max(-127, turnRemaining*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+		  }
+		  hbridge.setFullState(speed, (byte)-speed);
+		  return false;
+
+		}
+		
+		return true;
+	}
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-        rotateAction = robot.getAction(RotateAction.class);
-        if (rotateAction != null){
-            rotateAction.setAngle(angle);
-            rotateAction.begin(robot);
-        }
+		if (robot.getMainConnection() instanceof VirtualConnection) {
+			destAngle = turnAngle;
+			hbridge = robot.getDevice(HBridge.class);
+			compass = robot.getDevice(Compass.class);
+			if (var != null) {
+				Variable v = getParser().getSymbolTable().getVar(var);
+				if (v != null && v.hasValidValue()) {
+					Object o = v.getValue();
+					if (o instanceof Number) {
+						Number n = (Number) o;
+						destAngle = n.intValue();
+					}
+				}
+			}
+			if (hbridge != null && compass != null) {
+				turnRemaining = turnAngle;
+				lastAngle = (int) Math.toDegrees(robot.getTheta());
+				destAngle = lastAngle + turnAngle; 
+				destAngle = (destAngle + 1080) % 360; // limite máximo de +-1080
+				//System.out.println( "theta = " + robot.getTheta() + 
+				//					"; degrees = " + lastAngle +
+				//					"; destAngle = " + destAngle);
+				rotate(robot);
+			}
+		} else {
+			rotateAction = robot.getAction(RotateAction.class);
+			if (rotateAction != null){
+				rotateAction.setAngle(destAngle);
+				rotateAction.begin(robot);
+			}
+		}
     }
 
     @Override
-    public boolean perform(Robot r, Clock clock) throws ExecutionException {
-        return rotateAction.perform(r);
+    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+		if (robot.getMainConnection() instanceof VirtualConnection) {
+			if (hbridge != null && compass != null) {
+				return rotate(robot);
+			}
+		} else {
+			return rotateAction.perform(robot);
+		}
+		return true;
     }
 
     @Override
@@ -158,7 +242,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                             combobox1.setSelectedItem(m.var);
                             num1 = false;
                         } else {
-                            spinner1.setValue(m.angle);
+                            spinner1.setValue(m.turnAngle);
                         }
                     }
                 }
@@ -299,7 +383,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Rotate){
-            ((Rotate)copy).angle = angle;
+            ((Rotate)copy).destAngle = destAngle;
             ((Rotate)copy).var = var;
         }
         return copy;
@@ -308,14 +392,14 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     private static void updateRotate(String str, Rotate m) {
         String[] argv = str.split(",");
         if (argv.length == 0) {
-            m.angle = 0;
+            m.turnAngle = 0;
         } else if (argv.length == 1) {
             argv[0] = argv[0].trim();
             if (Character.isLetter(argv[0].charAt(0))) {
                 m.var = argv[0];
             } else {
                 int a = Integer.parseInt(argv[0].trim());
-                m.angle = a;
+                m.turnAngle = a;
                 m.var = null;
             }
         }
