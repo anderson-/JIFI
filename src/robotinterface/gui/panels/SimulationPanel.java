@@ -61,7 +61,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     public static final Item ITEM_LINE;
     public static final Item ITEM_LINE_POLI;
     public static final Item ITEM_OBSTACLE_LINE;
-    public static final Item ITEM_CILINDER;
     public static final Item ITEM_OBSTACLE_POLI;
     public static final Item ITEM_REMOVE_LINE;
 
@@ -82,16 +81,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         myShape.add(new Area(tmpShape));
 
         ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red);
-
-        myShape = new Area();
-
-        Shape tmpElipse = new Ellipse2D.Double(0, 0, 20, 20);
-        myShape.add(new Area(tmpElipse));
-
-        tmpElipse = new Ellipse2D.Double(4, 4, 12, 12);
-        myShape.subtract(new Area(tmpElipse));
-
-        ITEM_CILINDER = new Item("Cilindro", myShape, Environment.getObstacleColor());
 
         myShape = new Area();
         tmpShape = new Polygon();
@@ -147,7 +136,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     }
 
     public SimulationPanel() {
-        
+
         super.midMouseButtonResetView = false;
 
         sp = new SidePanel() {
@@ -249,14 +238,20 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             return;
         }
 
-        if (in.isKeyPressed(KeyEvent.VK_CONTROL) && (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI)) {
-            zoomEnabled = false;
-            int wr = -in.getMouseWheelRotation();
-            if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
-                poliSegments += wr;
+        if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {
+            if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
+                resetView();
             }
-        } else {
-            zoomEnabled = true;
+            
+            if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
+                zoomEnabled = false;
+                int wr = -in.getMouseWheelRotation();
+                if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
+                    poliSegments += wr;
+                }
+            } else {
+                zoomEnabled = true;
+            }
         }
 
         if (itemSelected != null) {
@@ -269,47 +264,22 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                             if (itemSelected == ITEM_LINE) {
                                 env.addFollowLine(new double[]{line.x1, line.y1, line.x2, line.y2});
                             } else if (itemSelected == ITEM_OBSTACLE_LINE) {
-                                env.addObstacleLine(new double[]{line.x1, line.y1, line.x2, line.y2});
+                                env.addWall(new double[]{line.x1, line.y1, line.x2, line.y2});
                             } else if (itemSelected == ITEM_REMOVE_LINE) {
-                                for (Iterator<Shape> it = env.linesIterator(); it.hasNext();) {
-                                    Shape s = it.next();
-                                    if (s instanceof Line2D.Double) {
-                                        if (((Line2D.Double) s).intersectsLine(line)) {
-                                            env.removeFollowLine(s);
-                                            it.remove();
-                                        }
-                                    } else {
-                                        Point2D p;
-                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
-                                            p = iter.next();
-                                            if (s.contains(p)) {
-                                                it.remove();
-                                                break;
-                                            }
-                                        }
+                                for (Iterator<Line2D.Double> it = env.linesIterator(); it.hasNext();) {
+                                    Line2D.Double s = it.next();
+                                    if (s.intersectsLine(line)) {
+                                        env.removeFollowLine(s);
+                                        it.remove();
                                     }
                                 }
-
-                                for (Iterator<Shape> it = env.obstaclesIterator(); it.hasNext();) {
-                                    Shape s = it.next();
-                                    if (s instanceof Line2D.Double) {
-                                        if (((Line2D.Double) s).intersectsLine(line)) {
-                                            env.removeObstacleLine(s);
-                                            it.remove();
-                                        }
-                                    } else {
-                                        Point2D p;
-                                        for (Iterator<Point2D> iter = new LineIterator(line); iter.hasNext();) {
-                                            p = iter.next();
-                                            if (s.contains(p)) {
-                                                it.remove();
-                                                break;
-                                            }
-                                        }
+                                for (Iterator<Line2D.Double> it = env.obstaclesIterator(); it.hasNext();) {
+                                    Line2D.Double s = it.next();
+                                    if (s.intersectsLine(line)) {
+                                        env.removeWall(s);
+                                        it.remove();
                                     }
                                 }
-                                point = null;
-                                return;
                             }
 
                         }
@@ -339,7 +309,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                                 tx = point.x + r * cos(alpha);
                                 ty = point.y + r * sin(alpha);
                                 if (obstacle) {
-                                    env.addObstacleLine(new double[]{ox, oy, tx, ty});
+                                    env.addWall(new double[]{ox, oy, tx, ty});
                                 } else {
                                     env.addFollowLine(new double[]{ox, oy, tx, ty});
                                 }
@@ -354,27 +324,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                         point = null;
                     }
                 }
-            } else if (itemSelected == ITEM_CILINDER) {
-                if (in.mouseClicked()) {
-                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
-                        if (point != null) {
-                            double r = point.distance(in.getTransformedMouse());
-                            double x = point.x - r;
-                            double y = point.y - r;
-                            r *= 2;
-                            env.addObstacleCircle(new double[]{x, y, r});
-                            point = null;
-                            return;
-                        }
-                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
-                    } else {
-                        point = null;
-                    }
-                }
             }
-//            g.translate(in.getMouse().x - 10, in.getMouse().y - 10);
-//            g.setColor(itemSelected.getColor());
-//            g.fill(itemSelected.getIcon());
         }
     }
     public static final BasicStroke defaultStroke = new BasicStroke();
@@ -389,11 +339,12 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             for (Robot robot : robots) {
 
                 if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
-                    robot.setLocation(0, 0);
-                    robot.setTheta(0);
+                    if (!in.isKeyPressed(KeyEvent.VK_CONTROL)) {
+                        robot.setLocation(0, 0);
+                        robot.setTheta(0);
+                    }
                 }
 
-//                System.out.println("eee");
                 double v1 = robot.getLeftWheelSpeed();
                 double v2 = robot.getRightWheelSpeed();
 
@@ -443,12 +394,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         if (point != null) {
             if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
                 g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
-            } else if (itemSelected == ITEM_CILINDER) {
-                double r = point.distance(in.getTransformedMouse());
-                double x = point.x - r;
-                double y = point.y - r;
-                r *= 2;
-                g.drawOval((int) x, (int) y, (int) r, (int) r);
             } else if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
                 Point point2 = in.getTransformedMouse();
                 double r = point.distance(point2);
@@ -479,15 +424,14 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        }
         g.setStroke(defaultStroke);
     }
-    
-    
+
     public void resetSimulation() {
-      // remove as percepções dos robos e retorna-os para a posicao (0,0)
-      for(Robot r : robots) {
-        r.reset();
-      }
-      // limpa o ambiente
-      env.clearEnvironment();
+        // remove as percepções dos robos e retorna-os para a posicao (0,0)
+        for (Robot r : robots) {
+            r.reset();
+        }
+        // limpa o ambiente
+        env.clearEnvironment();
     }
 
     public static void main(String[] args) {

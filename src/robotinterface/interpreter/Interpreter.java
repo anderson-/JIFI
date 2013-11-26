@@ -26,6 +26,8 @@
 package robotinterface.interpreter;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
@@ -54,13 +56,14 @@ public class Interpreter extends Thread {
     public static final int STOP = 0;
     public static final int PLAY = 1;
     public static final int WAITING = 2;
-    private JEP parser;
+    private final JEP parser;
     private Function mainFunction;
     private Command currentCmd = null;
     private int state;
     private Robot robot;
-    private Clock clock = new Clock();
+    private final Clock clock = new Clock();
     private int timestep = 0;
+    private boolean running = false;
 
     public Interpreter() {
         super("Interpreter");
@@ -106,13 +109,19 @@ public class Interpreter extends Thread {
 
     public void setInterpreterState(int state) {
         this.state = state;
+        if (running) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+            }
+        }
+        
         if (state == STOP) {
             reset();
         }
 
         if (state != PLAY && robot != null) {
-            robot.setRightWheelSpeed(0);
-            robot.setLeftWheelSpeed(0);
+            robot.reset();
         }
     }
 
@@ -173,7 +182,6 @@ public class Interpreter extends Thread {
                     if (!step()) {
                         state = WAITING;
                     }
-
                     if (currentCmd != null && currentCmd.getDrawableResource() != null) {
                         if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {
                             for (int i = 0; i < timestep; i += 50) {
@@ -184,7 +192,9 @@ public class Interpreter extends Thread {
                             Thread.sleep(timestep);
                         }
                     }
+                    running = true;
                 } else {
+                    running = false;
                     Thread.sleep(100);
                 }
             }

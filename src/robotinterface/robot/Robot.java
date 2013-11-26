@@ -90,23 +90,23 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
             return "Ciclo";
         }
 
-		@Override
-		public void resetState() {
-			stepTime = 0;
-		}
+        @Override
+        public void resetState() {
+            stepTime = 0;
+        }
     }
     private Environment environment;
-    private Perception perception;
-    private ArrayList<Device> devices;
-    private ArrayList<Action> actions;
-    private ArrayList<Connection> connections;
+    private final Perception perception;
+    private final ArrayList<Device> devices;
+    private final ArrayList<Action> actions;
+    private final ArrayList<Connection> connections;
     private int freeRam = 0;
     private double x, y;
     private double theta;
     private double rightWheelSpeed, leftWheelSpeed;
-    private Rectangle2D.Double bounds = new Rectangle.Double();
-    private ArrayList<Observer<Device, Robot>> observers = new ArrayList<>();
-    private ByteBuffer buffer = ByteBuffer.allocate(256);
+    private final Rectangle2D.Double bounds = new Rectangle.Double();
+    private final ArrayList<Observer<Device, Robot>> observers = new ArrayList<>();
+    private final ByteBuffer buffer = ByteBuffer.allocate(256);
 
     public Robot() {
         devices = new ArrayList<>();
@@ -122,8 +122,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         leftWheelSpeed = 0;
 
     }
-    
-    
+
     public void reset() {
         x = 0;
         y = 0;
@@ -131,9 +130,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
         perception.clearPath();
-		for (Device d : devices)
-			d.resetState();
-		actions.clear();
+        for (Device d : devices) {
+            d.resetState();
+        }
+        actions.clear();
     }
 
     public void updateObservers(Device d) {
@@ -814,7 +814,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
 
         w.setTransform(g.getTransform());
-        
+
         for (Device d : devices) {
 //            g.setTransform(w);
             if (d instanceof Drawable) {
