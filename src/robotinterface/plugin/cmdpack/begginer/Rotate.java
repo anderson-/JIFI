@@ -115,23 +115,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     }
 	
 	public boolean rotate(Robot robot) {
-		/*int error = destAngle - (int) Math.toDegrees(robot.getTheta()); 
-		if (error < -180 && turnAngle > 0)  error += 360;
-		if (error >  180 && turnAngle < 0)	error -= 360;
 		
-		if ((error >= -THRESHOLD) && (error <= THRESHOLD)){ // se ja esta dentro do erro limite
-		  hbridge.setFullState((byte)0, (byte)0);
-		} else {
-		  byte speed;
-		  if (error > THRESHOLD){ // se esta a direita do objetivo
-			speed = (byte) Math.max(30, (int)(Math.min(127, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  } else {
-			speed = (byte) Math.min(-30, (int)(Math.max(-128, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  }
-		  hbridge.setFullState(speed, (byte)-speed);
-		  return false;
-
-		}*/
 		int currAngle = (int) Math.toDegrees(robot.getTheta());
 		int diff = currAngle - lastAngle;
 		if (diff < -180)	diff += 360;
