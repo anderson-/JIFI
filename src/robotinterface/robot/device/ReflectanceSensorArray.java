@@ -48,7 +48,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     public void setState(ByteBuffer data) {
         byte b = data.get();
         for (int i = 0; i < 5; i++) {
-//            values[i] = (b >> i) & 1;
+           values[i] = (b >> i) & 1;
         }
     }
 

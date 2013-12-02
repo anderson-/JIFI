@@ -15,18 +15,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.util.observable.Observer;
-import robotinterface.robot.connection.Connection;
 import robotinterface.robot.Robot;
 import static robotinterface.robot.connection.Serial.charset;
 import static robotinterface.robot.connection.Serial.printBytes;
@@ -103,13 +99,14 @@ public class Serial implements Connection, SerialPortEventListener {
 
     @Override
     public void send(final byte[] data) {
-        byte length = (byte) data.length;
+        /*byte length = (byte) data.length;
         byte[] newdata = new byte[length + 1];
         System.arraycopy(data, 0, newdata, 1, length);
-        newdata[0] = length;
+        newdata[0] = length;*/
         try {
             sendedPackages++;
-            output.write(newdata);
+			output.write(data.length);
+            output.write(data);
 //            output.flush(); //trava a thread main! pq???
         } catch (IOException ex) {
             System.out.println("Send fail!");

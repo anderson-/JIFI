@@ -505,7 +505,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                 byte cmd = message.get();
                 switch (cmd) {
                     case CMD_STOP: {
-                        //skip bytes
+                        //skip bytes	
+						STOP_ALL.markUnread();
                         message.get();
                         break;
                     }

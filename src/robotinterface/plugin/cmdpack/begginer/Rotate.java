@@ -65,6 +65,7 @@ import robotinterface.interpreter.ExecutionException;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.action.RotateAction;
+import robotinterface.robot.connection.Serial;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
@@ -119,23 +120,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     }
 	
 	public boolean rotate(Robot robot) {
-		/*int error = destAngle - (int) Math.toDegrees(robot.getTheta()); 
-		if (error < -180 && turnAngle > 0)  error += 360;
-		if (error >  180 && turnAngle < 0)	error -= 360;
 		
-		if ((error >= -THRESHOLD) && (error <= THRESHOLD)){ // se ja esta dentro do erro limite
-		  hbridge.setFullState((byte)0, (byte)0);
-		} else {
-		  byte speed;
-		  if (error > THRESHOLD){ // se esta a direita do objetivo
-			speed = (byte) Math.max(30, (int)(Math.min(127, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  } else {
-			speed = (byte) Math.min(-30, (int)(Math.max(-128, error*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  }
-		  hbridge.setFullState(speed, (byte)-speed);
-		  return false;
-
-		}*/
 		int currAngle = (int) Math.toDegrees(robot.getTheta());
 		int diff = currAngle - lastAngle;
 		if (diff < -180)	diff += 360;
@@ -162,7 +147,14 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-		if (robot.getMainConnection() instanceof VirtualConnection) {
+		VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
+		if ( vc.serial()) {
+			rotateAction = robot.getAction(RotateAction.class);
+			if (rotateAction != null){
+				rotateAction.setAngle(turnAngle);
+				rotateAction.begin(robot);
+			}
+		} else {
 			destAngle = turnAngle;
 			hbridge = robot.getDevice(HBridge.class);
 			compass = robot.getDevice(Compass.class);
@@ -186,23 +178,18 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 				//					"; destAngle = " + destAngle);
 				rotate(robot);
 			}
-		} else {
-			rotateAction = robot.getAction(RotateAction.class);
-			if (rotateAction != null){
-				rotateAction.setAngle(destAngle);
-				rotateAction.begin(robot);
-			}
 		}
     }
 
     @Override
     public boolean perform(Robot robot, Clock clock) throws ExecutionException {
-		if (robot.getMainConnection() instanceof VirtualConnection) {
+		VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
+		if ( vc.serial()) {
+			return rotateAction.perform(robot);
+		} else {
 			if (hbridge != null && compass != null) {
 				return rotate(robot);
 			}
-		} else {
-			return rotateAction.perform(robot);
 		}
 		return true;
     }
