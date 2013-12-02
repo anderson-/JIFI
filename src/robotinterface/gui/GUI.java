@@ -9,9 +9,13 @@ import java.util.ArrayList;
 import javax.swing.UIManager;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -996,8 +1000,43 @@ public class GUI extends javax.swing.JFrame {
       }
   }//GEN-LAST:event_closeProjectButtonActionPerformed
 
+    private void printListeners(Component c) {
+        System.out.println("Listener do componente: " + c);
+        for (MouseListener l : c.getListeners(MouseListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+        for (KeyListener l : c.getListeners(KeyListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+        for (MouseWheelListener l : c.getListeners(MouseWheelListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+        for (ActionListener l : c.getListeners(ActionListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+        for (ComponentListener l : c.getListeners(ComponentListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+        for (MouseMotionListener l : c.getListeners(MouseMotionListener.class)) {
+            System.out.println(l);
+            System.out.println(l.getClass());
+        }
+    }
+
     private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
-        
+        System.out.println("inicio debug");
+        printListeners(this);
+        printListeners(mainTabbedPane);
+        printListeners(simulationPanel);
+        for (Component c : mainTabbedPane.getComponents()) {
+            printListeners(c);
+        }
+        System.out.println("fim debug");
     }//GEN-LAST:event_debugButtonActionPerformed
 
     public void add(JComponent panel, ImageIcon icon) {
