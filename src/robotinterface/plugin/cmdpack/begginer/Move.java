@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -41,6 +42,10 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.FunctionCompletion;
+import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
@@ -106,7 +111,7 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
     public void updateProcedure() {
         setProcedure("move(" + ((var1 != null) ? var1 : m1) + "," + ((var2 != null) ? var2 : m2) + ")");
     }
-    
+
     @Override
     public void toString(String ident, StringBuilder sb) {
         updateProcedure();
@@ -185,7 +190,6 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
         final int INSET_Y = 5;
 
         //HEADER LINE
-
         int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
@@ -200,6 +204,9 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 JComboBox combobox1 = new JComboBox();
                 JComboBox combobox2 = new JComboBox();
                 boolean num1 = true, num2 = true;
+
+                MutableWidgetContainer.autoUpdateValue(spinner1);
+                MutableWidgetContainer.autoUpdateValue(spinner2);
 
                 MutableWidgetContainer.setAutoFillComboBox(combobox1, m);
                 MutableWidgetContainer.setAutoFillComboBox(combobox2, m);
@@ -232,7 +239,6 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
 
 //                changeButton1.setEnabled(false);
 //                changeButton2.setEnabled(false);
-
                 int x = INSET_X;
                 int y = INSET_Y + 40;
                 labels.add(new TextLabel("V1:", x + 5, y));
@@ -269,7 +275,6 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 widgets.add(new WidgetContainer.Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
 
                 x -= INSET_Y + TEXTFIELD_WIDTH;
-
 
                 changeButton1.addActionListener(new ActionListener() {
                     @Override
@@ -344,6 +349,10 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
                 updateMove(str.substring(str.indexOf("(") + 1, str.indexOf(")")), m);
                 return str;
             }
+
+            private void autoUpdateValue(JSpinner spinner1) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
         };
 
         DrawableCommandBlock dcb = new DrawableCommandBlock(m, myColor) {
@@ -391,18 +400,29 @@ public class Move extends Procedure implements GraphicResource, Classifiable, Fu
     }
 
     @Override
-    public String getToken() {
+    public Completion getInfo(CompletionProvider provider) {
+        FunctionCompletion fc = new FunctionCompletion(provider, "move(", null);
+        fc.setShortDescription("Função mover.");
+        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+        params.add(new ParameterizedCompletion.Parameter("var", "v1", false));
+        params.add(new ParameterizedCompletion.Parameter("var", "v1", true));
+        fc.setParams(params);
+        return fc;
+    }
+
+    @Override
+    public String getToken(){
         return "move";
     }
     
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);
-        if (copy instanceof Move){
-            ((Move)copy).m1 = m1;
-            ((Move)copy).m2 = m2;
-            ((Move)copy).var1 = var1;
-            ((Move)copy).var2 = var2;
+        if (copy instanceof Move) {
+            ((Move) copy).m1 = m1;
+            ((Move) copy).m2 = m2;
+            ((Move) copy).var1 = var1;
+            ((Move) copy).var2 = var2;
         }
         return copy;
     }

@@ -24,6 +24,10 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.FunctionCompletion;
+import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawableCommandBlock;
@@ -55,7 +59,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         updateVariables(str);
         setProcedure(toString());
     }
-    
+
     private void updateVariables(String str) {
         int l = str.lastIndexOf("\"");
 
@@ -101,7 +105,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     @Override
     public boolean perform(Robot r, Clock clock) {
-        String out = new String(format);
+        String out = format;
         for (String varName : varNames) {
             Variable v = getParser().getSymbolTable().getVar(varName);
             if (v != null && v.hasValidValue()) {
@@ -147,7 +151,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
         Area myShape = new Area();
         myShape.add(new Area(tmpShape));
-        myShape.subtract(new Area( new Ellipse2D.Double(5, 3, 11, 6)));
+        myShape.subtract(new Area(new Ellipse2D.Double(5, 3, 11, 6)));
         //myShape.exclusiveOr(new Area( new Ellipse2D.Double(8, 3, 6, 6))); //oh hell no!
 
         return new Item("Exibir", myShape, myColor);
@@ -172,11 +176,11 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         int varSelectiteonLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
         final WidgetLine varSelectiteonLine = new WidgetLine(varSelectiteonLineWidth, varSelectiteonLineHeight) {
             private String var;
-            private int varN = 0;
 
             @Override
             protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 JComboBox combobVar = new JComboBox();
+                combobVar.setFocusable(false);
 
                 MutableWidgetContainer.setAutoFillComboBox(combobVar, p);
 
@@ -201,8 +205,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 int x = BEGIN_X + INSET_X;
                 int y = INSET_Y;
 
-                varN++;
-                labels.add(new TextLabel("v" + varN + ":", x, y + 18));
+                labels.add(new TextLabel("v" + container.getSize() + ":", x, y + 18));
                 x += 25;
                 //x += 2 * INSET_X + BUTTON_WIDTH;
                 widgets.add(new Widget(combobVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
@@ -245,33 +248,36 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     public void insertUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
                         container.updateLines();
+                        tfName.requestFocusInWindow();
                     }
 
                     @Override
                     public void removeUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
                         container.updateLines();
+                        tfName.requestFocusInWindow();
                     }
 
                     @Override
                     public void changedUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
                         container.updateLines();
+                        tfName.requestFocusInWindow();
                     }
                 });
 
                 widgets.add(new Widget(tfName, BEGIN_X + 2 * INSET_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                JButton bTmp = new JButton(">");
-
-                bTmp.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        container.setString(tfName.getText());
-                        container.updateLines();
-                    }
-                });
-
-                widgets.add(new Widget(bTmp, BEGIN_X + 3 * INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
+//                JButton bTmp = new JButton(">");
+//
+//                bTmp.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        container.setString(tfName.getText());
+//                        container.updateLines();
+//                    }
+//                });
+//
+//                widgets.add(new Widget(bTmp, BEGIN_X + 3 * INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
             }
 
             @Override
@@ -321,55 +327,23 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     p.updateVariables(string);
 
                     clear();
-
-                    addLine(headerLine, p.getFormat());
-                    for (String str : p.getVariables()) {
-                        addLine(varSelectiteonLine, str);
-                    }
-                } else {
-                    if (getSize() < 1) {
-                        clear();
-
-                        addLine(headerLine, null);
-                    }
-
-                    String subStr = "%v";
-                    int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
-                    ocorrences -= getSize() - 1;
-                    for (int i = 0; i < ocorrences; i++) {
-                        addLine(varSelectiteonLine, null);
-                    }
                 }
-//
-////                System.out.println(super.getString());
-//
-//                String form = p.getFormat();
-////                if (form.startsWith("")){
-////                    form = form.substring(1, form.length()-1);
-////                }
-//
-//                System.out.println(form);
-//
-//                addLine(headerLine, form);
-//                for (String str : p.getVariables()) {
-//                    System.out.println(str + "*");
-//                    addLine(varSelectiteonLine, str);
-//                }
-//                
-//                
-//                if (getSize() < 1) {
-//                    clear();
-//
-//                    addLine(headerLine, null);
-//                }
-//
-//                String subStr = "%v";
-//                int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
-//                ocorrences -= getSize() - 1;
-//                for (int i = 0; i < ocorrences; i++) {
-//                    addLine(varSelectiteonLine, null);
-//                }
 
+                if (getSize() < 1) {
+                    clear();
+                    addLine(headerLine, p.format);
+                }
+
+                String subStr = "%v";
+                int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
+                ocorrences -= getSize() - 1;
+                for (int i = 0; i < ocorrences; i++) {
+                    addLine(varSelectiteonLine, null);
+                }
+
+                for (int i = ocorrences; i < 0; i++) {
+                    removeLine(getSize() - 1);
+                }
             }
 
             @Override
@@ -393,6 +367,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             @Override
             public String getString() {
                 String str = "print(" + super.getString() + ")";
+                p.setProcedure(str);
                 return str;
             }
         };
@@ -412,10 +387,10 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);
-        if (copy instanceof PrintString){
-            ((PrintString)copy).format = format;
-            ((PrintString)copy).varNames.clear();
-            ((PrintString)copy).varNames.addAll(varNames);
+        if (copy instanceof PrintString) {
+            ((PrintString) copy).format = format;
+            ((PrintString) copy).varNames.clear();
+            ((PrintString) copy).varNames.addAll(varNames);
         }
         return copy;
     }
@@ -427,7 +402,17 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     }
 
     @Override
-    public String getToken() {
+    public Completion getInfo(CompletionProvider provider) {
+        FunctionCompletion fc = new FunctionCompletion(provider, "print(", null);
+        fc.setShortDescription("Função exibir.");
+        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+        params.add(new ParameterizedCompletion.Parameter("var", "format", true));
+        fc.setParams(params);
+        return fc;
+    }
+    
+    @Override
+    public String getToken(){
         return "print";
     }
 

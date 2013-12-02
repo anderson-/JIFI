@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -41,6 +42,10 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.FunctionCompletion;
+import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
@@ -232,6 +237,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                 JComboBox combobox1 = new JComboBox();
                 boolean num1 = true;
 
+                MutableWidgetContainer.autoUpdateValue(spinner1);
                 MutableWidgetContainer.setAutoFillComboBox(combobox1, r);
 
                 if (data != null) {
@@ -374,10 +380,19 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     }
 
     @Override
-    public String getToken() {
-        return "rotate";
+    public Completion getInfo(CompletionProvider provider) {
+        FunctionCompletion fc = new FunctionCompletion(provider, "rotate(", null);
+        fc.setShortDescription("Função girar.");
+        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+        params.add(new ParameterizedCompletion.Parameter("var", "angulo", true));
+        fc.setParams(params);
+        return fc;
     }
     
+    @Override
+    public String getToken(){
+        return "rotate";
+    }
     
     @Override
     public Procedure copy(Procedure copy) {

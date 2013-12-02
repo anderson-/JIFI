@@ -6,13 +6,14 @@ package robotinterface.algorithm.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.parser.decoder.Decoder;
 import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.procedure.Block;
 import robotinterface.algorithm.procedure.Function;
-import robotinterface.gui.panels.code.CodeEditorPanel;
+import robotinterface.gui.panels.editor.EditorPanel;
 import robotinterface.interpreter.Interpreter;
 
 /**
@@ -25,15 +26,20 @@ public class Parser {
         return null;
     }
 
-    public static Function decode(String str) throws Exception {
-        CodeEditorPanel.updateFunctionTokens();
-        Decoder parser = new Decoder(new ByteArrayInputStream(str.getBytes("UTF-8")));
-        Function f = parser.decode();
-        return f;
+    public static Function decode(String str) throws ParseException {
+        EditorPanel.updateFunctionTokens();
+        try {
+            Decoder parser = new Decoder(new ByteArrayInputStream(str.getBytes("UTF-8")));
+            Function f = parser.decode();
+            return f;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
-    
+
     public static Function decode(InputStream stream) throws ParseException {
-        CodeEditorPanel.updateFunctionTokens();
+        EditorPanel.updateFunctionTokens();
         Decoder parser = new Decoder(stream);
         Function f = parser.decode();
         return f;
@@ -45,8 +51,8 @@ public class Parser {
         sb.append("\n");
         return sb.toString();
     }
-    
-    public static void main (String [] args) throws Exception {
+
+    public static void main(String[] args) throws Exception {
         Function a = Interpreter.bubbleSort(10, true);
         String as = encode(a);
         System.out.println(as);

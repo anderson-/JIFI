@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import robotinterface.drawable.Drawable;
 import robotinterface.robot.action.Action;
 import robotinterface.robot.action.system.AddNewDevice;
@@ -311,6 +313,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     }
 
     public final void virtualRobot(ByteBuffer message, Connection connection) {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException ex) {
+        }
         try {
             loop:
             while (message.remaining() > 0) {

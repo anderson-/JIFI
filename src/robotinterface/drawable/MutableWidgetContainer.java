@@ -12,13 +12,20 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JSpinner;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.util.QuickFrame;
 
@@ -229,10 +236,10 @@ public class MutableWidgetContainer extends WidgetContainer {
         shape.setRect(bounds);
         return shape;
     }
-    
+
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
+
         //linhas
         g.setColor(color.darker());
         g.setStroke(BOLD_STROKE);
@@ -244,7 +251,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        
+
         if (widgetsEnabled & in.mouseClicked() && in.getMouseClickCount() == 2) {
             setWidgetVisible(!isWidgetVisible());
             shapeBounds.setRect(0, 0, 0, 0);
@@ -266,7 +273,6 @@ public class MutableWidgetContainer extends WidgetContainer {
         g.draw(shape);
 
         AffineTransform o = g.getTransform();
-
 
         //componente
         if (isWidgetVisible()) {
@@ -329,7 +335,6 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         // rows
-
         Rectangle2D.Double compBounds = new Rectangle2D.Double();
         Rectangle2D.Double tmp = new Rectangle2D.Double();
 
@@ -354,7 +359,6 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         // finaliza
-
         if (updateShape || updateHeight) {
             shape = updateShape(shapeBounds);
             updateShape = false;
@@ -398,7 +402,6 @@ public class MutableWidgetContainer extends WidgetContainer {
 //
 //        }
 //        g.translate(-x, 0);
-
         g.translate(x, 0);
         for (String str : splittedString) {
             tmpWidth = fm.stringWidth(str);
@@ -1348,6 +1351,21 @@ public class MutableWidgetContainer extends WidgetContainer {
 //
 //        return mwc;
 //    }
+    public static void autoUpdateValue(final JSpinner jSpinner) {
+        final JFormattedTextField tf = ((JSpinner.DefaultEditor)jSpinner.getEditor()).getTextField();
+        tf.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(final KeyEvent e) {
+                try {
+                    int x = tf.getCaretPosition();
+                    jSpinner.commitEdit();
+                    tf.setCaretPosition(x);
+                } catch (ParseException ex) {
+                }
+            }
+        });
+    }
+
     public static void main(String[] args) {
         QuickFrame.applyLookAndFeel();
 //        QuickFrame.drawTest(createDrawableMove());

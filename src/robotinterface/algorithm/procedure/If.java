@@ -168,7 +168,6 @@ public class If extends Procedure {
 //
 //        return tmp;
 //    }
-    
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
         //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
@@ -517,7 +516,6 @@ public class If extends Procedure {
                                 sb.append(str.trim());
                                 sb.append(" ");
                             } else {
-                                p.setProcedure(def);
                                 return def;
                             }
                         } else if (jComponent instanceof JComboBox) {
@@ -527,7 +525,6 @@ public class If extends Procedure {
                                 sb.append(o.toString());
                                 sb.append(" ");
                             } else {
-                                p.setProcedure(def);
                                 return def;
                             }
                         }
@@ -562,7 +559,6 @@ public class If extends Procedure {
                                 sb.append(str.trim());
                                 sb.append(" ");
                             } else {
-                                p.setProcedure(def);
                                 return def;
                             }
                         } else if (jComponent instanceof JComboBox) {
@@ -572,7 +568,6 @@ public class If extends Procedure {
                                 sb.append(o.toString());
                                 sb.append(" ");
                             } else {
-                                p.setProcedure(def);
                                 return def;
                             }
                         }
@@ -588,8 +583,7 @@ public class If extends Procedure {
                                 sb.append(str);
                             }
                         }
-                        p.setProcedure(sb.toString().trim());
-                        return p.getProcedure();
+                        return sb.toString().trim();
                     } catch (NoSuchElementException e) {
                         System.out.println("ERROR!");
                     }
@@ -702,20 +696,13 @@ public class If extends Procedure {
                 if (str.trim().length() <= 2) {
                     str = getName();
                 }
+//                p.setProcedure(str);
                 return str;
             }
-
+            
             @Override
             public void splitString(String original, Collection<String> splitted) {
-                //TODO:
-//                String[] split = original.split("&&|\\|\\|");
-//                splitted.add("if");
-//                for (String str : split) {
-//                    str = str.trim();
-//                    splitted.add(str);
-//                }
-//                splitted.add(")");
-
+                
                 boolean and;
                 boolean andEnd;
                 boolean or;

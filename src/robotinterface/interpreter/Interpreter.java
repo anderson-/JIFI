@@ -36,6 +36,7 @@ import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.GUI;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.plugin.cmdpack.begginer.Move;
 import robotinterface.plugin.cmdpack.begginer.ReadDevice;
@@ -56,7 +57,7 @@ public class Interpreter extends Thread {
     public static final int STOP = 0;
     public static final int PLAY = 1;
     public static final int WAITING = 2;
-    private final JEP parser;
+    private JEP parser;
     private Function mainFunction;
     private Command currentCmd = null;
     private int state;
@@ -86,10 +87,12 @@ public class Interpreter extends Thread {
             currentCmd = null;
         }
 
+        parser.initFunTab();
+        parser.initSymTab();
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
 //        parser.setTraverse(true); //exibe debug
-        parser.setImplicitMul(true);//multiplicação implicita: 2x+4
+        parser.setImplicitMul(false);//multiplicação implicita: 2x+4
         parser.initSymTab(); // clear the contents of the symbol table
         parser.addStandardConstants();
         parser.setAllowAssignment(true);
@@ -109,20 +112,30 @@ public class Interpreter extends Thread {
 
     public void setInterpreterState(int state) {
         this.state = state;
-        if (running) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-            }
-        }
-        
-        if (state == STOP) {
-            reset();
-        }
 
-        if (state != PLAY && robot != null) {
-            robot.reset();
-        }
+        final int tmpState = state;
+
+        new Thread() {
+
+            @Override
+            public void run() {
+                while (running) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ex) {
+                    }
+                }
+                if (tmpState == STOP) {
+                    reset();
+                }
+
+                if (tmpState != PLAY && robot != null) {
+                    robot.reset();
+                }
+                GUI.getInstance().updateControlBar(Interpreter.this);
+            }
+
+        }.start();
     }
 
     public int getInterpreterState() {

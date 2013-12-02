@@ -9,6 +9,7 @@ import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
+import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -16,6 +17,10 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.FunctionCompletion;
+import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
@@ -103,10 +108,19 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     }
 
     @Override
-    public String getToken() {
-        return "wait";
+    public Completion getInfo(CompletionProvider provider) {
+        FunctionCompletion fc = new FunctionCompletion(provider, "wait(", null);
+        fc.setShortDescription("Função esperar.");
+        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+        params.add(new ParameterizedCompletion.Parameter("var", "tempo", true));
+        fc.setParams(params);
+        return fc;
     }
     
+    @Override
+    public String getToken(){
+        return "wait";
+    }
     
     @Override
     public void toString(String ident, StringBuilder sb) {
@@ -136,7 +150,8 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
         int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 87;
-        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+        final MutableWidgetContainer.WidgetLine headerLine;
+        headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
             @Override
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Espera:", 20, true));
@@ -146,6 +161,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 JComboBox combobox = new JComboBox();
                 boolean num = true;
 
+                MutableWidgetContainer.autoUpdateValue(spinner);
                 MutableWidgetContainer.setAutoFillComboBox(combobox, w);
                 
                 if (data != null) {
@@ -236,6 +252,10 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 String str = sb.toString() + ")";
                 updateWait(str.substring(str.indexOf("(") + 1, str.indexOf(")")), w);
                 return str;
+            }
+
+            private void autoUpdateValue(JSpinner spinner) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
 

@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License along with
  * TrafficSimulator. If not, see http://www.gnu.org/licenses/.
  */
-
 package robotinterface.util.trafficsimulator;
 
 /**
@@ -55,8 +54,8 @@ public class Timer {
     public void setTick(long tick) {
         this.tick = tick;
     }
-    
-    public synchronized void setDisposable (boolean disposable){
+
+    public synchronized void setDisposable(boolean disposable) {
         this.disposable = disposable;
     }
 
@@ -92,9 +91,13 @@ public class Timer {
         if (!paused) {
             timeElapsed += milis;
             lastCount = count;
-            count = timeElapsed / tick;
+            if (tick != 0) {
+                count = timeElapsed / tick;
+            } else {
+                count++;
+            }
             if (lastCount != count) {
-                if (disposable){
+                if (disposable) {
                     consumed = true;
                 }
 //                System.out.println(timeElapsed);
@@ -112,7 +115,7 @@ public class Timer {
         return count;
     }
 
-    public void run(){
-        
+    public void run() {
+
     }
 }

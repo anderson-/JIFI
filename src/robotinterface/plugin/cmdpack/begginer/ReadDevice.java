@@ -34,10 +34,15 @@ import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 import javax.swing.JComboBox;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.FunctionCompletion;
+import org.fife.ui.autocomplete.ParameterizedCompletion;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.MutableWidgetContainer;
@@ -349,7 +354,18 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     }
 
     @Override
-    public String getToken() {
+    public Completion getInfo(CompletionProvider provider) {
+        FunctionCompletion fc = new FunctionCompletion(provider, "read(", null);
+        fc.setShortDescription("Função ler sensor.");
+        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
+        params.add(new ParameterizedCompletion.Parameter(null, "<Dispositivo>", false));
+        params.add(new ParameterizedCompletion.Parameter(null, "<variavel>", true));
+        fc.setParams(params);
+        return fc;
+    }
+    
+    @Override
+    public String getToken(){
         return "read";
     }
 

@@ -234,20 +234,20 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                                 addNext = false; //(***)
                             }
 
-//                            if (c instanceof GraphicResource) { //(***)
-//                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
-//                                if (d != null) {
-//                                    g.draw(d.getObjectShape());
-//
-//                                    //alterar usando fIx e fIy
-//                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
-//                                        addNext = true;
-//                                    } else {
-//                                        addNext = false;
-//                                    }
-//
-//                                }
-//                            }
+                            if (c instanceof GraphicResource) { //(***)
+                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                                if (d != null) {
+                                    g.draw(d.getObjectShape());
+
+                                    //alterar usando fIx e fIy
+                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
+                                        addNext = true;
+                                    } else {
+                                        addNext = false;
+                                    }
+
+                                }
+                            }
                             Command n = newCommand;
 
                             if (n instanceof GraphicResource) {

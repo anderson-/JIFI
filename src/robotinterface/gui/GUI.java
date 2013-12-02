@@ -14,14 +14,9 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.ImageIcon;
@@ -36,14 +31,21 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.BadLocationException;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter;
+import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.Parser;
+import robotinterface.algorithm.parser.decoder.ParseException;
+import robotinterface.algorithm.parser.decoder.TokenMgrError;
 import robotinterface.algorithm.procedure.Function;
+import static robotinterface.drawable.MutableWidgetContainer.autoUpdateValue;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.Interpertable;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.gui.panels.TabController;
-import robotinterface.gui.panels.code.CodeEditorPanel;
+import robotinterface.gui.panels.editor.EditorPanel;
 import robotinterface.gui.panels.console.MessageConsole;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import static robotinterface.gui.panels.robot.RobotControlPanel.VIRTUAL_CONNECTION;
@@ -63,12 +65,12 @@ public class GUI extends javax.swing.JFrame {
 
     private static GUI INSTANCE = null;
     private Project mainProject = new Project();
-    private ArrayList<CodeEditorPanel> mapCE = new ArrayList<>();
+    private ArrayList<EditorPanel> mapCE = new ArrayList<>();
     private ArrayList<FlowchartPanel> mapFC = new ArrayList<>();
     private ImageIcon codeIcon;
     private ImageIcon flowchartIcon;
     private final RobotManager robotManager;
-    private JFileChooser fileChooser = new JFileChooser();
+    private JFileChooser fileChooser;
 
     static {
     }
@@ -109,6 +111,7 @@ public class GUI extends javax.swing.JFrame {
                 }
             }
         });
+        autoUpdateValue(jSpinner1);
 
         //robot manager
         robotManager = new RobotManager(this);
@@ -147,6 +150,10 @@ public class GUI extends javax.swing.JFrame {
                 return "Projetos";
             }
         };
+        Boolean old = UIManager.getBoolean("FileChooser.readOnly");
+        UIManager.put("FileChooser.readOnly", Boolean.TRUE);
+        fileChooser = new JFileChooser();
+        UIManager.put("FileChooser.readOnly", old);
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setMultiSelectionEnabled(false);
@@ -628,7 +635,7 @@ public class GUI extends javax.swing.JFrame {
             stopButton.setEnabled(false);
         }
 
-        if (cmp instanceof FlowchartPanel || cmp instanceof CodeEditorPanel) {
+        if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
             switchCodeButton.setEnabled(true);
             deleteButton.setEnabled(true);
         } else {
@@ -637,11 +644,17 @@ public class GUI extends javax.swing.JFrame {
         }
 
         if (cmp instanceof KeyListener) {
+            boolean n = true;
             for (KeyListener l : getKeyListeners()) {
-                removeKeyListener(l);
+                if (l.equals(cmp)) {
+                    n = false;
+                }
+//                removeKeyListener(l);
             }
 //            System.out.println("addKeyListener:" + cmp);
-            addKeyListener((KeyListener) cmp);
+            if (n) {
+                addKeyListener((KeyListener) cmp);
+            }
         }
 
         if (cmp instanceof ComponentListener) {
@@ -654,7 +667,7 @@ public class GUI extends javax.swing.JFrame {
 
         if (cmp instanceof FlowchartPanel) {
             switchCodeButton.setIcon(codeIcon);
-        } else if (cmp instanceof CodeEditorPanel) {
+        } else if (cmp instanceof EditorPanel) {
             switchCodeButton.setIcon(flowchartIcon);
         }
 
@@ -725,7 +738,7 @@ public class GUI extends javax.swing.JFrame {
                     if (((FlowchartPanel) c).getFunction() == f) {
                         continue loadLoop;
                     }
-                } else if (c instanceof CodeEditorPanel) {
+                } else if (c instanceof EditorPanel) {
                     int i = mapCE.indexOf(c);
                     if (i != -1 && i < mapFC.size()) {
                         if (mapFC.get(i).getFunction() == f) {
@@ -790,13 +803,13 @@ public class GUI extends javax.swing.JFrame {
 
         if (cmp instanceof FlowchartPanel) {
             FlowchartPanel fcp = (FlowchartPanel) cmp;
-            CodeEditorPanel cep;
+            EditorPanel cep;
 
             int i = mapFC.indexOf(cmp);
             if (i != -1 && i < mapCE.size()) {
                 cep = mapCE.get(i);
             } else {
-                cep = new CodeEditorPanel(fcp.getFunction());
+                cep = new EditorPanel(fcp.getFunction());
                 mapCE.add(cep);
             }
 
@@ -810,21 +823,65 @@ public class GUI extends javax.swing.JFrame {
             fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
 
 //            switchCodeButton.setIcon(codeIcon);
-        } else if (cmp instanceof CodeEditorPanel) {
-            CodeEditorPanel cep = (CodeEditorPanel) cmp;
+        } else if (cmp instanceof EditorPanel) {
+            EditorPanel cep = (EditorPanel) cmp;
             //int returnVal = JOptionPane.showConfirmDialog(this, "Durante a conversão erros podem ocorrer, deseja prosseguir?", "Converter Código", JOptionPane.YES_NO_OPTION);
 
             if (true /*returnVal == JOptionPane.YES_OPTION*/) {
                 FlowchartPanel fcp;
                 Function f = null;
                 int i = mapCE.indexOf(cmp);
+                int errorOnLine = -1;
+                int errorColumn = 0;
 
                 try {
                     f = Parser.decode(cep.getTextArea().getText());
-                } catch (Exception ex) {
-                    System.out.println("ERRO!!! D:");
-                    ex.printStackTrace();
-                    return;
+                } catch (ParseException ex) {
+                    errorOnLine = ex.currentToken.next.endLine - 1;
+                    errorColumn = ex.currentToken.next.beginColumn;
+//                    ex.printStackTrace();
+                } catch (TokenMgrError ex) {
+                    String msg = ex.getMessage();
+                    msg = msg.substring(0, msg.indexOf(','));
+                    msg = msg.substring(msg.lastIndexOf(" ") + 1);
+                    try {
+                        errorOnLine = Integer.parseInt(msg);
+                    } catch (Exception ex1) {
+                        errorOnLine = -2;
+                    }
+                    msg = ex.getMessage();
+                    msg = msg.substring(0, msg.indexOf("."));
+                    msg = msg.substring(msg.lastIndexOf(' ') + 1);
+                    errorColumn = Integer.parseInt(msg);
+//                    ex.printStackTrace();
+                }
+
+                switch (errorOnLine) {
+                    case -1:
+                        break;
+                    case -2:
+                        System.err.println("Erro desconhecido.");
+                        return;
+                    default:
+                        System.err.println("Erro na linha " + errorOnLine + ".");
+                        try {
+                            RSyntaxTextArea textArea = cep.getTextArea();
+                            textArea.removeAllLineHighlights();
+//                            textArea.addLineHighlight(errorOnLine - 1, Color.red.brighter().brighter());
+
+                            RSyntaxTextAreaHighlighter highlighter = (RSyntaxTextAreaHighlighter) textArea.getHighlighter();
+
+                            SquiggleUnderlineHighlightPainter parserErrorHighlightPainter = new SquiggleUnderlineHighlightPainter(Color.RED);
+                            System.out.println(errorColumn);
+                            int p0 = textArea.getLineStartOffset(errorOnLine - 1);
+                            int p1 = textArea.getLineEndOffset(errorOnLine - 1);
+                            String line = textArea.getText(p0, p1);
+                            //todo tirar tabs e espaços
+                            highlighter.addHighlight(p0, p1, parserErrorHighlightPainter);
+                        } catch (BadLocationException ex) {
+
+                        }
+                        return;
                 }
 
                 if (i != -1 && i < mapFC.size()) {
@@ -851,7 +908,7 @@ public class GUI extends javax.swing.JFrame {
 
         Component cmp = mainTabbedPane.getSelectedComponent();
 
-        if (!(cmp instanceof FlowchartPanel) && !(cmp instanceof CodeEditorPanel)) {
+        if (!(cmp instanceof FlowchartPanel) && !(cmp instanceof EditorPanel)) {
             return;
         }
 
@@ -863,7 +920,7 @@ public class GUI extends javax.swing.JFrame {
 
             if (cmp instanceof FlowchartPanel) {
                 f = ((FlowchartPanel) cmp).getFunction();
-            } else if (cmp instanceof CodeEditorPanel) {
+            } else if (cmp instanceof EditorPanel) {
                 int i = mapCE.indexOf(cmp);
                 if (i != -1 && i < mapFC.size()) {
                     f = mapFC.get(i).getFunction();
@@ -914,7 +971,7 @@ public class GUI extends javax.swing.JFrame {
           mainTabbedPane.setSelectedIndex(0);
           mainProject.getFunctions().clear();
           for (Component cmp : mainTabbedPane.getComponents()) {
-              if ((cmp instanceof FlowchartPanel) || (cmp instanceof CodeEditorPanel)) {
+              if ((cmp instanceof FlowchartPanel) || (cmp instanceof EditorPanel)) {
                   mainTabbedPane.remove(cmp);
               }
           }
@@ -960,9 +1017,11 @@ public class GUI extends javax.swing.JFrame {
     }
     private static Logger logger = null;
 
-    public static Logger getLogger() {
+    public static Logger
+            getLogger() {
         if (logger == null) {
-            logger = Logger.getLogger(GUI.class.getName());
+            logger = Logger.getLogger(GUI.class
+                    .getName());
             FileHandler fh;
 
             try {
@@ -994,9 +1053,12 @@ public class GUI extends javax.swing.JFrame {
         System.setProperty("java.library.path", path);
 
         //set sys_paths to null
-        final Field sysPathsField = ClassLoader.class.getDeclaredField("sys_paths");
-        sysPathsField.setAccessible(true);
-        sysPathsField.set(null, null);
+        final Field sysPathsField = ClassLoader.class
+                .getDeclaredField("sys_paths");
+        sysPathsField.setAccessible(
+                true);
+        sysPathsField.set(
+                null, null);
     }
 
     /**
@@ -1006,9 +1068,11 @@ public class GUI extends javax.swing.JFrame {
         final SplashScreen splashScreen = new SplashScreen("/resources/jifi5.png");
         splashScreen.splash();
 
-        String path = GUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String path = GUI.class
+                .getProtectionDomain().getCodeSource().getLocation().getPath();
         path = path.substring(0, path.lastIndexOf('/') + 1);
         path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();
+
         try {
             String newPath = path;
             /*
@@ -1054,12 +1118,14 @@ public class GUI extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+
             public void run() {
                 GUI RobofIDE = GUI.getInstance();
                 RobofIDE.setVisible(true);
                 splashScreen.dispose();
             }
-        });
+        }
+        );
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton abortButton;

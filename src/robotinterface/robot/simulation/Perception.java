@@ -37,6 +37,7 @@ public class Perception {
         y += d * sin(theta);
         synchronized (distanceMap) {
             Point p = new Point((int) x, (int) y);
+//            System.out.println(x + " " + y);
             if (!distanceMap.isEmpty()) {
                 if (distanceMap.get(distanceMap.size() - 1).equals(p)) {
                     return;
