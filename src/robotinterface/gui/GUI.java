@@ -278,6 +278,8 @@ public class GUI extends javax.swing.JFrame {
         jSeparator3 = new javax.swing.JToolBar.Separator();
         switchCodeButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        debugButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -453,6 +455,20 @@ public class GUI extends javax.swing.JFrame {
             }
         });
         toolBar.add(deleteButton);
+        toolBar.add(jSeparator1);
+
+        debugButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/utilities-terminal.png"))); // NOI18N
+        debugButton.setToolTipText("Debug");
+        debugButton.setBorder(null);
+        debugButton.setFocusable(false);
+        debugButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        debugButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        debugButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                debugButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(debugButton);
 
         primarySplitPane.setBorder(null);
         primarySplitPane.setDividerLocation(180);
@@ -476,7 +492,7 @@ public class GUI extends javax.swing.JFrame {
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 577, Short.MAX_VALUE)
+            .addGap(0, 593, Short.MAX_VALUE)
         );
 
         mainTabbedPane.addTab("", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel); // NOI18N
@@ -507,7 +523,7 @@ public class GUI extends javax.swing.JFrame {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 322, Short.MAX_VALUE)
+            .addGap(0, 338, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -573,7 +589,7 @@ public class GUI extends javax.swing.JFrame {
                     .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 37, Short.MAX_VALUE)
                     .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 618, Short.MAX_VALUE)
+                .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 634, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -980,6 +996,10 @@ public class GUI extends javax.swing.JFrame {
       }
   }//GEN-LAST:event_closeProjectButtonActionPerformed
 
+    private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
+        
+    }//GEN-LAST:event_debugButtonActionPerformed
+
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
@@ -1132,6 +1152,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton closeProjectButton;
     private javax.swing.JPanel consolePanel;
+    private javax.swing.JButton debugButton;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
@@ -1140,6 +1161,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JSpinner jSpinner1;

@@ -92,7 +92,7 @@ public class Interpreter extends Thread {
 //        parser.setTraverse(true); //exibe debug
         parser.setImplicitMul(false);//multiplicação implicita: 2x+4
         parser.initSymTab(); // clear the contents of the symbol table
-//        parser.addStandardConstants();
+        parser.addStandardConstants();
         parser.setAllowAssignment(true);
         if (robot != null && robot.getMainConnection() != null) {
             robot.stopAll();
