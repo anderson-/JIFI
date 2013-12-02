@@ -76,19 +76,19 @@ import robotinterface.util.trafficsimulator.Clock;
  * Procedimento de mover o robô.
  */
 public class Rotate extends Procedure implements GraphicResource, Classifiable, FunctionToken<Rotate> {
-	
-	private static final int THRESHOLD = 0;
+
+    private static final int THRESHOLD = 0;
 
     private RotateAction rotateAction = null;
     private static Color myColor = Color.decode("#FF8533");
     private int destAngle;
-	private int turnAngle;
-	private int lastAngle;
-	private int turnRemaining;
+    private int turnAngle;
+    private int lastAngle;
+    private int turnRemaining;
     private String var = null;
     private GraphicObject resource = null;
-	private HBridge hbridge;
-	private Compass compass;
+    private HBridge hbridge;
+    private Compass compass;
 
     public Rotate() {
         destAngle = 0;
@@ -118,80 +118,83 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         updateProcedure();
         super.toString(ident, sb);
     }
-	
-	public boolean rotate(Robot robot) {
-		
-		int currAngle = (int) Math.toDegrees(robot.getTheta());
-		int diff = currAngle - lastAngle;
-		if (diff < -180)	diff += 360;
-		else if (diff >  180)	diff -= 360;
-		turnRemaining -= diff;
-		lastAngle = currAngle;
-				
-		if ((turnRemaining >= -THRESHOLD) && (turnRemaining <= THRESHOLD)){ // se ja esta dentro do erro limite
-		  hbridge.setFullState((byte)0, (byte)0);
-		} else {
-		  byte speed;
-		  if (turnRemaining > THRESHOLD){ // se esta a direita do objetivo
-			speed = (byte) Math.max(30, (int)(Math.min(127, turnRemaining*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  } else {
-			speed = (byte) Math.min(-30, (int)(Math.max(-127, turnRemaining*0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
-		  }
-		  hbridge.setFullState(speed, (byte)-speed);
-		  return false;
 
-		}
-		
-		return true;
-	}
+    public boolean rotate(Robot robot) {
+
+        int currAngle = (int) Math.toDegrees(robot.getTheta());
+        int diff = currAngle - lastAngle;
+        if (diff < -180) {
+            diff += 360;
+        } else if (diff > 180) {
+            diff -= 360;
+        }
+        turnRemaining -= diff;
+        lastAngle = currAngle;
+
+        if ((turnRemaining >= -THRESHOLD) && (turnRemaining <= THRESHOLD)) { // se ja esta dentro do erro limite
+            hbridge.setFullState((byte) 0, (byte) 0);
+        } else {
+            byte speed;
+            if (turnRemaining > THRESHOLD) { // se esta a direita do objetivo
+                speed = (byte) Math.max(30, (int) (Math.min(127, turnRemaining * 0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+            } else {
+                speed = (byte) Math.min(-30, (int) (Math.max(-127, turnRemaining * 0.71))); // velocidade proporcional ao erro, 0.71 = 128/180°
+            }
+            hbridge.setFullState(speed, (byte) -speed);
+            return false;
+
+        }
+
+        return true;
+    }
 
     @Override
     public void begin(Robot robot, Clock clock) throws ExecutionException {
-		VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
-		if ( vc.serial()) {
-			rotateAction = robot.getAction(RotateAction.class);
-			if (rotateAction != null){
-				rotateAction.setAngle(turnAngle);
-				rotateAction.begin(robot);
-			}
-		} else {
-			destAngle = turnAngle;
-			hbridge = robot.getDevice(HBridge.class);
-			compass = robot.getDevice(Compass.class);
-			if (var != null) {
-				Variable v = getParser().getSymbolTable().getVar(var);
-				if (v != null && v.hasValidValue()) {
-					Object o = v.getValue();
-					if (o instanceof Number) {
-						Number n = (Number) o;
-						destAngle = n.intValue();
-					}
-				}
-			}
-			if (hbridge != null && compass != null) {
-				turnRemaining = turnAngle;
-				lastAngle = (int) Math.toDegrees(robot.getTheta());
-				destAngle = lastAngle + turnAngle; 
-				destAngle = (destAngle + 1080) % 360; // limite máximo de +-1080
-				//System.out.println( "theta = " + robot.getTheta() + 
-				//					"; degrees = " + lastAngle +
-				//					"; destAngle = " + destAngle);
-				rotate(robot);
-			}
-		}
+        VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
+        if (vc.serial()) {
+            rotateAction = robot.getAction(RotateAction.class);
+            if (rotateAction != null) {
+                rotateAction.setAngle(turnAngle);
+                rotateAction.begin(robot);
+            }
+        } else {
+            destAngle = turnAngle;
+            hbridge = robot.getDevice(HBridge.class);
+            compass = robot.getDevice(Compass.class);
+            if (var != null) {
+                Variable v = getParser().getSymbolTable().getVar(var);
+                if (v != null && v.hasValidValue()) {
+                    Object o = v.getValue();
+                    if (o instanceof Number) {
+                        Number n = (Number) o;
+                        destAngle = n.intValue();
+                    }
+                }
+            }
+            if (hbridge != null && compass != null) {
+                turnRemaining = turnAngle;
+                lastAngle = (int) Math.toDegrees(robot.getTheta());
+                destAngle = lastAngle + turnAngle;
+                destAngle = (destAngle + 1080) % 360; // limite máximo de +-1080
+                //System.out.println( "theta = " + robot.getTheta() + 
+                //					"; degrees = " + lastAngle +
+                //					"; destAngle = " + destAngle);
+                rotate(robot);
+            }
+        }
     }
 
     @Override
     public boolean perform(Robot robot, Clock clock) throws ExecutionException {
-		VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
-		if ( vc.serial()) {
-			return rotateAction.perform(robot);
-		} else {
-			if (hbridge != null && compass != null) {
-				return rotate(robot);
-			}
-		}
-		return true;
+        VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
+        if (vc.serial()) {
+            return rotateAction.perform(robot);
+        } else {
+            if (hbridge != null && compass != null) {
+                return rotate(robot);
+            }
+        }
+        return true;
     }
 
     @Override
@@ -211,7 +214,6 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         final int INSET_Y = 5;
 
         //HEADER LINE
-
         int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 80;
         final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
@@ -375,18 +377,18 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         fc.setParams(params);
         return fc;
     }
-    
+
     @Override
-    public String getToken(){
+    public String getToken() {
         return "rotate";
     }
-    
+
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);
-        if (copy instanceof Rotate){
-            ((Rotate)copy).destAngle = destAngle;
-            ((Rotate)copy).var = var;
+        if (copy instanceof Rotate) {
+            ((Rotate) copy).destAngle = destAngle;
+            ((Rotate) copy).var = var;
         }
         return copy;
     }

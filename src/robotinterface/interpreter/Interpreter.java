@@ -87,14 +87,12 @@ public class Interpreter extends Thread {
             currentCmd = null;
         }
 
-        parser.initFunTab();
-        parser.initSymTab();
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
 //        parser.setTraverse(true); //exibe debug
         parser.setImplicitMul(false);//multiplicação implicita: 2x+4
         parser.initSymTab(); // clear the contents of the symbol table
-        parser.addStandardConstants();
+//        parser.addStandardConstants();
         parser.setAllowAssignment(true);
         if (robot != null && robot.getMainConnection() != null) {
             robot.stopAll();
@@ -155,7 +153,6 @@ public class Interpreter extends Thread {
     }
 
     public boolean step() {
-
         if (currentCmd == null) {
             return false;
         }
