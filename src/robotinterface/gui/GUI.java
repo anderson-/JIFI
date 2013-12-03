@@ -94,7 +94,7 @@ public class GUI extends javax.swing.JFrame {
     private final RobotManager robotManager;
     private final JFileChooser fileChooser;
     private final boolean allowMainTabbedPaneStateChanged;
-    private boolean LOG = false;
+    public boolean LOG = false;
 
     private GUI() {
 
@@ -334,7 +334,6 @@ public class GUI extends javax.swing.JFrame {
         switchCodeButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        debugButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -502,19 +501,6 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(deleteButton);
         toolBar.add(jSeparator1);
 
-        debugButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/utilities-terminal.png"))); // NOI18N
-        debugButton.setToolTipText("Debug");
-        debugButton.setBorder(null);
-        debugButton.setFocusable(false);
-        debugButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        debugButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        debugButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                debugButtonActionPerformed(evt);
-            }
-        });
-        toolBar.add(debugButton);
-
         primarySplitPane.setBorder(null);
         primarySplitPane.setDividerLocation(180);
         primarySplitPane.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -657,7 +643,7 @@ public class GUI extends javax.swing.JFrame {
         System.gc();
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
-
+        
         if (cmp == simulationPanel) {
             simulationPanel.play();
         } else {
@@ -1114,20 +1100,6 @@ public class GUI extends javax.swing.JFrame {
 
     private boolean askLog = true;
 
-    private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
-        if (askLog) {
-            int returnVal = JOptionPane.showConfirmDialog(this, "Deseja salvar um log automaticamente quando trocar de aba no menu principal?\n\n(Nota: se o erro já aconteceu tente reiniciar a interface, clicar nesse botão para \nativar o log automatico e tente provocar o erro novamente.)", "Debug", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-            if (returnVal == JOptionPane.YES_OPTION) {
-                LOG = true;
-            }
-            askLog = false;
-        }
-        getLogger().log(Level.OFF, "### DEBUG! ###");
-        saveSatateAndCompare();
-        getLogger().log(Level.OFF, "### FIM DEBUG! ###");
-        System.out.println("Salvo no Log");
-    }//GEN-LAST:event_debugButtonActionPerformed
-
     private void newFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFileButtonActionPerformed
 
         int returnVal = JOptionPane.YES_OPTION;
@@ -1348,7 +1320,6 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton closeProjectButton;
     private javax.swing.JPanel consolePanel;
-    private javax.swing.JButton debugButton;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;

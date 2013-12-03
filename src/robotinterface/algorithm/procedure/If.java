@@ -696,8 +696,9 @@ public class If extends Procedure {
                 if (str.trim().length() <= 2) {
                     str = getName();
                     p.setProcedure(def);
+                } else {
+                    p.setProcedure(str);
                 }
-//                p.setProcedure(str);
                 return str;
             }
             

@@ -61,7 +61,10 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JComponent;
+import robotinterface.gui.GUI;
+import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
+import robotinterface.util.trafficsimulator.Timer;
 
 /**
  * Painel para desenho de componentes desenháveis.
@@ -71,7 +74,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     //outras constantes
     public final double MIN_ZOOM = 0.5;
     public final double MAX_ZOOM = 4.0;
-    protected long PAINT_DELAY = 2;
+    protected long PAINT_DELAY = 5;
     protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
     private final int tempTransformsSize = 6;
@@ -448,6 +451,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public void mousePressed(MouseEvent e) {
         mouseButton = e.getButton();
         mouseClickAndRelease = true;
+        if (!super.hasFocus()) {
+            super.requestFocusInWindow();
+        }
     }
 
     @Override
@@ -704,7 +710,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public class GraphicAttributes {
-        
+
         private double posX = 0, posY = 0;
 
         private GraphicAttributes() {
