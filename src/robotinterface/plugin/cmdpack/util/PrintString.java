@@ -65,7 +65,11 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
         String w = str.substring(l + 1, str.length());
 
-        varNames = new ArrayList<>();
+        if (varNames == null) {
+            varNames = new ArrayList<>();
+        }
+
+        varNames.clear();
 
         for (String var : w.split(",")) {
             String vart = var.trim();
@@ -326,6 +330,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     p.updateVariables(string);
 
                     clear();
+                } else {
+                    p.varNames.clear();
                 }
 
                 if (getSize() < 1) {
@@ -335,11 +341,18 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
                 String subStr = "%v";
                 int ocorrences = (string.length() - string.replace(subStr, "").length()) / subStr.length();;
-                ocorrences -= getSize() - 1;
-                for (int i = 0; i < ocorrences; i++) {
-                    addLine(varSelectiteonLine, null);
+                if (!p.varNames.isEmpty()) {
+                    ocorrences -= p.varNames.size();
+                    for (String var : p.varNames) {
+                        addLine(varSelectiteonLine, var);
+                    }
+                } else {
+                    ocorrences -= getSize() - 1;
+                    for (int i = 0; i < ocorrences; i++) {
+                        addLine(varSelectiteonLine, null);
+                    }
                 }
-
+                
                 for (int i = ocorrences; i < 0; i++) {
                     removeLine(getSize() - 1);
                 }
@@ -409,9 +422,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         fc.setParams(params);
         return fc;
     }
-    
+
     @Override
-    public String getToken(){
+    public String getToken() {
         return "print";
     }
 

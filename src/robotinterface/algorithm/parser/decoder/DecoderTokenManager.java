@@ -6,6 +6,8 @@ import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.*;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.gui.panels.editor.EditorPanel;
+import robotinterface.gui.panels.robot.RobotControlPanel;
+import robotinterface.robot.device.Device;
 
 /** Token Manager. */
 public class DecoderTokenManager implements DecoderConstants

@@ -917,13 +917,18 @@ public class GUI extends javax.swing.JFrame {
                 int i = mapCE.indexOf(cmp);
                 int errorOnLine = -1;
                 int errorColumn = 0;
-
+                String errorDesc = "";
+                
                 try {
                     f = Parser.decode(cep.getTextArea().getText());
                 } catch (ParseException ex) {
-                    errorOnLine = ex.currentToken.next.endLine - 1;
+                    errorOnLine = ex.currentToken.next.endLine;
                     errorColumn = ex.currentToken.next.beginColumn;
-//                    ex.printStackTrace();
+                    if (ex.tokenImage.length == 1){
+                        errorDesc = ex.tokenImage[0];
+                    } else {
+                        errorDesc = "Error de sintaxe";
+                    }
                 } catch (TokenMgrError ex) {
                     String msg = ex.getMessage();
                     msg = msg.substring(0, msg.indexOf(','));
@@ -937,7 +942,9 @@ public class GUI extends javax.swing.JFrame {
                     msg = msg.substring(0, msg.indexOf("."));
                     msg = msg.substring(msg.lastIndexOf(' ') + 1);
                     errorColumn = Integer.parseInt(msg);
-//                    ex.printStackTrace();
+                    errorDesc = "Erro lexico";
+                } catch (Throwable e){
+                    errorDesc = e.getMessage();
                 }
 
                 switch (errorOnLine) {
@@ -947,23 +954,32 @@ public class GUI extends javax.swing.JFrame {
                         System.err.println("Erro desconhecido.");
                         return;
                     default:
-                        System.err.println("Erro na linha " + errorOnLine + ".");
+                        System.err.println(errorDesc + " na linha " + errorOnLine + ".");
                         try {
                             RSyntaxTextArea textArea = cep.getTextArea();
-                            textArea.removeAllLineHighlights();
+//                            textArea.removeAllLineHighlights();
 //                            textArea.addLineHighlight(errorOnLine - 1, Color.red.brighter().brighter());
 
                             RSyntaxTextAreaHighlighter highlighter = (RSyntaxTextAreaHighlighter) textArea.getHighlighter();
 
                             SquiggleUnderlineHighlightPainter parserErrorHighlightPainter = new SquiggleUnderlineHighlightPainter(Color.RED);
-                            System.out.println(errorColumn);
+//                            System.out.println(errorColumn);
                             int p0 = textArea.getLineStartOffset(errorOnLine - 1);
+//                            System.out.println(p0);
                             int p1 = textArea.getLineEndOffset(errorOnLine - 1);
-                            String line = textArea.getText(p0, p1);
+                            String line = textArea.getText(p0, p1 - p0);
+//                            System.out.println("'" + line + "'");
+                            for (char c : line.toCharArray()){
+                                if (c == ' ' || c == '\t'){
+                                    p0++;
+                                } else {
+                                    break;
+                                }
+                            }
                             //todo tirar tabs e espaços
+                            highlighter.removeAllHighlights();
                             highlighter.addHighlight(p0, p1, parserErrorHighlightPainter);
                         } catch (BadLocationException ex) {
-
                         }
                         return;
                 }
