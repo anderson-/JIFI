@@ -75,6 +75,8 @@ public class Perception {
         synchronized (distanceMap) {
             paintPoints(g, distanceMap, 5);
         }
+        
+//        g.drawOval(200, 200, 120,120);
     }
 
     public void clearPath() {

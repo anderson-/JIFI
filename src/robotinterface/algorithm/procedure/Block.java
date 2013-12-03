@@ -47,7 +47,7 @@ public class Block extends Procedure {
      */
     public class BlockEnd extends Command {
 
-        private Command begin;
+        protected Command begin;
 
         protected BlockEnd() {
         }

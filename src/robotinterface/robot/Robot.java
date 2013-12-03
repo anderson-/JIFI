@@ -137,6 +137,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         }
         actions.clear();
     }
+    
+    @Deprecated//hbridge para o robo na função stopAll()
+    public void stop() {
+        rightWheelSpeed = 0;
+        leftWheelSpeed = 0;
+    }
 
     public void updateObservers(Device d) {
         for (Observer<Device, Robot> o : observers) {
@@ -789,14 +795,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
         AffineTransform o = g.getTransform();
         AffineTransform t = ga.getT(o);
-
-        AffineTransform w = ga.getT();
-        ga.applyGlobalPosition(w);
-        ga.applyZoom(w);
-        g.setTransform(w);
+        ga.removeRelativePosition(t);
+        g.setTransform(t);
+        
         perception.draw(g);
 
-        g.setTransform(t);
+        t.setTransform(o);
 
         //t.translate(x, y); DrawingPanel se encarrega de definir a posiçãos
         t.rotate(theta);
@@ -822,8 +826,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
 
-        w.setTransform(g.getTransform());
-
         for (Device d : devices) {
 //            g.setTransform(w);
             if (d instanceof Drawable) {
@@ -833,7 +835,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
         g.setTransform(o);
         ga.done(t);
-        ga.done(w);
         move(ga.getClock().getDt());
     }
 

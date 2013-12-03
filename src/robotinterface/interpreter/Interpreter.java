@@ -34,6 +34,7 @@ import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.While;
 import robotinterface.algorithm.procedure.Procedure;
 import org.nfunk.jep.JEP;
+import org.nfunk.jep.SymbolTable;
 import robotinterface.algorithm.parser.Parser;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.GUI;
@@ -92,10 +93,15 @@ public class Interpreter extends Thread {
 //        parser.setTraverse(true); //exibe debug
         parser.setImplicitMul(false);//multiplicação implicita: 2x+4
         parser.initSymTab(); // clear the contents of the symbol table
-        parser.addStandardConstants();
+        try {
+            parser.addStandardConstants();
+        } catch (Throwable t) {
+
+        }
         parser.setAllowAssignment(true);
         if (robot != null && robot.getMainConnection() != null) {
             robot.stopAll();
+            robot.stop();
         }
     }
 
@@ -125,12 +131,18 @@ public class Interpreter extends Thread {
                 }
                 if (tmpState == STOP) {
                     reset();
+                    if (robot != null) {
+                        robot.reset();
+                    }
+                } else if (tmpState == WAITING) {
+                    robot.stop();
                 }
 
-                if (tmpState != PLAY && robot != null) {
-                    robot.reset();
-                }
                 GUI.getInstance().updateControlBar(Interpreter.this);
+
+//                if (tmpState == PLAY) {
+//                    GUI.getInstance().setSimulationMode();
+//                }
             }
 
         }.start();
@@ -190,7 +202,9 @@ public class Interpreter extends Thread {
             while (true) {
                 if (state == PLAY) {
                     if (!step()) {
-                        state = WAITING;
+                        state = STOP;
+                        reset();
+                        GUI.getInstance().updateControlBar(this);
                     }
                     if (currentCmd != null && currentCmd.getDrawableResource() != null) {
                         if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {

@@ -401,7 +401,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        }
 //        per.draw(g);
         g.setStroke(new BasicStroke(5));
-
+        g.setColor(Color.green);
         if (point != null) {
             if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
                 g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);

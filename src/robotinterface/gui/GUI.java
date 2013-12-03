@@ -153,14 +153,12 @@ public class GUI extends javax.swing.JFrame {
             }
         });
 
-        jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 50));
+        jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 10));
         jSpinner1.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 int i = (int) jSpinner1.getValue();
-                Component cmp = mainTabbedPane.getSelectedComponent();
-                if (cmp instanceof Interpertable) {
-                    Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+                if (interpreter != null) {
                     interpreter.setTimestep(i);
                 }
             }
@@ -365,10 +363,14 @@ public class GUI extends javax.swing.JFrame {
         newFileButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/document-new.png"))); // NOI18N
         newFileButton.setToolTipText("Novo Arquivo");
         newFileButton.setBorder(null);
-        newFileButton.setEnabled(false);
         newFileButton.setFocusable(false);
         newFileButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         newFileButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        newFileButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newFileButtonActionPerformed(evt);
+            }
+        });
         toolBar.add(newFileButton);
 
         openButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/document-open.png"))); // NOI18N
@@ -655,6 +657,13 @@ public class GUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    public void setSimulationMode() {
+        mainTabbedPane.setSelectedComponent(simulationPanel);
+        System.out.println("set");
+    }
+
+    Interpreter interpreter = null;
+
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
         if (!allowMainTabbedPaneStateChanged) {
             return;
@@ -699,15 +708,19 @@ public class GUI extends javax.swing.JFrame {
         }
 
         if (cmp instanceof Interpertable) {
-            Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
-            updateControlBar(interpreter);
-        } else {
-            runButton.setEnabled(false);
-            jSpinner1.setEnabled(false);
-            stepButton.setEnabled(false);
-            pauseButton.setEnabled(false);
-            stopButton.setEnabled(false);
+            interpreter = ((Interpertable) cmp).getInterpreter();
+        } else if (cmp == simulationPanel) {
+            for (Component c : mainTabbedPane.getComponents()) {
+                if (c instanceof Interpertable) {
+                    Interpreter i = ((Interpertable) c).getInterpreter();
+                    if (i.getInterpreterState() == Interpreter.PLAY) {
+                        interpreter = i;
+                        break;
+                    }
+                }
+            }
         }
+        updateControlBar(interpreter);
 
         if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
             switchCodeButton.setEnabled(true);
@@ -753,45 +766,37 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_mainTabbedPaneStateChanged
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-        Component cmp = mainTabbedPane.getSelectedComponent();
-        if (cmp instanceof Interpertable) {
-            Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+        if (interpreter != null) {
             if (setDefaultRobot(interpreter, true)) {
                 interpreter.setInterpreterState(Interpreter.PLAY);
             } else {
                 interpreter.setInterpreterState(Interpreter.STOP);
             }
-            updateControlBar(interpreter);
         }
+        updateControlBar(interpreter);
     }//GEN-LAST:event_runButtonActionPerformed
 
     private void stepButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepButtonActionPerformed
-        Component cmp = mainTabbedPane.getSelectedComponent();
-        if (cmp instanceof Interpertable) {
-            Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+        if (interpreter != null) {
             if (setDefaultRobot(interpreter, true)) {
                 interpreter.step();
             }
-            updateControlBar(interpreter);
         }
+        updateControlBar(interpreter);
     }//GEN-LAST:event_stepButtonActionPerformed
 
     private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pauseButtonActionPerformed
-        Component cmp = mainTabbedPane.getSelectedComponent();
-        if (cmp instanceof Interpertable) {
-            Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+        if (interpreter != null) {
             interpreter.setInterpreterState(Interpreter.WAITING);
-            updateControlBar(interpreter);
         }
+        updateControlBar(interpreter);
     }//GEN-LAST:event_pauseButtonActionPerformed
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
-        Component cmp = mainTabbedPane.getSelectedComponent();
-        if (cmp instanceof Interpertable) {
-            Interpreter interpreter = ((Interpertable) cmp).getInterpreter();
+        if (interpreter != null) {
             interpreter.setInterpreterState(Interpreter.STOP);
-            updateControlBar(interpreter);
         }
+        updateControlBar(interpreter);
     }//GEN-LAST:event_stopButtonActionPerformed
 
     private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
@@ -799,13 +804,15 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_abortButtonActionPerformed
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
-        closeProjectButtonActionPerformed(null);
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
+            newFileButtonActionPerformed(null);
             simulationPanel.resetSimulation();
             File file = fileChooser.getSelectedFile();
             mainProject.importFile(file.getAbsolutePath());
+        } else {
+            return;
         }
 
         loadLoop:
@@ -1026,34 +1033,11 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
   private void closeProjectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeProjectButtonActionPerformed
-
-      int returnVal = JOptionPane.YES_OPTION;
-
-      if (evt != null) {
-          returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
-      }
+      int returnVal = JOptionPane.showConfirmDialog(this, "Deseja limpar a simulação?", "Limpar", JOptionPane.YES_NO_OPTION);
 
       if (returnVal == JOptionPane.YES_OPTION) {
-
-          for (FlowchartPanel fp : mapFC) {
-              Interpreter i = ((FlowchartPanel) fp).getInterpreter();
-              if (i != null) {
-                  i.setInterpreterState(Interpreter.STOP);
-              }
-          }
-
           simulationPanel.resetSimulation();
           simulationPanel.repaint();
-
-          mainTabbedPane.setSelectedIndex(0);
-          mainProject.getFunctions().clear();
-          for (Component cmp : mainTabbedPane.getComponents()) {
-              if ((cmp instanceof FlowchartPanel) || (cmp instanceof EditorPanel)) {
-                  mainTabbedPane.remove(cmp);
-              }
-          }
-          mapFC.clear();
-          mapCE.clear();
       }
   }//GEN-LAST:event_closeProjectButtonActionPerformed
 
@@ -1144,6 +1128,38 @@ public class GUI extends javax.swing.JFrame {
         System.out.println("Salvo no Log");
     }//GEN-LAST:event_debugButtonActionPerformed
 
+    private void newFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFileButtonActionPerformed
+
+        int returnVal = JOptionPane.YES_OPTION;
+
+        if (evt != null) {
+            returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
+        }
+
+        if (returnVal == JOptionPane.YES_OPTION) {
+
+            for (FlowchartPanel fp : mapFC) {
+                Interpreter i = ((FlowchartPanel) fp).getInterpreter();
+                if (i != null) {
+                    i.setInterpreterState(Interpreter.STOP);
+                }
+            }
+
+            simulationPanel.resetSimulation();
+            simulationPanel.repaint();
+
+            mainTabbedPane.setSelectedIndex(0);
+            mainProject.getFunctions().clear();
+            for (Component cmp : mainTabbedPane.getComponents()) {
+                if ((cmp instanceof FlowchartPanel) || (cmp instanceof EditorPanel)) {
+                    mainTabbedPane.remove(cmp);
+                }
+            }
+            mapFC.clear();
+            mapCE.clear();
+        }
+    }//GEN-LAST:event_newFileButtonActionPerformed
+
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
@@ -1154,6 +1170,15 @@ public class GUI extends javax.swing.JFrame {
     }
 
     public void updateControlBar(Interpreter interpreter) {
+        if (interpreter == null) {
+            runButton.setEnabled(false);
+            jSpinner1.setEnabled(false);
+            stepButton.setEnabled(false);
+            pauseButton.setEnabled(false);
+            stopButton.setEnabled(false);
+            return;
+        }
+
         if (interpreter.getInterpreterState() == Interpreter.PLAY) {
             //play
             runButton.setEnabled(false);
@@ -1357,4 +1382,9 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton switchCodeButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
+
+    public Interpreter getInterpreter() {
+        return interpreter;
+    }
+
 }

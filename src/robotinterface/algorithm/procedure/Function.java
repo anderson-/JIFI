@@ -53,6 +53,8 @@ import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.GUI;
+import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.Interpreter;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -72,6 +74,11 @@ public class Function extends Block {
                 resource = createSimpleBlock("   fim   ", Color.black, Color.black);
             }
             return resource;
+        }
+        
+        @Override
+        public Command step() {
+            return null;
         }
 
         @Override
@@ -93,7 +100,7 @@ public class Function extends Block {
         this.name = name;
         updateFunction(name, args, this);
     }
-
+    
     private static void updateFunction(String name, String args, Function f) {
         f.setName(name);
         f.getArgs().clear();

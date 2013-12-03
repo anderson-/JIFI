@@ -253,8 +253,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     protected void paintComponent(Graphics g) {
-        //super.paintComponent(g); //não usar
 
+        //super.paintComponent(g); //não usar
         //ignora chamadas antes do buffer ser construido
         if (buffer == null) {
             createBuffers();
@@ -299,6 +299,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 currentTransform.translate(globalX, globalY);
                 currentTransform.scale(zoom, zoom);
                 currentTransform.translate(d.getPosX(), d.getPosY());
+                currentGraphicAtributes.setCurrentObjectPosition(d.getPosX(), d.getPosY());
                 g2.setTransform(currentTransform);
                 d.drawBackground(g2, currentGraphicAtributes, currentInputState);
             }
@@ -317,6 +318,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     currentBounds = currentTransform.createTransformedShape(((GraphicObject) d).getObjectShape());
                 }
                 currentTransform.translate(d.getPosX(), d.getPosY());
+                currentGraphicAtributes.setCurrentObjectPosition(d.getPosX(), d.getPosY());
                 //g2.setClip(currentBounds); usar limite de pintura
                 g2.setTransform(currentTransform);
                 d.draw(g2, currentGraphicAtributes, currentInputState);
@@ -333,6 +335,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     currentBounds = ((GraphicObject) d).getObjectBouds();
                 }
                 currentTransform.translate(d.getPosX(), d.getPosY());
+                currentGraphicAtributes.setCurrentObjectPosition(d.getPosX(), d.getPosY());
                 g2.setTransform(currentTransform);
                 d.drawTopLayer(g2, currentGraphicAtributes, currentInputState);
             }
@@ -701,6 +704,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public class GraphicAttributes {
+        
+        private double posX = 0, posY = 0;
 
         private GraphicAttributes() {
         }
@@ -754,9 +759,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return height;
         }
 
+        private void setCurrentObjectPosition(double posX, double posY) {
+            this.posX = posX;
+            this.posY = posY;
+        }
+
         public void removeRelativePosition(AffineTransform t) {
-            Rectangle2D b = currentBounds.getBounds2D();
-            t.translate(-b.getX(), -b.getY());
+            t.translate(-posX, -posY);
         }
 
         public AffineTransform getT() {

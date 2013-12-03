@@ -164,7 +164,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
 
-        final int TEXTFIELD_WIDTH = 110;
+        final int TEXTFIELD_WIDTH = 130;
         final int TEXTFIELD_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
         final int BEGIN_X = 20;
@@ -266,18 +266,17 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     }
                 });
 
-                widgets.add(new Widget(tfName, BEGIN_X + 2 * INSET_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-//                JButton bTmp = new JButton(">");
-//
-//                bTmp.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-//                        container.setString(tfName.getText());
-//                        container.updateLines();
-//                    }
-//                });
-//
-//                widgets.add(new Widget(bTmp, BEGIN_X + 3 * INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
+                widgets.add(new Widget(tfName, BEGIN_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                JButton bTmp = new JButton(">");
+
+                bTmp.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        tfName.setText(tfName.getText() + " %v");
+                    }
+                });
+
+                widgets.add(new Widget(bTmp, BEGIN_X + INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
             }
 
             @Override
