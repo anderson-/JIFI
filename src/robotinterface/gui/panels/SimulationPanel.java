@@ -260,9 +260,9 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                 if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
                     poliSegments += wr;
                 }
-            } else {
-                zoomEnabled = true;
             }
+        } else {
+            zoomEnabled = true;
         }
 
         if (itemSelected != null) {

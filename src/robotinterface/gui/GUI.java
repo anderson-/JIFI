@@ -13,14 +13,25 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.EventListener;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.ImageIcon;
@@ -67,6 +78,7 @@ import robotinterface.util.SplashScreen;
  */
 public class GUI extends javax.swing.JFrame {
 
+    private static Logger logger = null;
     private static GUI INSTANCE = null;
     private Project mainProject = new Project();
     private ArrayList<EditorPanel> mapCE = new ArrayList<>();
@@ -1000,43 +1012,129 @@ public class GUI extends javax.swing.JFrame {
       }
   }//GEN-LAST:event_closeProjectButtonActionPerformed
 
-    private void printListeners(Component c) {
-        System.out.println("Listener do componente: " + c);
+    private static <T> void compare(List<T> a, List<T> b, Logger lg) {
+        Level level = Level.OFF;
+        lg.log(level, "\t{0}:", new Object[]{a.get(0)});
+        boolean change = false;
+        for (T t : a) {
+            if (!b.contains(t)) {
+                lg.log(level, "\t\t{0} [{1}] *removido*", new Object[]{t.getClass().getSimpleName(), t.hashCode()});
+                change = true;
+            }
+        }
+        for (T t : b) {
+            if (!a.contains(t)) {
+                lg.log(level, "\t\t{0} [{1}] *adicionado*", new Object[]{t.getClass().getSimpleName(), t.hashCode()});
+                change = true;
+            }
+        }
+
+        if (!change) {
+            lg.log(level, "\t\t*sem alterações*");
+        }
+    }
+
+    private static HashMap<Component, ArrayList<ArrayList<Object>>> STATE = new HashMap<>();
+
+    private static void saveStateAndCompare(Component c, Logger lg) {
+        Level level = Level.OFF;
+        lg.log(level, ">> {0} [{1}]", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
+        ArrayList<ArrayList<Object>> componentState = new ArrayList<>();
+        ArrayList<Object> listeners;
+
+        Class listenerTypes[] = new Class[]{
+            MouseListener.class,
+            KeyListener.class,
+            MouseWheelListener.class,
+            MouseWheelListener.class,
+            ActionListener.class,
+            ComponentListener.class,
+            MouseMotionListener.class
+        };
+
+        for (Class type : listenerTypes) {
+            listeners = new ArrayList<>();
+            listeners.add(type.getSimpleName());
+            listeners.addAll(Arrays.asList(c.getListeners(type)));
+            componentState.add(listeners);
+        }
+
+//        listeners = new ArrayList<>();
+//        listeners.add("MouseListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(MouseListener.class)));
+//        componentState.add(listeners);
+//        listeners = new ArrayList<>();
+//        listeners.add("KeyListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(KeyListener.class)));
+//        componentState.add(listeners);
+//        listeners = new ArrayList<>();
+//        listeners.add("MouseWheelListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(MouseWheelListener.class)));
+//        componentState.add(listeners);
+//        listeners = new ArrayList<>();
+//        listeners.add("ActionListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(ActionListener.class)));
+//        componentState.add(listeners);
+//        listeners = new ArrayList<>();
+//        listeners.add("ComponentListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(ComponentListener.class)));
+//        componentState.add(listeners);
+//        listeners = new ArrayList<>();
+//        listeners.add("MouseMotionListener");
+//        listeners.addAll(Arrays.asList(c.getListeners(MouseMotionListener.class)));
+//        componentState.add(listeners);
+        //compare
+        if (STATE.containsKey(c)) {
+            ArrayList<ArrayList<Object>> componentOldState = STATE.get(c);
+            for (int i = 0; i < componentOldState.size(); i++) {
+                compare(componentOldState.get(i), componentState.get(i), lg);
+            }
+            STATE.remove(c);
+        } else {
+            lg.log(level, "\t\t{0} [{1}] *novo componente swing*", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
+        }
+        STATE.put(c, componentState);
+    }
+
+    private static void logListeners(Component c, Logger lg) {
+        Level level = Level.OFF;
+        lg.log(level, ">> {0} [{1}]", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
+        lg.log(level, "\tMouseListeners:");
         for (MouseListener l : c.getListeners(MouseListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
+        lg.log(level, "\tKeyListeners:");
         for (KeyListener l : c.getListeners(KeyListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
+        lg.log(level, "\tMouseWheelListeners:");
         for (MouseWheelListener l : c.getListeners(MouseWheelListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
+        lg.log(level, "\tActionListeners:");
         for (ActionListener l : c.getListeners(ActionListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
+        lg.log(level, "\tComponentListeners:");
         for (ComponentListener l : c.getListeners(ComponentListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
+        lg.log(level, "\tMouseMotionListeners:");
         for (MouseMotionListener l : c.getListeners(MouseMotionListener.class)) {
-            System.out.println(l);
-            System.out.println(l.getClass());
+            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
         }
     }
 
     private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
-        System.out.println("inicio debug");
-        printListeners(this);
-        printListeners(mainTabbedPane);
-        printListeners(simulationPanel);
+        Date date = new Date();
+        getLogger().log(Level.OFF, "< Inicio {0} >", date);
+        saveStateAndCompare(this, logger);
+        saveStateAndCompare(mainTabbedPane, logger);
         for (Component c : mainTabbedPane.getComponents()) {
-            printListeners(c);
+            saveStateAndCompare(c, logger);
         }
-        System.out.println("fim debug");
+        logger.log(Level.OFF, "< Fim {0} >\n", date);
+        System.out.println("Salvo no Log");
     }//GEN-LAST:event_debugButtonActionPerformed
 
     public void add(JComponent panel, ImageIcon icon) {
@@ -1074,10 +1172,37 @@ public class GUI extends javax.swing.JFrame {
         }
         jSpinner1.setEnabled(true);
     }
-    private static Logger logger = null;
 
-    public static Logger
-            getLogger() {
+    public static Logger getLogger() {
+
+        Formatter myFormatter = new Formatter() {
+            @Override
+            public String format(final LogRecord r) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(formatMessage(r)).append(System.getProperty("line.separator"));
+                if (null != r.getThrown()) {
+                    sb.append("Throwable occurred: "); //$NON-NLS-1$
+                    Throwable t = r.getThrown();
+                    PrintWriter pw = null;
+                    try {
+                        StringWriter sw = new StringWriter();
+                        pw = new PrintWriter(sw);
+                        t.printStackTrace(pw);
+                        sb.append(sw.toString());
+                    } finally {
+                        if (pw != null) {
+                            try {
+                                pw.close();
+                            } catch (Exception e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+                return sb.toString();
+            }
+        };
+
         if (logger == null) {
             logger = Logger.getLogger(GUI.class
                     .getName());
@@ -1085,11 +1210,12 @@ public class GUI extends javax.swing.JFrame {
 
             try {
 
-                // This block configure the logger with handler and formatter  
-                fh = new FileHandler("log.txt");
+                // This block configure the logger with handler and formatter 
+                Date date = new Date();
+                fh = new FileHandler("log" + date + ".txt");
+                fh.setFormatter(myFormatter);
                 logger.addHandler(fh);
-                SimpleFormatter formatter = new SimpleFormatter();
-                fh.setFormatter(formatter);
+                logger.setUseParentHandlers(false);
 
                 // the following statement is used to log any messages  
 //                logger.info("My first log");

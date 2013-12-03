@@ -102,6 +102,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private Shape currentBounds;
     private boolean beginDrawing = false;
     private boolean mouseClick = false;
+    private boolean mouseClickAndRelease = false;
     private int mouseWheelRotation = 0;
     private Drawable currentObject;
     private int objectX = 0;
@@ -387,7 +388,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             setPosition(mouseDragX, mouseDragY);
             mouseDragX = 0;
             mouseDragY = 0;
-        } 
+        }
 
         if (beginDrawing) {
             beginDrawing = false;
@@ -427,6 +428,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     @Override
     public final void mouseClicked(final MouseEvent e) {
         mouseClick = true;
+        mouseClickAndRelease = false;
         mouseClickCount = e.getClickCount();
         if (midMouseButtonResetView && mouseButton == MouseEvent.BUTTON2) {
             resetView();
@@ -442,11 +444,17 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     @Override
     public void mousePressed(MouseEvent e) {
         mouseButton = e.getButton();
+        mouseClickAndRelease = true;
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         dragging = false;
+        mouseClickCount = e.getClickCount();
+        if (mouseClickAndRelease) {
+            mouseClick = true;
+            mouseClickAndRelease = false;
+        }
     }
 
     @Override
@@ -463,17 +471,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return;
         }
 
-        synchronized (mouse) {
-            //define a posição relativa com base no deslocamento do mouse
-            mouseDragX = (int) (mouse.getX() - e.getPoint().getX());
-            mouseDragY = (int) (mouse.getY() - e.getPoint().getY());
-            dragging = true;
-            mouse.setLocation(e.getPoint());
-        }
+        //define a posição relativa com base no deslocamento do mouse
+        mouseDragX = (int) (mouse.getX() - e.getPoint().getX());
+        mouseDragY = (int) (mouse.getY() - e.getPoint().getY());
+        dragging = true;
+        mouse.setLocation(e.getPoint());
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+
         if (e.getComponent() != this) {
             Rectangle r = e.getComponent().getBounds();
             Point tmp = e.getPoint();
@@ -481,9 +488,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             mouse.setLocation(tmp);
             return;
         }
-        synchronized (mouse) {
-            mouse.setLocation(e.getPoint());
-        }
+        mouse.setLocation(e.getPoint());
     }
 
     @Override
@@ -808,9 +813,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
 
         public boolean isMouseOver() {
-            synchronized (mouse) {
-                return currentBounds.contains(mouse);
-            }
+            return currentBounds.contains(mouse);
         }
 
         public Drawable getObjectOverMouse() {
@@ -836,13 +839,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
 
         public boolean mouseClicked() {
-            synchronized (mouse) {
-                if (mouseClick && beginDrawing && currentBounds.contains(mouse)) {
+            if (mouseClick && beginDrawing && currentBounds.contains(mouse)) {
 //                    System.out.println(currentBounds.getBounds2D());
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
         }
 
         public int getMouseButton() {
@@ -858,13 +859,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
 
         public Point getRelativeMouse() {
-            synchronized (mouse) {
-                Point p = new Point(mouse);
+            Point p = new Point(mouse);
 //                System.out.println(currentObject.getObjectBouds());
-                p.x -= (int) currentObject.getPosX();
-                p.y -= (int) currentObject.getPosY();
-                return p;
-            }
+            p.x -= (int) currentObject.getPosX();
+            p.y -= (int) currentObject.getPosY();
+            return p;
         }
 
         public Point getTransformedMouse() {
@@ -872,9 +871,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         }
 
         public Point getMouse() {
-            synchronized (mouse) {
-                return new Point(mouse);//mudar para posição relativa?
-            }
+            return new Point(mouse);//mudar para posição relativa?
         }
 
         public Point getMouseDrag() {
