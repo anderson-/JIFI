@@ -22,13 +22,13 @@ public class Perception {
     private static final int MAX_ARRAY = 1000;
     private final ArrayList<Point> path = new ArrayList<>();
     private final ArrayList<Point> distanceMap = new ArrayList<>();
-    
+
     public static void paintPoints(Graphics2D g, List<Point> points, int size) {
         for (Point p : points) {
             g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
         }
     }
-    
+
     public void addObstacle(double x, double y, double theta, double d) {
         if (d >= IRProximitySensor.MAX_DISTANCE - 10) {
             return;
@@ -75,13 +75,17 @@ public class Perception {
         synchronized (distanceMap) {
             paintPoints(g, distanceMap, 5);
         }
-        
+
 //        g.drawOval(200, 200, 120,120);
     }
 
     public void clearPath() {
-      path.clear();
-      distanceMap.clear();
+        synchronized (path) {
+            path.clear();
+        }
+        synchronized (distanceMap) {
+            distanceMap.clear();
+        }
     }
 
 }

@@ -211,13 +211,7 @@ public class GUI extends javax.swing.JFrame {
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.addChoosableFileFilter(ff);
 
-//        mainProject.importFile("teste.zip");
-//
-//        for (Function f : mainProject.getFunctions()) {
-//            add(new CodeEditorPanel(f), new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-//            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
-////            System.out.println(Parser.encode(f));
-//        }
+//        dynamicToolBar.setVisible(false);
         updateRobotList();
 
         if (LOG) {
