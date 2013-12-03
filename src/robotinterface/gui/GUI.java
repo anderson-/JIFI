@@ -330,7 +330,6 @@ public class GUI extends javax.swing.JFrame {
         stepButton = new javax.swing.JButton();
         pauseButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
-        abortButton = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         switchCodeButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
@@ -474,20 +473,6 @@ public class GUI extends javax.swing.JFrame {
             }
         });
         toolBar.add(stopButton);
-
-        abortButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/process-stop.png"))); // NOI18N
-        abortButton.setToolTipText("Abortar");
-        abortButton.setBorder(null);
-        abortButton.setEnabled(false);
-        abortButton.setFocusable(false);
-        abortButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        abortButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        abortButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                abortButtonActionPerformed(evt);
-            }
-        });
-        toolBar.add(abortButton);
         toolBar.add(jSeparator3);
 
         switchCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"))); // NOI18N
@@ -719,7 +704,7 @@ public class GUI extends javax.swing.JFrame {
                     }
                 }
             }
-        }
+        } 
         updateControlBar(interpreter);
 
         if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
@@ -756,6 +741,8 @@ public class GUI extends javax.swing.JFrame {
             switchCodeButton.setIcon(codeIcon);
         } else if (cmp instanceof EditorPanel) {
             switchCodeButton.setIcon(flowchartIcon);
+            interpreter = null;
+            updateControlBar(null);
         }
 
         updateTabNames();
@@ -798,10 +785,6 @@ public class GUI extends javax.swing.JFrame {
         }
         updateControlBar(interpreter);
     }//GEN-LAST:event_stopButtonActionPerformed
-
-    private void abortButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abortButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_abortButtonActionPerformed
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
@@ -1002,6 +985,7 @@ public class GUI extends javax.swing.JFrame {
                 fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
             }
         }
+        mainTabbedPaneStateChanged(null);
     }//GEN-LAST:event_switchCodeButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
@@ -1361,7 +1345,6 @@ public class GUI extends javax.swing.JFrame {
         );
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton abortButton;
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton closeProjectButton;
     private javax.swing.JPanel consolePanel;
