@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import javax.swing.UIManager;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -34,11 +37,14 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
@@ -86,11 +92,9 @@ public class GUI extends javax.swing.JFrame {
     private ImageIcon codeIcon;
     private ImageIcon flowchartIcon;
     private final RobotManager robotManager;
-    private JFileChooser fileChooser;
-
-    static {
-    }
+    private final JFileChooser fileChooser;
     private final boolean allowMainTabbedPaneStateChanged;
+    private boolean LOG = false;
 
     private GUI() {
 
@@ -105,7 +109,7 @@ public class GUI extends javax.swing.JFrame {
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
 
-        JTextPane console = new JTextPane();
+        final JTextPane console = new JTextPane();
         consolePanel.setLayout(new GridLayout());
         consolePanel.setName("Console");
         consolePanel.add(new JScrollPane(console));
@@ -114,6 +118,40 @@ public class GUI extends javax.swing.JFrame {
         mc.redirectOut(Color.BLACK, System.out);
         mc.redirectErr(Color.RED, System.err);
         mc.setMessageLines(100);
+        final JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem menuItem = new JMenuItem("Limpar");
+        menuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                console.setText("");
+            }
+        });
+        popupMenu.add(menuItem);
+        console.add(popupMenu);
+        console.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.getButton() == e.BUTTON3) {
+                    popupMenu.show(console, e.getX(), e.getY());
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
 
         jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 50));
         jSpinner1.addChangeListener(new ChangeListener() {
@@ -183,6 +221,10 @@ public class GUI extends javax.swing.JFrame {
 ////            System.out.println(Parser.encode(f));
 //        }
         updateRobotList();
+
+        if (LOG) {
+            saveSatateAndCompare();
+        }
         allowMainTabbedPaneStateChanged = true;
         mainTabbedPaneStateChanged(null);
     }
@@ -705,6 +747,9 @@ public class GUI extends javax.swing.JFrame {
 
         updateTabNames();
         dynamicToolBar.updateUI();
+        if (LOG) {
+            saveSatateAndCompare();
+        }
     }//GEN-LAST:event_mainTabbedPaneStateChanged
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
@@ -1036,7 +1081,7 @@ public class GUI extends javax.swing.JFrame {
 
     private static HashMap<Component, ArrayList<ArrayList<Object>>> STATE = new HashMap<>();
 
-    private static void saveStateAndCompare(Component c, Logger lg) {
+    private static void saveComponentStateAndCompare(Component c, Logger lg) {
         Level level = Level.OFF;
         lg.log(level, ">> {0} [{1}]", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
         ArrayList<ArrayList<Object>> componentState = new ArrayList<>();
@@ -1059,30 +1104,6 @@ public class GUI extends javax.swing.JFrame {
             componentState.add(listeners);
         }
 
-//        listeners = new ArrayList<>();
-//        listeners.add("MouseListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(MouseListener.class)));
-//        componentState.add(listeners);
-//        listeners = new ArrayList<>();
-//        listeners.add("KeyListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(KeyListener.class)));
-//        componentState.add(listeners);
-//        listeners = new ArrayList<>();
-//        listeners.add("MouseWheelListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(MouseWheelListener.class)));
-//        componentState.add(listeners);
-//        listeners = new ArrayList<>();
-//        listeners.add("ActionListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(ActionListener.class)));
-//        componentState.add(listeners);
-//        listeners = new ArrayList<>();
-//        listeners.add("ComponentListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(ComponentListener.class)));
-//        componentState.add(listeners);
-//        listeners = new ArrayList<>();
-//        listeners.add("MouseMotionListener");
-//        listeners.addAll(Arrays.asList(c.getListeners(MouseMotionListener.class)));
-//        componentState.add(listeners);
         //compare
         if (STATE.containsKey(c)) {
             ArrayList<ArrayList<Object>> componentOldState = STATE.get(c);
@@ -1096,44 +1117,30 @@ public class GUI extends javax.swing.JFrame {
         STATE.put(c, componentState);
     }
 
-    private static void logListeners(Component c, Logger lg) {
-        Level level = Level.OFF;
-        lg.log(level, ">> {0} [{1}]", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
-        lg.log(level, "\tMouseListeners:");
-        for (MouseListener l : c.getListeners(MouseListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-        lg.log(level, "\tKeyListeners:");
-        for (KeyListener l : c.getListeners(KeyListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-        lg.log(level, "\tMouseWheelListeners:");
-        for (MouseWheelListener l : c.getListeners(MouseWheelListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-        lg.log(level, "\tActionListeners:");
-        for (ActionListener l : c.getListeners(ActionListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-        lg.log(level, "\tComponentListeners:");
-        for (ComponentListener l : c.getListeners(ComponentListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-        lg.log(level, "\tMouseMotionListeners:");
-        for (MouseMotionListener l : c.getListeners(MouseMotionListener.class)) {
-            lg.log(level, "\t\t{0} [{1}]", new Object[]{l.getClass().getSimpleName(), l.hashCode()});
-        }
-    }
-
-    private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
+    private void saveSatateAndCompare() {
         Date date = new Date();
         getLogger().log(Level.OFF, "< Inicio {0} >", date);
-        saveStateAndCompare(this, logger);
-        saveStateAndCompare(mainTabbedPane, logger);
+        saveComponentStateAndCompare(this, logger);
+        saveComponentStateAndCompare(mainTabbedPane, logger);
         for (Component c : mainTabbedPane.getComponents()) {
-            saveStateAndCompare(c, logger);
+            saveComponentStateAndCompare(c, logger);
         }
         logger.log(Level.OFF, "< Fim {0} >\n", date);
+    }
+
+    private boolean askLog = true;
+
+    private void debugButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugButtonActionPerformed
+        if (askLog) {
+            int returnVal = JOptionPane.showConfirmDialog(this, "Deseja salvar um log automaticamente quando trocar de aba no menu principal?\n\n(Nota: se o erro já aconteceu tente reiniciar a interface, clicar nesse botão para \nativar o log automatico e tente provocar o erro novamente.)", "Debug", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (returnVal == JOptionPane.YES_OPTION) {
+                LOG = true;
+            }
+            askLog = false;
+        }
+        getLogger().log(Level.OFF, "### DEBUG! ###");
+        saveSatateAndCompare();
+        getLogger().log(Level.OFF, "### FIM DEBUG! ###");
         System.out.println("Salvo no Log");
     }//GEN-LAST:event_debugButtonActionPerformed
 
