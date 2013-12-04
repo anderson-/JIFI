@@ -414,8 +414,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                                 Procedure p = (Procedure) c;
                                 c = p.copy((Procedure) p.createInstance());
                             }
-                            addAllDrawableResources(c, this);
                             s.addAfter(c);
+                            addAllDrawableResources(c, this);
                             selection.add(c);
                             s = c;
                         }

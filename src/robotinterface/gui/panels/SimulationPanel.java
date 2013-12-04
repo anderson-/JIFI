@@ -182,14 +182,12 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                 }
 
                 for (Robot robot : tmpBots) {
-                    if (robot.getLeftWheelSpeed() != 0 && robot.getRightWheelSpeed() != 0) {
+                    if (!(robot.getLeftWheelSpeed() == 0 && robot.getRightWheelSpeed() == 0)) {
                         robot.updateVirtualPerception();
                     }
 
 //                    robot.setRightWheelSpeed(30);
 //                    robot.setLeftWheelSpeed(-30);
-//                    System.out.println(robot.getPosX());
-//                    System.out.println(Math.toDegrees(robot.getTheta()));
                     if (this.getCount() % 20 == 0) {
 //                        robot.setRightWheelSpeed(Math.random() * 100);
 //                        robot.setLeftWheelSpeed(Math.random() * 100);
@@ -378,7 +376,13 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     //desenha o circulo
                     g.setColor(Color.gray);
                     circle.setFrame(x - r, y - r, r * 2, r * 2);
-                    g.draw(circle);
+                    try{
+                        g.draw(circle);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        System.out.println(circle);
+                        System.exit(0);
+                    }
                     //desenha o raio
                     g.setColor(Color.magenta);
                     radius.setLine(robot.getObjectBouds().x, robot.getObjectBouds().y, x, y);

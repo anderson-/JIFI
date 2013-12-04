@@ -425,6 +425,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     @Override
     public final void keyReleased(KeyEvent e) {
         synchronized (keys) {
+            if (keys.contains(KeyEvent.VK_CONTROL)) {
+                if (keys.contains(KeyEvent.VK_EQUALS)) {
+                    setZoom(0.1, new Point(width / 2, height / 2));
+                    //setZoom(0.1, mouse);
+                } else if (keys.contains(KeyEvent.VK_MINUS)) {
+                    setZoom(-0.1, new Point(width / 2, height / 2));
+                    //setZoom(-0.1, mouse);
+                }
+            }
+
             while (keys.contains(e.getKeyCode())) {
                 keys.remove(keys.indexOf(e.getKeyCode()));
             }
@@ -502,9 +512,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        mouseWheelRotation = e.getWheelRotation();
+        mouseWheelRotation = -e.getWheelRotation();
         if (zoomEnabled) {
-            setZoom(e.getWheelRotation() * 0.1, e.getPoint());
+            setZoom(mouseWheelRotation * 0.1, e.getPoint());
         }
     }
 

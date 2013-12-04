@@ -124,7 +124,11 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     
     @Override
     public void toString(String ident, StringBuilder sb) {
-        setProcedure("wait(" + delay + ")");
+        if (var == null){
+            setProcedure("wait(" + delay + ")");
+        } else {
+            setProcedure("wait(" + var + ")");
+        }
         super.toString(ident, sb);
     }
     
@@ -252,10 +256,6 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 String str = sb.toString() + ")";
                 updateWait(str.substring(str.indexOf("(") + 1, str.indexOf(")")), w);
                 return str;
-            }
-
-            private void autoUpdateValue(JSpinner spinner) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
 

@@ -54,9 +54,9 @@ public class Perception {
         synchronized (path) {
             Point p = new Point((int) x, (int) y);
             if (!path.isEmpty()) {
-                if (path.get(path.size() - 1).equals(p)) {
-                    return;
-                }
+//                if (path.get(path.size() - 1).equals(p)) {
+//                    return;
+//                }
             }
             path.add(new Point((int) x, (int) y));
             if (path.size() > MAX_ARRAY) {
