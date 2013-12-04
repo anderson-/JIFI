@@ -45,6 +45,11 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     private final Point2D.Double dst = new Point2D.Double();
 
     @Override
+    public byte[] defaultGetMessage() {
+      return new byte[] {1, 0};
+    }
+
+    @Override
     public void setState(ByteBuffer data) {
         byte b = data.get();
         for (int i = 0; i < 5; i++) {
