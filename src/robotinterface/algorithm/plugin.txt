@@ -3,3 +3,4 @@
 robotinterface.algorithm.procedure.Procedure
 robotinterface.algorithm.procedure.If
 robotinterface.algorithm.procedure.While
+robotinterface.algorithm.procedure.BreakLoop
