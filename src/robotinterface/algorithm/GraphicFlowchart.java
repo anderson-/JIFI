@@ -17,12 +17,13 @@ public interface GraphicFlowchart {
     public static int GF_X = 0; //posição x
     public static int GF_Y = 0; //posição y
     public static int GF_J = 15; //deslocamento vertical
-    public static int GF_K = 30; //deslocamento horizontal
-    public static int GF_IX = 0;
-    public static int GF_IY = 1;
-    public static boolean F_SI = false;
+    public static int GF_K = 20; //deslocamento horizontal
+//    public static int GF_IX = 0;
+//    public static int GF_IY = 1;
+    
+//    public static boolean F_SI = false;
 
-    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a);
+    public void ident(double x, double y, double j, double k);
 
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a);
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k);
 }

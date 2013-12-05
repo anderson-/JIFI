@@ -185,6 +185,8 @@ public class Function extends Block {
         g.setTransform(o);
     }
 
+    
+    
     public static Command find(Point2D p, Block b) {
         Command it = b.start;
         while (it != null) {

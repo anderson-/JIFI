@@ -72,8 +72,8 @@ public class If extends Procedure {
     public class InnerBlock extends Block {
 
         @Override
-        public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
-            Rectangle2D.Double bounds = super.getBounds(tmp, j, k, Ix, Iy, a);
+        public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
+            Rectangle2D.Double bounds = super.getBounds(tmp, j, k);
             bounds.height += j;
             return bounds;
         }
@@ -149,53 +149,57 @@ public class If extends Procedure {
         }
     }
 
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
+        //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
+        tmp = super.getBounds(tmp, j, k);
+
+        Rectangle2D.Double p = new Rectangle2D.Double();
+        p.setRect(tmp);
+        double bfh;
+        double bth;
+        //false
+        p = getBlockFalse().getBounds(p, j, k);
+        bfh = p.height;
+        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+        tmp.width = p.width;
+        //true
+        p = getBlockTrue().getBounds(p, j, k);
+        bth = p.height;
+        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+        tmp.width += p.width + 2 * k;
+        //tmp.x += -(tmp.width - p.width - k) + tmp.width / 2 - p.width;
+
+        tmp.height += GF_J * .6;
+        tmp.height += (bfh > bth) ? bfh : bth;
+
+        return tmp;
+    }
 //    @Override
-//    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+//    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, boolean a) {
 //        //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
-//        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+//        tmp = super.getBounds(tmp, j, k, a);
 //
 //        Rectangle2D.Double p = new Rectangle2D.Double();
 //        p.setRect(tmp);
 //        //false
-//        p = getBlockFalse().getBounds(p, j, k, Ix, Iy, a);
-//        tmp.width /= 2;
-//        tmp.width += p.width/2;
+//        p = getBlockFalse().getBounds(p, j, k, a);
 //        tmp.add(p);
 //        //true
-//        p = getBlockTrue().getBounds(p, j, k, Ix, Iy, a);
-//        tmp.width += p.width/2;
+//        p = getBlockTrue().getBounds(p, j, k, a);
 //        tmp.add(p);
 //
 //        return tmp;
 //    }
-    @Override
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
-        //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
-        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
-
-        Rectangle2D.Double p = new Rectangle2D.Double();
-        p.setRect(tmp);
-        //false
-        p = getBlockFalse().getBounds(p, j, k, Ix, Iy, a);
-        tmp.add(p);
-        //true
-        p = getBlockTrue().getBounds(p, j, k, Ix, Iy, a);
-        tmp.add(p);
-
-        return tmp;
-    }
 
     @Override
-    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
-        double xj = Ix * j;
-        double yj = Iy * j;
-        double xk = Iy * k;
-        double yk = Ix * k;
+    public void ident(double x, double y, double j, double k) {
 
-        double pbtx;
-        double pbty;
-        double pbfx;
-        double pbfy;
+        Rectangle2D.Double btb = blockTrue.getBounds(null, j, k);
+        Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k);
+        double w = btb.width + 2 * k + bfb.width;
+        double pbtx = -btb.width - k;
+        double pbfx = bfb.width / 2 + k;
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
@@ -210,8 +214,8 @@ public class If extends Procedure {
             double cw = t.width;
             double ch = t.height;
 
-            double px = x - Iy * (cw / 2);
-            double py = y - Ix * (ch / 2);
+            double px = x - cw / 2;
+            double py = y;
 
             if (this instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) this).getDrawableResource();
@@ -222,37 +226,20 @@ public class If extends Procedure {
                 }
             }
 
-            x += Ix * (cw + xj);
-            y += Iy * (ch + yj * .6);
+            y += ch + j * .6;
         }
 
-        Rectangle2D.Double btb = blockTrue.getBounds(null, j, k, Ix, Iy, a);
-        Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k, Ix, Iy, a);
+        double rx = (btb.width - bfb.width)/2;
+        blockTrue.ident(x + rx + pbtx, y, j, k);
+        blockFalse.ident(x + rx + pbfx, y, j, k);
+        //todo:
+//        double rx = (btb.width - bfb.width) / 2;
+//        blockTrue.ident(x - btb.width / 2 - k, y, j, k);
+//        blockFalse.ident(x + bfb.width / 2 + k, y, j, k);
 
-        if (a) {
-            //true
-            pbtx = 0;
-            pbty = 0;
-            //false
-            pbfx = Iy * (bfb.width / 2 + btb.width / 2 + xk);
-            pbfy = Ix * (bfb.height / 2 + btb.height / 2 + yk);
-        } else {
-            //true
-            pbtx = -Iy * (btb.width / 2 + xk);
-            pbty = -Ix * (btb.height / 2 + yk);
-            //false
-            pbfx = Iy * (bfb.width / 2 + xk);
-            pbfy = Ix * (bfb.height / 2 + yk);
-        }
-
-        blockTrue.ident(x + pbtx, y + pbty, j, k, Ix, Iy, a);
-        blockFalse.ident(x + pbfx, y + pbfy, j, k, Ix, Iy, a);
-
-        x += Ix * ((bfb.width > btb.width) ? bfb.width : btb.width);
-        y += Iy * ((bfb.height > btb.height) ? bfb.height : btb.height);
-
+        y += ((bfb.height > btb.height) ? bfb.height : btb.height) + j;
         if (getNext() != null) {
-            getNext().ident(x, y, j, k, Ix, Iy, a);
+            getNext().ident(x, y, j, k);
         }
     }
 
@@ -701,10 +688,10 @@ public class If extends Procedure {
                 }
                 return str;
             }
-            
+
             @Override
             public void splitString(String original, Collection<String> splitted) {
-                
+
                 boolean and;
                 boolean andEnd;
                 boolean or;
@@ -750,17 +737,11 @@ public class If extends Procedure {
             Rectangle2D.Double bThis = resource.getObjectBouds();
             Rectangle2D.Double bBlock = getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             Rectangle2D.Double bTrueStart = getBlockTrue().start.getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             if (getBlockTrue().start instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) getBlockTrue().start).getDrawableResource();
@@ -772,24 +753,15 @@ public class If extends Procedure {
 
             Rectangle2D.Double bTrueB = getBlockTrue().getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             Rectangle2D.Double bFalseStart = getBlockFalse().start.getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             Rectangle2D.Double bTrueEnd = getBlockTrue().getEnd().getPrevious().getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             if (getBlockTrue().getEnd().getPrevious() instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) getBlockTrue().getEnd().getPrevious()).getDrawableResource();
@@ -801,10 +773,7 @@ public class If extends Procedure {
 
             Rectangle2D.Double bFalseEnd = getBlockFalse().getEnd().getPrevious().getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             if (getBlockFalse().getEnd().getPrevious() instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) getBlockFalse().getEnd().getPrevious()).getDrawableResource();
@@ -824,15 +793,12 @@ public class If extends Procedure {
 
             Rectangle2D.Double bFalseB = getBlockFalse().getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             //true
             g.drawString("V", (int) bTrueStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
 
-            path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
+            path.moveTo(bThis.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bTrueB.getMinY());
 
@@ -842,7 +808,7 @@ public class If extends Procedure {
             //false
             g.drawString("F", (int) bFalseStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
 
-            path.moveTo(bBlock.getCenterX(), bThis.getCenterY());
+            path.moveTo(bThis.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bFalseB.getMinY());
 

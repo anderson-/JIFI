@@ -637,7 +637,7 @@ public class GUI extends javax.swing.JFrame {
         System.gc();
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
-        
+
         if (cmp == simulationPanel) {
             simulationPanel.play();
         } else {
@@ -684,7 +684,7 @@ public class GUI extends javax.swing.JFrame {
                     }
                 }
             }
-        } 
+        }
         updateControlBar(interpreter);
 
         if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
@@ -770,6 +770,11 @@ public class GUI extends javax.swing.JFrame {
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
+            returnVal = JOptionPane.showConfirmDialog(this, "O projeto atual será fechado, deseja prosseguir?", "Abrir", JOptionPane.YES_NO_OPTION);
+
+            if (returnVal != JOptionPane.YES_OPTION) {
+                return;
+            }
             newFileButtonActionPerformed(null);
             simulationPanel.resetSimulation();
             File file = fileChooser.getSelectedFile();
@@ -881,13 +886,13 @@ public class GUI extends javax.swing.JFrame {
                 int errorOnLine = -1;
                 int errorColumn = 0;
                 String errorDesc = "";
-                
+
                 try {
                     f = Parser.decode(cep.getTextArea().getText());
                 } catch (ParseException ex) {
                     errorOnLine = ex.currentToken.next.endLine;
                     errorColumn = ex.currentToken.next.beginColumn;
-                    if (ex.tokenImage.length == 1){
+                    if (ex.tokenImage.length == 1) {
                         errorDesc = ex.tokenImage[0];
                     } else {
                         errorDesc = "Error de sintaxe";
@@ -906,7 +911,7 @@ public class GUI extends javax.swing.JFrame {
                     msg = msg.substring(msg.lastIndexOf(' ') + 1);
                     errorColumn = Integer.parseInt(msg);
                     errorDesc = "Erro lexico";
-                } catch (Throwable e){
+                } catch (Throwable e) {
                     errorDesc = e.getMessage();
                 }
 
@@ -932,8 +937,8 @@ public class GUI extends javax.swing.JFrame {
                             int p1 = textArea.getLineEndOffset(errorOnLine - 1);
                             String line = textArea.getText(p0, p1 - p0);
 //                            System.out.println("'" + line + "'");
-                            for (char c : line.toCharArray()){
-                                if (c == ' ' || c == '\t'){
+                            for (char c : line.toCharArray()) {
+                                if (c == ' ' || c == '\t') {
                                     p0++;
                                 } else {
                                     break;

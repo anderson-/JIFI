@@ -206,15 +206,10 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
     }
 
     @Override
-    public void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+    public void ident(double x, double y, double j, double k) {
 
         double cw = 0;
         double ch = 0;
-
-        double xj = Ix * j;
-        double yj = Iy * j;
-        double xk = Iy * k;
-        double yk = Ix * k;
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
@@ -229,8 +224,8 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
             cw = t.width;
             ch = t.height;
 
-            double px = x - Iy * (cw / 2);
-            double py = y - Ix * (ch / 2);
+            double px = x - (cw / 2);
+            double py = y;
 
             if (this instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) this).getDrawableResource();
@@ -240,21 +235,20 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
                 }
             }
 
-            x += Ix * (cw + xj);
-            y += Iy * (ch + yj);
+            y += ch + j;
         }
 
         if (next != null) {
-            next.ident(x, y, j, k, Ix, Iy, a);
+            next.ident(x, y, j, k);
         }
     }
 
     @Override
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
-        return getBounds(this, tmp, j, k, Ix, Iy, a);
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
+        return getBounds(this, tmp, j, k);
     }
 
-    protected static Rectangle2D.Double getBounds(Command c, Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+    protected static Rectangle2D.Double getBounds(Command c, Rectangle2D.Double tmp, double j, double k) {
         Rectangle2D.Double t = null;
         if (c instanceof GraphicResource) {
             GraphicObject d = ((GraphicResource) c).getDrawableResource();
@@ -271,14 +265,16 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
         tmp.setRect(Double.MAX_VALUE, Double.MAX_VALUE, 0, 0);
 
         if (t != null) {
-            tmp.x = (t.x < tmp.x) ? t.x : tmp.x;
-            tmp.y = (t.y < tmp.y) ? t.y : tmp.y;
+            tmp.setRect(t);
+//            tmp.x = 0;
+//            tmp.y = 0;
+//            tmp.x = (t.x < tmp.x) ? t.x : tmp.x;
+//            tmp.y = (t.y < tmp.y) ? t.y : tmp.y;
+//
+//            tmp.width += t.width;
+//            tmp.height += t.height;
 
-            tmp.width += t.width;
-            tmp.height += t.height;
-
-            tmp.width += Ix * j;
-            tmp.height += Iy * j;
+            tmp.height += j;
         }
         return tmp;
     }

@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Stack;
 import javax.swing.JPanel;
@@ -165,10 +167,73 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         f.ident(GraphicFlowchart.GF_X,
                 GraphicFlowchart.GF_Y,
                 GraphicFlowchart.GF_J,
-                GraphicFlowchart.GF_K,
-                GraphicFlowchart.GF_IX,
-                GraphicFlowchart.GF_IY,
-                GraphicFlowchart.F_SI);
+                GraphicFlowchart.GF_K);
+    }
+
+    private boolean addCommand(Point p) {
+        Command c = function.find(p);
+        if (c != null) {
+            boolean addNext = true;
+            if (c instanceof FunctionEnd) {
+                if (c.getPrevious() != null) {
+                    c = c.getPrevious();
+                } else {
+                    c = c.getParent();
+                }
+            }
+
+            //(***) descomentar para adicionar blocos antes 
+            //se clicado na parte superior da seleção
+            if (c instanceof Function) {
+                c = ((Function) c).get(0);
+                addNext = false; //(***)
+            }
+
+            if (c instanceof GraphicResource) { //(***)
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    //g.draw(d.getObjectShape());
+
+                    //alterar usando fIx e fIy
+                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
+                        addNext = true;
+                    } else {
+                        addNext = false;
+                    }
+
+                }
+            }
+            Command n = newCommand;
+
+            if (n instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) n).getDrawableResource();
+                if (d != null) {
+                    this.add(d);
+                }
+            }
+
+            pushUndo();
+            redo.clear();
+
+            interpreter.setInterpreterState(Interpreter.STOP);
+
+            if (addNext) {
+                c.addAfter(newCommand);
+            } else {
+                c.addBefore(newCommand);
+            }
+
+            if (c instanceof DummyBlock) {
+                removeGraphicResources(c);
+            }
+
+            selection.clear();
+            selection.add(newCommand);
+
+            ident(function);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -212,72 +277,19 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             if (in.mouseGeneralClick()) {
                 if (in.getMouseButton() == MouseEvent.BUTTON1) {
                     clickDrop++;
-                    Point p = in.getTransformedMouse();
-                    Command c = function.find(p);
-
-                    boolean addNext = true;
                     if (clickDrop == 2) {
-                        if (c != null) {
-
-                            if (c instanceof FunctionEnd) {
-                                if (c.getPrevious() != null) {
-                                    c = c.getPrevious();
-                                } else {
-                                    c = c.getParent();
-                                }
-                            }
-
-                            //(***) descomentar para adicionar blocos antes 
-                            //se clicado na parte superior da seleção
-                            if (c instanceof Function) {
-                                c = ((Function) c).get(0);
-                                addNext = false; //(***)
-                            }
-
-                            if (c instanceof GraphicResource) { //(***)
-                                GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                                if (d != null) {
-                                    g.draw(d.getObjectShape());
-
-                                    //alterar usando fIx e fIy
-                                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
-                                        addNext = true;
-                                    } else {
-                                        addNext = false;
-                                    }
+                        Point p = in.getTransformedMouse();
+                        //tenta adicionar na posição do mouse
+                        if (!addCommand(p)) {
+                            //tenta adicionar 15 px para baixo
+                            p.y += 15;
+                            if (!addCommand(p)) {
+                                //tenta adicionar 15 px para cima
+                                p.y -= 30;
+                                if (!addCommand(p)) {
 
                                 }
                             }
-                            Command n = newCommand;
-
-                            if (n instanceof GraphicResource) {
-                                GraphicObject d = ((GraphicResource) n).getDrawableResource();
-                                if (d != null) {
-                                    this.add(d);
-                                }
-                            }
-
-                            pushUndo();
-                            redo.clear();
-
-                            interpreter.setInterpreterState(Interpreter.STOP);
-
-                            if (addNext) {
-                                c.addAfter(newCommand);
-                            } else {
-                                c.addBefore(newCommand);
-                            }
-
-                            if (c instanceof DummyBlock) {
-                                removeGraphicResources(c);
-                            }
-
-                            selection.clear();
-                            selection.add(newCommand);
-
-                            ident(function);
-//                    function.wire(fj, fk, fIx, fIy, fsi);
-//                System.out.println(c);
                         }
                         newCommand = null;
                         itemSelected.setSelected(false);
@@ -315,10 +327,32 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         return Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
     }
 
+    private void printBounds(Graphics2D g, Command c) {
+        Rectangle2D.Double bounds = c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K);
+        g.draw(bounds);
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            if (b.size() == 1) { //só tem o EndBlock
+                DummyBlock db = new DummyBlock();
+                b.add(db);
+            }
+            Command it = b.getStart();
+            while (it != null) {
+                printBounds(g, it);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            printBounds(g, ((If) c).getBlockTrue());
+            printBounds(g, ((If) c).getBlockFalse());
+        }
+    }
+
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         ident(function);
+
+//        printBounds(g, function);
 
         g.setStroke(BOLD_STROKE);
         for (Command c : selection) {
