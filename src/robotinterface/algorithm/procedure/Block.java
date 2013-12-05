@@ -311,7 +311,7 @@ public class Block extends Procedure {
         return returnNext;
     }
 
-    void setDone(boolean b) {
+    void breakBlock(boolean b) {
         returnNext = b;
     }
 

@@ -66,7 +66,7 @@ public class FunctionBlock extends Procedure {
         }
         
         if (function.isDone()) {
-            function.setDone(false);
+            function.breakBlock(false);
             function.reset();
             return super.step();
         } else {

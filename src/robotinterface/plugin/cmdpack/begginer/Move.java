@@ -71,7 +71,7 @@ import robotinterface.util.trafficsimulator.Clock;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Procedure implements GraphicResource, Classifiable, FunctionToken<Move> {
+public class Move extends Procedure implements Classifiable, FunctionToken<Move> {
 
     private static Color myColor = Color.decode("#47B56C");
     private byte m1, m2;

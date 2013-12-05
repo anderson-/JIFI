@@ -61,6 +61,7 @@ public class While extends Block {
 
     @Override
     public Command step() throws ExecutionException {
+        //if (!returnNext && evaluate()) {
         if (evaluate()) {
             return start;
         }

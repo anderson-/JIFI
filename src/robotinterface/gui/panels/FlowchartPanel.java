@@ -82,6 +82,9 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         interpreter.start();
         setFunction(function);
     }
+    public void hideSidePanel(boolean b) {
+        sidePanel.setOpen(!b);
+    }
 
     @Override
     public Interpreter getInterpreter() {
