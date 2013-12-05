@@ -46,14 +46,14 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
 
     @Override
     public byte[] defaultGetMessage() {
-      return new byte[] {1, 0};
+        return new byte[]{1, 0};
     }
 
     @Override
     public void setState(ByteBuffer data) {
         byte b = data.get();
         for (int i = 0; i < 5; i++) {
-           values[i] = (b >> i) & 1;
+            values[4 - i] = (b >> i) & 1;
         }
     }
 
@@ -157,9 +157,10 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         return "Refletancia";
     }
 
-	@Override
-	public void resetState() {
-		for (int i = 0; i < 5; i++)	
-			values[i] = 0;
-	}
+    @Override
+    public void resetState() {
+        for (int i = 0; i < 5; i++) {
+            values[i] = 0;
+        }
+    }
 }
