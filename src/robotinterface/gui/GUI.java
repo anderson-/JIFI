@@ -808,6 +808,11 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
+            returnVal = JOptionPane.showConfirmDialog(this, "O projeto atual será fechado, deseja prosseguir?", "Abrir", JOptionPane.YES_NO_OPTION);
+
+            if (returnVal != JOptionPane.YES_OPTION) {
+                return;
+            }
             newFileButtonActionPerformed(null);
             simulationPanel.resetSimulation();
             File file = fileChooser.getSelectedFile();

@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -295,8 +296,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 });
                 
                 widgets.add(new Widget(tfName, BEGIN_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                JButton bTmp = new JButton(">");
-                
+                JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png")));
+                bTmp.setToolTipText("Selecionar variável");
                 bTmp.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {

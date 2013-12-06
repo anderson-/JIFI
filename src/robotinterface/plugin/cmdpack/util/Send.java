@@ -234,7 +234,7 @@
 //
 //                final JButton changeButton1 = new JButton();
 //                final JButton changeButton2 = new JButton();
-//                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
+//                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
 //                changeButton1.setIcon(icon);
 //                changeButton2.setIcon(icon);
 //

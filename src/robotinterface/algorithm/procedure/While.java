@@ -125,10 +125,7 @@ public class While extends Block {
             Rectangle2D.Double bThis = resource.getObjectBouds();
             Rectangle2D.Double bBlock = getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
             path.moveTo(bThis.getCenterX(), bThis.getMaxY());
             path.lineTo(bThis.getCenterX(), bThis.getMaxY() + GF_J);
 
@@ -136,10 +133,7 @@ public class While extends Block {
 
             Rectangle2D.Double bEnd = c.getBounds(null,
                     GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K,
-                    GraphicFlowchart.GF_IX,
-                    GraphicFlowchart.GF_IY,
-                    GraphicFlowchart.F_SI);
+                    GraphicFlowchart.GF_K);
 
             while (c.getNext() != null && !(c.getNext() instanceof BlockEnd)) {
                 c = c.getNext();
@@ -175,10 +169,10 @@ public class While extends Block {
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
-                    
+
                     g.drawString("F", (int) bBlock.getMaxX() - 3, (int) bThis.getCenterY() - 4);
                     g.drawString("V", (int) bBlock.getMinX() - 3, (int) bThis.getCenterY() - 4);
-                    
+
                     path.moveTo(bThis.getCenterX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
@@ -197,8 +191,10 @@ public class While extends Block {
     }
 
     @Override
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
-        Rectangle2D.Double bounds = super.getBounds(tmp, j, k, Ix, Iy, a);
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
+        Rectangle2D.Double bounds = super.getBounds(tmp, j, k);
+        bounds.width += k;
+        bounds.x -= k / 2;
         bounds.height += 2 * j;
         return bounds;
     }

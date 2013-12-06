@@ -40,6 +40,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         private int width = 0;
         private int height = 0;
         private boolean onPageEnd = false;
+        private int index;
 
         public WidgetLine() {
         }
@@ -55,6 +56,14 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         public WidgetLine(boolean onPageEnd) {
             this.onPageEnd = onPageEnd;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
         }
 
         public boolean isOnPageEnd() {
@@ -184,6 +193,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         index = (index < 0) ? 0 : index;
+        line.setIndex(index);
         rowTypes.add(index, line);
         rowWidgets.add(index, newRowWidgets);
         rowLabels.add(index, newRowLabels);
@@ -196,16 +206,30 @@ public class MutableWidgetContainer extends WidgetContainer {
         updateHeight = true;
     }
 
+    public boolean hasLine(int index) {
+        return (rowTypes.size() > index);
+    }
+
+    public int getLineIndex(Widget w) {
+        return rowWidgets.indexOf(w);
+    }
+
+    public int getLineIndex(WidgetLine wl) {
+        return rowTypes.indexOf(wl);
+    }
+
     public void removeLine(int index) {
-        rowTypes.remove(index);
-        for (Widget w : rowWidgets.get(index)) {
-            super.removeWidget(w);
+        if (rowTypes.size() > index) {
+            rowTypes.remove(index);
+            for (Widget w : rowWidgets.get(index)) {
+                super.removeWidget(w);
+            }
+            rowWidgets.remove(index);
+            rowLabels.remove(index);
+            //força a atualização do tamanho desse objeto
+            shapeBounds.setRect(0, 0, 0, 0);
+            updateHeight = true;
         }
-        rowWidgets.remove(index);
-        rowLabels.remove(index);
-        //força a atualização do tamanho desse objeto
-        shapeBounds.setRect(0, 0, 0, 0);
-        updateHeight = true;
     }
 
     public int getSize() {
@@ -444,6 +468,10 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public static void setAutoFillComboBox(final JComboBox cb, final Procedure p) {
+        setAutoFillComboBox(cb, p, false);
+    }
+
+    public static void setAutoFillComboBox(final JComboBox cb, final Procedure p, final boolean allowEmpty) {
         MouseListener ml = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -461,6 +489,9 @@ public class MutableWidgetContainer extends WidgetContainer {
             public void mouseEntered(MouseEvent e) {
                 Object o = cb.getSelectedItem();
                 cb.removeAllItems();
+                if (allowEmpty){
+                    cb.addItem(null);
+                }
                 for (String str : p.getDeclaredVariables()) {
                     cb.addItem(str);
                 }
@@ -1260,7 +1291,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //                
 //                final JButton changeButton1 = new JButton();
 //                final JButton changeButton2 = new JButton();
-//                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/status/dialog-information.png"));
+//                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
 //                changeButton1.setIcon(icon);
 //                changeButton2.setIcon(icon);
 //
@@ -1352,7 +1383,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        return mwc;
 //    }
     public static void autoUpdateValue(final JSpinner jSpinner) {
-        final JFormattedTextField tf = ((JSpinner.DefaultEditor)jSpinner.getEditor()).getTextField();
+        final JFormattedTextField tf = ((JSpinner.DefaultEditor) jSpinner.getEditor()).getTextField();
         tf.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(final KeyEvent e) {
