@@ -67,7 +67,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         transform.rotate(robot.getTheta());
         transform.rotate(-3 * Math.PI / 12);
         src.setLocation(sx, sy);
-        for (int si = 0; si < 5; si++) {
+        for (int si = 4; si >= 0; si--) {
             transform.rotate(Math.PI / 12);
             transform.deltaTransform(src, dst);
             values[si] = (robot.getEnvironment().isOver(dst.x + robot.getPosX(), dst.y + robot.getPosY())) ? 1 : 0;
