@@ -380,15 +380,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 ////            currentTransform.translate(globalX, globalY);
 ////            currentTransform.scale(zoom, zoom);
 ////            Point2D p = currentTransform.transform(mouse, null);
-//            int x = (int) ((mouse.x - globalX) / zoom);
-//            int y = (int) ((mouse.y - globalY) / zoom);
-//
-//            if (mouseClick) {
-//                g.setColor(Color.red);
-//            } else {
-//                g.setColor(Color.black);
-//            }
-//            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+            int x = (int) ((mouse.x - globalX) / zoom);
+            int y = (int) ((mouse.y - globalY) / zoom);
+
+            if (mouseClick) {
+                g.setColor(Color.red);
+            } else {
+                g.setColor(Color.black);
+            }
+            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
 //        }
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);

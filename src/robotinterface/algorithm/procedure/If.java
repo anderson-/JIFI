@@ -158,20 +158,25 @@ public class If extends Procedure {
         p.setRect(tmp);
         double bfh;
         double bth;
+        double width;
         //false
         p = getBlockFalse().getBounds(p, j, k);
         bfh = p.height;
         tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+        width = p.getMaxX();
         tmp.width = p.width;
         //true
         p = getBlockTrue().getBounds(p, j, k);
         bth = p.height;
         tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
         tmp.width += p.width + 2 * k;
+        width -= p.getMinX();
         //tmp.x += -(tmp.width - p.width - k) + tmp.width / 2 - p.width;
 
         tmp.height += GF_J * .6;
         tmp.height += (bfh > bth) ? bfh : bth;
+
+        tmp.width = width;
 
         return tmp;
     }
@@ -229,13 +234,27 @@ public class If extends Procedure {
             y += ch + j * .6;
         }
 
-        double rx = (btb.width - bfb.width)/2;
-        blockTrue.ident(x + rx + pbtx, y, j, k);
-        blockFalse.ident(x + rx + pbfx, y, j, k);
-        //todo:
-//        double rx = (btb.width - bfb.width) / 2;
+        //estranho
+//        double rx = (btb.width - bfb.width)/2;
+//        blockTrue.ident(x + (btb.width - bfb.width)/2 + pbtx, y, j, k);
+//        blockFalse.ident(x + (btb.width - bfb.width)/2 + pbfx, y, j, k);
+        //quase funcionando:
 //        blockTrue.ident(x - btb.width / 2 - k, y, j, k);
 //        blockFalse.ident(x + bfb.width / 2 + k, y, j, k);
+//        //quase funcionando 2:
+//        Rectangle2D.Double btbs = blockTrue.get(0).getBounds(null, j, k);
+//        Rectangle2D.Double bfbs = blockFalse.get(0).getBounds(null, j, k);
+//        double pbt = Math.abs(btb.x - btbs.x);
+//        double pft = Math.abs(bfb.x - bfbs.x);
+//        blockTrue.ident(x - (btb.width - pbt), y, j, k);
+//        blockFalse.ident(x + (bfb.width - pft), y, j, k);
+        //working:
+        Rectangle2D.Double btbs = blockTrue.get(0).getDrawableResource().getObjectBouds();
+        Rectangle2D.Double bfbs = blockFalse.get(0).getDrawableResource().getObjectBouds();
+        double pbt = Math.abs(btb.x - btbs.getCenterX());
+        double pbf = Math.abs(bfb.x - bfbs.getCenterX());
+        blockTrue.ident(x - (btb.width - pbt) - k / 2, y, j, k);
+        blockFalse.ident(x + pbf + k / 2, y, j, k);
 
         y += ((bfb.height > btb.height) ? bfb.height : btb.height) + j;
         if (getNext() != null) {

@@ -95,6 +95,17 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
         this.parent = parent;
     }
 
+    public final int getLevel() {
+        int level = 0;
+        Command it = parent;
+        while (it != null) {
+            level++;
+            it = it.parent;
+        }
+
+        return level;
+    }
+
     public boolean addBefore(Command c) {
         if (prev != null) {
             prev.next = c;
@@ -103,7 +114,7 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
                 ((Block) parent).addBegin(c);
             }
         }
-        if (prev != c){
+        if (prev != c) {
             c.prev = prev;
         }
         c.next = this;

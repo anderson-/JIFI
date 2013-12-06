@@ -332,10 +332,6 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         g.draw(bounds);
         if (c instanceof Block) {
             Block b = (Block) c;
-            if (b.size() == 1) { //só tem o EndBlock
-                DummyBlock db = new DummyBlock();
-                b.add(db);
-            }
             Command it = b.getStart();
             while (it != null) {
                 printBounds(g, it);
@@ -347,32 +343,52 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         }
     }
 
+    private void drawSelectedCommand(Graphics2D g, Command c) {
+        if (c instanceof GraphicResource && c.getParent() != null) {
+            GraphicObject d = ((GraphicResource) c).getDrawableResource();
+            if (d != null) {
+                g.setColor(selectionColor);
+                if (d instanceof WidgetContainer) {
+                    WidgetContainer wc = (WidgetContainer) d;
+                    if (!wc.isWidgetVisible()) {
+                        g.fill(d.getObjectShape());
+                    }
+                    g.draw(d.getObjectShape());
+                } else {
+                    g.fill(d.getObjectShape());
+                    g.draw(d.getObjectShape());
+                }
+            }
+        }
+        if (c instanceof Block) {
+            Block b = (Block) c;
+            Command it = b.getStart();
+            while (it != null) {
+                drawSelectedCommand(g, it);
+                it = it.getNext();
+            }
+        } else if (c instanceof If) {
+            drawSelectedCommand(g, ((If) c).getBlockTrue());
+            drawSelectedCommand(g, ((If) c).getBlockFalse());
+        }
+    }
+
+    private void drawSelection(Graphics2D g) {
+        g.setStroke(BOLD_STROKE);
+        for (Command c : selection) {
+            drawSelectedCommand(g, c);
+        }
+    }
+
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         ident(function);
 
+//        g.setStroke(DEFAULT_STROKE);
+//        g.setColor(Color.MAGENTA);
 //        printBounds(g, function);
-
-        g.setStroke(BOLD_STROKE);
-        for (Command c : selection) {
-            if (c instanceof GraphicResource && c.getParent() != null) {
-                GraphicObject d = ((GraphicResource) c).getDrawableResource();
-                if (d != null) {
-                    g.setColor(selectionColor);
-                    if (d instanceof WidgetContainer) {
-                        WidgetContainer wc = (WidgetContainer) d;
-                        if (!wc.isWidgetVisible()) {
-                            g.fill(d.getObjectShape());
-                        }
-                        g.draw(d.getObjectShape());
-                    } else {
-                        g.fill(d.getObjectShape());
-                        g.draw(d.getObjectShape());
-                    }
-                }
-            }
-        }
+        drawSelection(g);
 
         if (in.isKeyPressed(KeyEvent.VK_DELETE) && !selection.isEmpty()) {
             pushUndo();
@@ -473,7 +489,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                     if (selection.contains(c)) {
                         selection.remove(c);
                     } else {
-                        selection.add(0, c);
+                        //selection.add(0, c);
+                        addToSelection(c);
                     }
                 } else if (!selection.contains(c) && in.isKeyPressed(KeyEvent.VK_SHIFT)) {
                     //organizar seleção
@@ -483,7 +500,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                         Command it = start;
                         while (it != null) {
                             if (!selection.contains(it)) {
-                                selection.add(it);
+                                addToSelection(it);
                             }
                             it = it.getNext();
 
@@ -497,7 +514,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             it = start;
                             while (it != null) {
                                 if (!selection.contains(it)) {
-                                    selection.add(it);
+                                    addToSelection(it);
                                 }
                                 it = it.getPrevious();
 
@@ -512,19 +529,31 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
                             }
                         }
                     }
-                    selection.add(c);
+                    addToSelection(c);
                 } else {
                     if (selection.contains(c)) {
                         selection.clear();
                     } else {
                         selection.clear();
-                        selection.add(c);
+                        addToSelection(c);
                     }
                 }
-            } else {
+            } else if (in.getSingleKey() == 0) {
                 selection.clear();
             }
         }
+    }
+
+    private void addToSelection(Command c){
+        //verifica se estão no mesmo bloco
+        int clevel = c.getLevel();
+        Command cparent = c.getParent();
+        for (Command i : selection){
+            if (i.getParent() != cparent || c.getLevel() != clevel){
+                return;
+            }
+        }
+        selection.add(c);
     }
 
     private void removeGraphicResources(Command c) {
