@@ -122,7 +122,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         theta = 0;
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
-
     }
 
     public void reset() {
@@ -135,7 +134,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         for (Device d : devices) {
             d.resetState();
         }
-        actions.clear();
     }
     
     @Deprecated//hbridge para o robo na função stopAll()

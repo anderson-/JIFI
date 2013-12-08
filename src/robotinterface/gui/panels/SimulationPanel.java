@@ -108,7 +108,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     private final Ellipse2D.Double dot = new Ellipse2D.Double();
     private final Line2D.Double radius = new Line2D.Double();
     private int poliSegments = 6;
-    SidePanel sp;
+    SidePanel sidePanel;
 
     public static Shape create(int i, double x, double y, double r, Path2D.Double poly) {
 
@@ -139,7 +139,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
         super.midMouseButtonResetView = false;
 
-        sp = new SidePanel() {
+        sidePanel = new SidePanel() {
             @Override
             protected void ItemSelected(Item item, Object ref) {
                 try {
@@ -161,14 +161,14 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             }
         };
 
-        sp.setColor(Color.decode("#9DCA1D"));//FF7070
-        sp.add(ITEM_LINE);
-        sp.add(ITEM_LINE_POLI);
-        sp.add(ITEM_OBSTACLE_LINE);
-        sp.add(ITEM_OBSTACLE_POLI);
+        sidePanel.setColor(Color.decode("#9DCA1D"));//FF7070
+        sidePanel.add(ITEM_LINE);
+        sidePanel.add(ITEM_LINE_POLI);
+        sidePanel.add(ITEM_OBSTACLE_LINE);
+        sidePanel.add(ITEM_OBSTACLE_POLI);
 //        sp.add(ITEM_CILINDER);
-        sp.add(ITEM_REMOVE_LINE);
-        add(sp);
+        sidePanel.add(ITEM_REMOVE_LINE);
+        add(sidePanel);
 
         //mapeia a posição a cada x ms
         Timer timer = new Timer(300) {
@@ -202,6 +202,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
     private SimulationPanel(Environment e) {
         env = e;
+    }
+
+    public void hideSidePanel(boolean b) {
+        sidePanel.setOpen(!b);
     }
 
     public Environment getEnv() {
@@ -243,7 +247,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
-        if (sp.getObjectBouds().contains(in.getMouse())) {
+        if (sidePanel.getObjectBouds().contains(in.getMouse())) {
             return;
         }
 

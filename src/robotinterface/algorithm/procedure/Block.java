@@ -311,7 +311,7 @@ public class Block extends Procedure {
         return returnNext;
     }
 
-    void setDone(boolean b) {
+    void breakBlock(boolean b) {
         returnNext = b;
     }
 
@@ -343,56 +343,40 @@ public class Block extends Procedure {
     }
 
     @Override
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k, double Ix, double Iy, boolean a) {
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
 
-        tmp = super.getBounds(tmp, j, k, Ix, Iy, a);
+        tmp = super.getBounds(tmp, j, k);
 
         Rectangle2D.Double p = new Rectangle2D.Double();
         Command it = this.start;
-        boolean ident = true;
+//        boolean ident = true;
         while (it != null) {
-            p = it.getBounds(p, j, k, Ix, Iy, a);
-//            if (it instanceof GraphicResource) {
-//                GraphicObject d = ((GraphicResource) it).getDrawableResource();
-//
-//                if (d != null) {
-//                    p = (Rectangle2D.Double) d.getObjectBouds();
-//                }
-//            }
+            p = it.getBounds(p, j, k);
 
             tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
             tmp.y = (p.y < tmp.y) ? p.y : tmp.y;
 
-            tmp.width = (Iy * p.width > tmp.width) ? p.width : tmp.width;
-            tmp.height = (Ix * p.height > tmp.height) ? p.height : tmp.height;
+            tmp.width = (p.width > tmp.width) ? p.width : tmp.width;
+            
+            tmp.height += p.height;
 
-            tmp.width += Ix * p.width;
-            tmp.height += Iy * p.height;
-
-            if (it instanceof If) {
-                ident = false;
-            }
+//            if (it instanceof If) {
+//                ident = false;
+//            }
 
             it = it.getNext();
         }
 
-        if (ident) {
-            tmp.x -= j;
-            tmp.width += 2 * j;
-        }
+//            tmp.x -= j;
+//            tmp.width += 2 * j;
 
         return tmp;
     }
 
     @Override
-    public final void ident(double x, double y, double j, double k, double Ix, double Iy, boolean a) {
+    public final void ident(double x, double y, double j, double k) {
         double cw = 0;
         double ch = 0;
-
-        double xj = Ix * j;
-        double yj = Iy * j;
-        double xk = Iy * k;
-        double yk = Ix * k;
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
@@ -407,45 +391,24 @@ public class Block extends Procedure {
             cw = t.width;
             ch = t.height;
 
-            double px = x - Iy * (cw / 2);
-            double py = y - Ix * (ch / 2);
+            double px = x - cw / 2;
+            double py = y;
 
             if (this instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) this).getDrawableResource();
 
                 if (d != null) {
                     d.setLocation(px, py);
-//                    System.out.println(this + " [" + px + "," + py + "]");
                 }
             }
 
-            x += Ix * (cw + xj);
-            y += Iy * (ch + yj);
+            y += ch + j;
         }
 
-//        if (size() == 1){ //só tem o EndBlock
-//            DummyBlock db = new DummyBlock();
-//            db.setNext(end);
-//            db.setParent(this);
-//            db.setPrevious(null);
-//            end.setPrevious(db);
-//            end.setNext(null);
-//            start = db;
-//            
-//            Command it = this;
-//            while (it.getParent() != null){
-//                it = it.getParent();
-//            }
-//            
-//            if (it instanceof Function){
-//                ((Function)it).getD().add(db.getDrawableResource());
-//            }
-//            
-//        }
-        start.ident(x, y, j, k, Ix, Iy, a);
+        start.ident(x, y, j, k);
 
         if (getNext() != null) {
-            getNext().ident(x, y + this.getBounds(null, j, k, Ix, Iy, a).height - Iy * (ch + yj), j, k, Ix, Iy, a);
+            getNext().ident(x, y + this.getBounds(null, j, k).height - (ch + j), j, k);
         }
 
     }

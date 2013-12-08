@@ -135,7 +135,9 @@ public class Interpreter extends Thread {
                         robot.reset();
                     }
                 } else if (tmpState == WAITING) {
-                    robot.stop();
+                    if (robot != null) {
+                        robot.stop();
+                    }
                 }
 
                 GUI.getInstance().updateControlBar(Interpreter.this);
@@ -183,7 +185,7 @@ public class Interpreter extends Thread {
                     Thread.sleep(5);
                 } catch (InterruptedException ex) {
                 }
-                if (state != PLAY) {
+                if (state == STOP) {
                     return true;
                 }
             }
@@ -202,7 +204,7 @@ public class Interpreter extends Thread {
             while (true) {
                 if (state == PLAY) {
                     if (!step()) {
-                        state = STOP;
+                        state = WAITING;
                         reset();
                         GUI.getInstance().updateControlBar(this);
                     }

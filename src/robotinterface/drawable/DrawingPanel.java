@@ -143,8 +143,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         currentTransform = new AffineTransform();
         currentBounds = new Rectangle();
 
-        globalX = this.getPreferredSize().width / 2;
-        globalY = this.getPreferredSize().height / 4;
+        resetGlobalPosition();
 
         //adiciona listeners
         addListeners();
@@ -170,9 +169,14 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         this.add((Drawable) this);
     }
 
-    protected final void createBuffers() {
-        width = this.getWidth() - 200; //TODO: trocar listener para mainTabbedPane
+    public final void createBuffers() {
+        width = this.getWidth(); //TODO: trocar listener para mainTabbedPane
         height = this.getHeight();
+        if (width <= 0 || height <= 0) {
+            System.out.println("f");
+            width = 1;
+            height = 1;
+        }
         //cria buffers no padrão do sistema (teoricamente mais eficiente)
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gs = ge.getDefaultScreenDevice();
@@ -380,15 +384,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 ////            currentTransform.translate(globalX, globalY);
 ////            currentTransform.scale(zoom, zoom);
 ////            Point2D p = currentTransform.transform(mouse, null);
-//            int x = (int) ((mouse.x - globalX) / zoom);
-//            int y = (int) ((mouse.y - globalY) / zoom);
-//
-//            if (mouseClick) {
-//                g.setColor(Color.red);
-//            } else {
-//                g.setColor(Color.black);
-//            }
-//            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+            int x = (int) ((mouse.x - globalX) / zoom);
+            int y = (int) ((mouse.y - globalY) / zoom);
+
+            if (mouseClick) {
+                g.setColor(Color.red);
+            } else {
+                g.setColor(Color.black);
+            }
+            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
 //        }
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);
@@ -638,15 +642,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        String str = "grade: " + Math.abs(s) + " cm";
-        int sx = g.getFontMetrics().stringWidth(str);
-        int sy = g.getFontMetrics().getHeight();
-        int px = (int) -x + (int) w - 10 - sx;
-        int py = (int) -y + (int) h - 20;
-        g.setColor(Color.lightGray);
-        g.fillRect(px, py - 11, sx, sy);
-        g.setColor(Color.white);
-        g.drawString(str, px, py);
+//        String str = "grade: " + Math.abs(s) + " cm";
+//        int sx = g.getFontMetrics().stringWidth(str);
+//        int sy = g.getFontMetrics().getHeight();
+//        int px = (int) -x + (int) w - 10 - sx;
+//        int py = (int) -y + (int) h - 20;
+//        g.setColor(Color.lightGray);
+//        g.fillRect(px, py - 11, sx, sy);
+//        g.setColor(Color.white);
+//        g.drawString(str, px, py);
     }
 
     @Override
@@ -717,6 +721,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     @Override
     public double getPosY() {
         return bounds.y;
+    }
+
+    public final void resetGlobalPosition() {
+        if (width == 0 || height == 0) {
+            globalX = this.getPreferredSize().width / 2;
+            globalY = this.getPreferredSize().height / 4;
+        } else {
+            globalX = width / 2;
+            globalY = height / 4;
+        }
     }
 
     public class GraphicAttributes {

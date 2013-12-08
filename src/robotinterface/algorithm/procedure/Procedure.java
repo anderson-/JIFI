@@ -33,6 +33,7 @@ import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -316,7 +317,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
             @Override
             protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                JButton bTmp = new JButton("+");
+                JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")));
 
                 bTmp.addActionListener(new ActionListener() {
                     @Override
@@ -333,7 +334,7 @@ public class Procedure extends Command implements Expression, Classifiable {
 
                 addButton = new Widget(bTmp, INSET_X, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
-                bTmp = new JButton("-");
+                bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-remove.png")));
                 bTmp.setEnabled(false);
 
                 bTmp.addActionListener(new ActionListener() {

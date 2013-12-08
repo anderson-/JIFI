@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import javax.swing.UIManager;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -20,6 +21,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -46,8 +49,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,6 +66,7 @@ import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.parser.decoder.TokenMgrError;
 import robotinterface.algorithm.procedure.Function;
+import robotinterface.drawable.DrawingPanel;
 import static robotinterface.drawable.MutableWidgetContainer.autoUpdateValue;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.Interpertable;
@@ -82,7 +88,7 @@ import robotinterface.util.SplashScreen;
  *
  * @author antunes
  */
-public class GUI extends javax.swing.JFrame {
+public class GUI extends javax.swing.JFrame implements ComponentListener {
 
     private static Logger logger = null;
     private static GUI INSTANCE = null;
@@ -94,6 +100,8 @@ public class GUI extends javax.swing.JFrame {
     private final RobotManager robotManager;
     private final JFileChooser fileChooser;
     private final boolean allowMainTabbedPaneStateChanged;
+    private final JSplitPane simulationSplitPanel;
+    private boolean splitView = false;
     public boolean LOG = false;
 
     private GUI() {
@@ -211,6 +219,8 @@ public class GUI extends javax.swing.JFrame {
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.addChoosableFileFilter(ff);
 
+        simulationSplitPanel = new JSplitPane();
+
 //        dynamicToolBar.setVisible(false);
         updateRobotList();
 
@@ -219,6 +229,7 @@ public class GUI extends javax.swing.JFrame {
         }
         allowMainTabbedPaneStateChanged = true;
         mainTabbedPaneStateChanged(null);
+        super.addComponentListener(this);
     }
 
     public SimulationPanel getSimulationPanel() {
@@ -328,6 +339,7 @@ public class GUI extends javax.swing.JFrame {
         switchCodeButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
+        splitViewButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -495,6 +507,20 @@ public class GUI extends javax.swing.JFrame {
         toolBar.add(deleteButton);
         toolBar.add(jSeparator1);
 
+        splitViewButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-system-windows.png"))); // NOI18N
+        splitViewButton.setToolTipText("Fechar Aba");
+        splitViewButton.setBorder(null);
+        splitViewButton.setFocusable(false);
+        splitViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        splitViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        splitViewButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                splitViewButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(splitViewButton);
+        splitViewButton.getAccessibleContext().setAccessibleDescription("Dividir Janela");
+
         primarySplitPane.setBorder(null);
         primarySplitPane.setDividerLocation(180);
         primarySplitPane.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -637,8 +663,8 @@ public class GUI extends javax.swing.JFrame {
         System.gc();
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
-        
-        if (cmp == simulationPanel) {
+
+        if (cmp == simulationPanel || (cmp instanceof JSplitPane)) {
             simulationPanel.play();
         } else {
             simulationPanel.pause();
@@ -684,15 +710,21 @@ public class GUI extends javax.swing.JFrame {
                     }
                 }
             }
-        } 
+        }
         updateControlBar(interpreter);
 
         if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
             switchCodeButton.setEnabled(true);
             deleteButton.setEnabled(true);
+            splitViewButton.setEnabled(true);
         } else {
             switchCodeButton.setEnabled(false);
             deleteButton.setEnabled(false);
+            if (!(cmp instanceof JSplitPane)) {
+                splitViewButton.setEnabled(false);
+            } else {
+                splitViewButton.setEnabled(true);
+            }
         }
 
         if (cmp instanceof KeyListener) {
@@ -710,11 +742,11 @@ public class GUI extends javax.swing.JFrame {
         }
 
         if (cmp instanceof ComponentListener) {
-            for (ComponentListener l : getComponentListeners()) {
-                removeComponentListener(l);
+            for (ComponentListener l : mainTabbedPane.getComponentListeners()) {
+                mainTabbedPane.removeComponentListener(l);
             }
-            addComponentListener((ComponentListener) cmp);
-            ((ComponentListener) cmp).componentResized(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
+            mainTabbedPane.addComponentListener((ComponentListener) cmp);
+            ((ComponentListener) cmp).componentResized(new ComponentEvent(mainTabbedPane, ComponentEvent.COMPONENT_RESIZED));
         }
 
         if (cmp instanceof FlowchartPanel) {
@@ -745,8 +777,14 @@ public class GUI extends javax.swing.JFrame {
 
     private void stepButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stepButtonActionPerformed
         if (interpreter != null) {
+            interpreter.setInterpreterState(Interpreter.WAITING);
             if (setDefaultRobot(interpreter, true)) {
-                interpreter.step();
+                while (true) {
+                    interpreter.step();
+                    if (interpreter.getCurrentCommand() != null && interpreter.getCurrentCommand().getDrawableResource() != null) {
+                        break;
+                    }
+                }
             }
         }
         updateControlBar(interpreter);
@@ -770,6 +808,11 @@ public class GUI extends javax.swing.JFrame {
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
+            returnVal = JOptionPane.showConfirmDialog(this, "O projeto atual será fechado, deseja prosseguir?", "Abrir", JOptionPane.YES_NO_OPTION);
+
+            if (returnVal != JOptionPane.YES_OPTION) {
+                return;
+            }
             newFileButtonActionPerformed(null);
             simulationPanel.resetSimulation();
             File file = fileChooser.getSelectedFile();
@@ -881,13 +924,13 @@ public class GUI extends javax.swing.JFrame {
                 int errorOnLine = -1;
                 int errorColumn = 0;
                 String errorDesc = "";
-                
+
                 try {
                     f = Parser.decode(cep.getTextArea().getText());
                 } catch (ParseException ex) {
                     errorOnLine = ex.currentToken.next.endLine;
                     errorColumn = ex.currentToken.next.beginColumn;
-                    if (ex.tokenImage.length == 1){
+                    if (ex.tokenImage.length == 1) {
                         errorDesc = ex.tokenImage[0];
                     } else {
                         errorDesc = "Error de sintaxe";
@@ -906,7 +949,7 @@ public class GUI extends javax.swing.JFrame {
                     msg = msg.substring(msg.lastIndexOf(' ') + 1);
                     errorColumn = Integer.parseInt(msg);
                     errorDesc = "Erro lexico";
-                } catch (Throwable e){
+                } catch (Throwable e) {
                     errorDesc = e.getMessage();
                 }
 
@@ -932,8 +975,8 @@ public class GUI extends javax.swing.JFrame {
                             int p1 = textArea.getLineEndOffset(errorOnLine - 1);
                             String line = textArea.getText(p0, p1 - p0);
 //                            System.out.println("'" + line + "'");
-                            for (char c : line.toCharArray()){
-                                if (c == ' ' || c == '\t'){
+                            for (char c : line.toCharArray()) {
+                                if (c == ' ' || c == '\t') {
                                     p0++;
                                 } else {
                                     break;
@@ -1095,7 +1138,9 @@ public class GUI extends javax.swing.JFrame {
     private boolean askLog = true;
 
     private void newFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFileButtonActionPerformed
-
+        if (splitView) {
+            splitViewButtonActionPerformed(null);
+        }
         int returnVal = JOptionPane.YES_OPTION;
 
         if (evt != null) {
@@ -1126,11 +1171,79 @@ public class GUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_newFileButtonActionPerformed
 
+    private void splitViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_splitViewButtonActionPerformed
+        Component cmp = mainTabbedPane.getSelectedComponent();
+
+        if (!splitView && cmp instanceof FlowchartPanel) {
+            final FlowchartPanel fcp = (FlowchartPanel) cmp;
+            mainTabbedPane.remove(addNewCodePanel);
+            mainTabbedPane.remove(fcp);
+            mainTabbedPane.remove(simulationPanel);
+
+            simulationSplitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+            simulationSplitPanel.setBottomComponent(fcp);
+            simulationSplitPanel.setTopComponent(simulationPanel);
+            simulationSplitPanel.setOneTouchExpandable(false);
+            Dimension minimumSize = new Dimension(100, 50);
+            fcp.setMinimumSize(minimumSize);
+            simulationPanel.setMinimumSize(minimumSize);
+            interpreter = ((Interpertable) cmp).getInterpreter();
+            updateControlBar(interpreter);
+            fcp.hideSidePanel(true);
+            simulationPanel.hideSidePanel(true);
+            simulationSplitPanel.setDividerLocation(mainTabbedPane.getWidth() / 2);
+            PropertyChangeListener propertyChangeListener = new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent pce) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            fcp.createBuffers();
+                            simulationPanel.createBuffers();
+                            fcp.resetGlobalPosition();
+                            simulationPanel.resetGlobalPosition();
+                        }
+                    });
+                }
+            };
+            simulationSplitPanel.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeListener);
+            mainTabbedPane.add(simulationSplitPanel, new ImageIcon(getClass().getResource("/resources/tango/16x16/apps/preferences-system-windows.png")));
+            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    simulationSplitPanel.setDividerLocation(simulationSplitPanel.getDividerLocation() + 1);
+                }
+            });
+            splitView = true;
+        } else if (splitView) {
+            mainTabbedPane.remove(addNewCodePanel);
+            mainTabbedPane.remove(simulationSplitPanel);
+            mainTabbedPane.addTab("Simulação", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/devices/input-gaming.png")), simulationPanel);
+            Component bottomComponent = simulationSplitPanel.getBottomComponent();
+            simulationPanel.hideSidePanel(false);
+            if (bottomComponent instanceof FlowchartPanel) {
+                ((FlowchartPanel) bottomComponent).hideSidePanel(false);
+            }
+            mainTabbedPane.add(bottomComponent, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            splitView = false;
+            if (evt != null && cmp != simulationSplitPanel && simulationSplitPanel.getBottomComponent() != cmp) {
+                mainTabbedPane.setSelectedComponent(cmp);
+                splitViewButtonActionPerformed(null);
+            }
+        }
+
+    }//GEN-LAST:event_splitViewButtonActionPerformed
+
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
         if (panel instanceof ComponentListener) {
-            addComponentListener((ComponentListener) panel);
+            mainTabbedPane.addComponentListener((ComponentListener) panel);
         }
         mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
     }
@@ -1340,6 +1453,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton saveButton;
     private javax.swing.JSplitPane secondarySplitPane;
     private robotinterface.gui.panels.SimulationPanel simulationPanel;
+    private javax.swing.JButton splitViewButton;
     private javax.swing.JTabbedPane staticTabbedPane;
     private javax.swing.JButton stepButton;
     private javax.swing.JButton stopButton;
@@ -1349,6 +1463,34 @@ public class GUI extends javax.swing.JFrame {
 
     public Interpreter getInterpreter() {
         return interpreter;
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+        if (splitView) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    //simulationSplitPanel.setDividerLocation(simulationSplitPanel.getDividerLocation() + 1);
+                    simulationSplitPanel.setDividerLocation(mainTabbedPane.getWidth() / 2);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+
     }
 
 }

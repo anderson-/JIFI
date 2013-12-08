@@ -179,7 +179,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Ler Sensor:", 20, true));
 
-                MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd);
+                MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
 
                 if (data != null) {
                     if (data instanceof ReadDevice) {
