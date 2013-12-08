@@ -314,7 +314,7 @@ public class Serial implements Connection, SerialPortEventListener {
     boolean newMessage = false;
 
     @Override
-    public void serialEvent(SerialPortEvent spe) {
+    synchronized public void serialEvent(SerialPortEvent spe) {
         if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
                 //define a posição como o inicio do buffer e remove a marca e o limite
@@ -323,14 +323,18 @@ public class Serial implements Connection, SerialPortEventListener {
                 byte[] tmpByte = new byte[1];
                 //preenche o buffer
                 while (true) {
+                    //System.out.println("\t1: " + System.currentTimeMillis());
                     //obtem uma string delimitada por '\n', '\t' ou "\t\n"
                     String str = bufferedReader.readLine();
 //                    printBytes(str);
-                    receivedPackages++;
                     //obtem os bytes codificados na string com o Charset personalizado
                     byte[] data = str.getBytes(charset);
                     if (data.length > 1) {
                         buffer.put(data, 1, data.length - 1);
+                        //System.out.println("\t2: " + System.currentTimeMillis());
+                        //printBytes(data, data.length);
+                        receivedPackages++;
+                        available = true;
                     }
                     if (bufferedReader.ready()) {
 //                        while (input.available() > 0) {
@@ -399,13 +403,14 @@ public class Serial implements Connection, SerialPortEventListener {
                  }
                  */
                 //se for possivel ler um ou mais bytes
-                if (buffer.remaining() > 0) {
+                if (buffer.remaining() > 0 && !observers.isEmpty()) {
                     //notify observers
                     for (Observer<ByteBuffer, Connection> o : observers) {
                         o.update(buffer.asReadOnlyBuffer(), this);
                     }
                     available = false;
                 }
+                //System.out.println("\t3: " + System.currentTimeMillis());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println(e.toString());
@@ -428,12 +433,12 @@ public class Serial implements Connection, SerialPortEventListener {
     }
 
     public static void main(String[] args) {
-        Connection s;
+        Serial s;
         s = new Serial(57600);
-        s = new VirtualConnection(s);
+        //s = new VirtualConnection(s);
 //        s = new VirtualConnection();
 
-        Robot r = new Robot();
+        /*Robot r = new Robot();
         r.add(new HBridge());
         r.add(new Compass());
         r.add(new IRProximitySensor());
@@ -443,7 +448,7 @@ public class Serial implements Connection, SerialPortEventListener {
         if (s instanceof VirtualConnection) {
             VirtualConnection v = (VirtualConnection) s;
             v.setRobot(r);
-        }
+        }*/
 
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
@@ -510,7 +515,7 @@ public class Serial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
-        testMessages.add(new byte[]{7, (byte) 224});//reset system
+        /*testMessages.add(new byte[]{7, (byte) 224});//reset system
         testMessages.add(new byte[]{6, 5, 1, 17});//add dist
 //        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
         testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
@@ -523,39 +528,45 @@ public class Serial implements Connection, SerialPortEventListener {
         p.addRobot(r);
         r.setEnvironment(p.getEnv());
         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-
+*/
 
         /* TESTE DO RÁDIO */
         //quando uma mensagem chega é exibido "S:10 x R:10"
         //ou seja 10 mensagens enviadas e 10 recebidas
         //ATENÇÃO: trocar intervalo de tempo na linha ~389
         //coloca 100 mensagens na lista de espera
-        int test = 2000;
-//        for (int i = 0; i < test; i++) {
-////            testMessages.add(new byte[]{3, 4, 0, 0});//get clock
+        int test = 100;
+        for (int i = 0; i < test; i++) 
+            testMessages.add(new byte[]{1,2,3,4,5});//get clock
 //            
 //            testMessages.add(new byte[]{2, });//get clock
 ////            testMessages.add(new byte[]{3, 4, (byte) 223, 0});//get freeRam
 //        }
         if (s.establishConnection()) {
             System.out.println("connected");
-            long timestamp = System.currentTimeMillis();
+            long timeSum = 0;
+            byte[] buffer = new byte[20];
+            
             for (int i = 0; i < 1; i++) { //repetição
                 int send = 0;
                 for (byte[] message : testMessages) {
                     send++;
+                    boolean timeout = false;
                     long mtimestamp = System.currentTimeMillis();
+                    int w = ((Serial)s).getReceivedPackages();
                     s.send(message);
                     try {
-                        int w = 0;
                         loop:
-                        while (send != 0/*((Serial) s).receivedPackages*/) {
+                        while ( !((Serial)s).available() ){//w == ((Serial)s).getReceivedPackages()/*((Serial) s).receivedPackages*/) {
                             //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             Thread.sleep(1); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
-                            w++;
-                            if (w >= 40) {
+                            //w++;
+                            if (System.currentTimeMillis() - mtimestamp > 1000) {
 //                                s.send(message);
-                                w = 0;
+                                //w = 0;
+                                timeout = true;
+                                test--;
+                                System.out.println("Timeout");
                                 break loop;
                             }
 
@@ -563,6 +574,14 @@ public class Serial implements Connection, SerialPortEventListener {
 //                        Logger.getLogger(Serial.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     } catch (InterruptedException ex) {
+                    }
+                    
+                    if (!timeout) {
+                      s.receive(buffer, buffer.length);
+                      
+                      long rtt = System.currentTimeMillis() - mtimestamp;
+                      timeSum += rtt;
+                      System.out.println(" @Time: " + rtt + "ms");
                     }
 
                     try {
@@ -577,9 +596,8 @@ public class Serial implements Connection, SerialPortEventListener {
 //                        System.out.print("," + b);
 //                    }
 //                    System.out.print("}");
-                    System.out.println(" @Time: " + (System.currentTimeMillis() - mtimestamp) + "ms");
                 }
-                System.out.println("\nAverage Time: " + (System.currentTimeMillis() - timestamp) / test + "ms");
+                System.out.println("\nAverage Time: " + (timeSum / test) + "ms");
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
