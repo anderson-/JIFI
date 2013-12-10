@@ -43,6 +43,7 @@ import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 
 /**
  * Laço de repetição simples.
@@ -60,12 +61,16 @@ public class While extends Block {
     }
 
     @Override
-    public Command step() throws ExecutionException {
-        //if (!returnNext && evaluate()) {
-        if (evaluate()) {
+    public Command step(ResourceManager rm) throws ExecutionException {
+        if (breakLoop){
+            breakLoop = false;
+            return super.step(rm);
+        }
+        
+        if (evaluate(rm)) {
             return start;
         }
-        return super.step();
+        return super.step(rm);
     }
 
     @Override

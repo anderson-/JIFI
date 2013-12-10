@@ -269,6 +269,8 @@ public class RobotControlPanel extends JPanel {
             statusLabel.setText("Desconectado");
             statusLabel2.setText("");
             statusLabel3.setText("");
+            
+            robot.setMainConnection(null);
 
             connectButton.setForeground(Color.black);
             connectButton.setText("Conectar");

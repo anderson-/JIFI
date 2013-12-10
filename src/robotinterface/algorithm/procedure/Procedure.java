@@ -51,17 +51,17 @@ import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Expression;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Comando genérico com suporte à variaveis.
  */
-public class Procedure extends Command implements Expression, Classifiable {
+public class Procedure extends Command implements Classifiable {
 
     private static Color myColor = Color.decode("#ACD630");
     private ArrayList<String> names;
     private ArrayList<Object> values;
-    private static JEP parser;
     private String procedure;
     public static final int TEXTFIELD_WIDTH = 110;
     public static final int TEXTFIELD_HEIGHT = 23;
@@ -70,7 +70,6 @@ public class Procedure extends Command implements Expression, Classifiable {
     public static final int INSET_Y = 5;
 
     public Procedure() {
-        parser = null;
         procedure = "0";
         names = new ArrayList<>();
         values = new ArrayList<>();
@@ -84,15 +83,6 @@ public class Procedure extends Command implements Expression, Classifiable {
         setProcedure(procedure);
     }
 
-    protected final JEP getParser() {
-        return parser;
-    }
-
-    @Override
-    public final void setParser(JEP parser) {
-        Procedure.parser = parser;
-    }
-
     public final String getProcedure() {
         return procedure;
     }
@@ -103,8 +93,8 @@ public class Procedure extends Command implements Expression, Classifiable {
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
-        evaluate();
+    public boolean perform(ResourceManager rm) throws ExecutionException {
+        evaluate(rm);
         return true;
     }
 
@@ -134,16 +124,13 @@ public class Procedure extends Command implements Expression, Classifiable {
     }
 
     //usado pelos descendentes dessa classe para executar expressoes simples
-    protected final Object execute(String procedure) throws ExecutionException {
-        if (parser == null) {
-            throw new ExecutionException("Parser not found!");
-        }
-
+    protected final Object execute(String procedure, ResourceManager rm) throws ExecutionException {
         Object o = null;
 
         updateVariables();
 
-        SymbolTable st = getParser().getSymbolTable();
+        JEP parser = rm.getResource(JEP.class);
+        SymbolTable st = parser.getSymbolTable();
         for (int i = 0; i < names.size(); i++) {
             String varName = names.get(i);
             Object varValue = values.get(i);
@@ -177,8 +164,8 @@ public class Procedure extends Command implements Expression, Classifiable {
         return o;
     }
 
-    protected final boolean evaluate(String procedure) throws ExecutionException {
-        Object o = execute(procedure);
+    protected final boolean evaluate(String procedure, ResourceManager rm) throws ExecutionException {
+        Object o = execute(procedure, rm);
         if (o instanceof Number) {
             Double d = ((Number) o).doubleValue();
             return (d != 0 && !d.isNaN());
@@ -186,8 +173,8 @@ public class Procedure extends Command implements Expression, Classifiable {
         return false;
     }
 
-    protected final boolean evaluate() throws ExecutionException {
-        return evaluate(procedure);
+    protected final boolean evaluate(ResourceManager rm) throws ExecutionException {
+        return evaluate(procedure, rm);
     }
 
 //    protected final Variable newVariable(String name, Object value) {

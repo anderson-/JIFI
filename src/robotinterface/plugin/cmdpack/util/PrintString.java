@@ -30,6 +30,7 @@ import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
+import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.drawable.DrawableCommandBlock;
@@ -41,6 +42,7 @@ import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
@@ -113,7 +115,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     }
 
     @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
+    public void begin(ResourceManager rm) throws ExecutionException {
+        Clock clock = rm.getResource(Clock.class);
         String out = format;
 
         String padps = "%V"; //printAllDecimalPlacesStr
@@ -123,7 +126,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         Object value;
 
         for (String varName : varNames) {
-            Variable var = getParser().getSymbolTable().getVar(varName);
+            JEP parser = rm.getResource(JEP.class);
+            Variable var = parser.getSymbolTable().getVar(varName);
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
             boolean printTwoDecimalPlaces = ((padpi == -1) ? true
@@ -153,7 +157,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     }
 
     @Override
-    public boolean perform(Robot r, Clock clock) {
+    public boolean perform(ResourceManager rm) {
         return timer.isConsumed();
     }
 

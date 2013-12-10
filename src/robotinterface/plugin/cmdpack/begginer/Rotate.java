@@ -46,6 +46,7 @@ import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
+import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
@@ -62,6 +63,7 @@ import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.action.RotateAction;
@@ -149,7 +151,8 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     }
 
     @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
+    public void begin(ResourceManager rm) throws ExecutionException {
+        Robot robot = rm.getResource(Robot.class);
         VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
         if (vc.serial()) {
             rotateAction = robot.getAction(RotateAction.class);
@@ -162,7 +165,8 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
             hbridge = robot.getDevice(HBridge.class);
             compass = robot.getDevice(Compass.class);
             if (var != null) {
-                Variable v = getParser().getSymbolTable().getVar(var);
+                JEP parser = rm.getResource(JEP.class);
+                Variable v = parser.getSymbolTable().getVar(var);
                 if (v != null && v.hasValidValue()) {
                     Object o = v.getValue();
                     if (o instanceof Number) {
@@ -185,7 +189,8 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
+        Robot robot = rm.getResource(Robot.class);
         VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
         if (vc.serial()) {
             return rotateAction.perform(robot);

@@ -27,6 +27,7 @@ package robotinterface.algorithm.procedure;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import org.nfunk.jep.JEP;
 import robotinterface.algorithm.Command;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
@@ -34,6 +35,8 @@ import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
+import robotinterface.interpreter.ResourceNotFoundException;
 import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
 
@@ -66,9 +69,9 @@ public class Block extends Procedure {
          * pertence.
          */
         @Override
-        public Command step() {
+        public Command step(ResourceManager rm) throws ResourceNotFoundException {
             returnNext = true;
-            resetVariableScope();
+            resetVariableScope(rm);
             return begin;
         }
 
@@ -79,6 +82,7 @@ public class Block extends Procedure {
     }
     protected Command start;
     protected boolean returnNext = false;
+    protected boolean breakLoop = false;
     private BlockEnd end;
 
     public Block() {
@@ -290,8 +294,9 @@ public class Block extends Procedure {
     }
 
     //remove todas as variaveis definidas dentro do bloco
-    private void resetVariableScope() {
-        SymbolTable st = getParser().getSymbolTable();
+    private void resetVariableScope(ResourceManager rm) throws ResourceNotFoundException {
+        JEP parser = rm.getResource(JEP.class);
+        SymbolTable st = parser.getSymbolTable();
         Command it = start;
         while (it != null) {
             if (it instanceof Procedure) {
@@ -311,21 +316,25 @@ public class Block extends Procedure {
         return returnNext;
     }
 
-    void breakBlock(boolean b) {
+    public void setDone(boolean b) {
         returnNext = b;
+    }
+    
+    public void breakLoop(boolean b){
+        breakLoop = b;
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
         return true;
     }
 
     @Override
-    public Command step() throws ExecutionException {
+    public Command step(ResourceManager rm) throws ExecutionException {
         if (returnNext) {
             returnNext = false;
             reset();
-            return super.step();
+            return super.step(rm);
         } else {
             return start;
         }

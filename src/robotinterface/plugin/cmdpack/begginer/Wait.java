@@ -21,6 +21,7 @@ import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
+import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.Procedure;
@@ -34,6 +35,7 @@ import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
 
@@ -58,12 +60,13 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     }
 
     @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
-
+    public void begin(ResourceManager rm) throws ExecutionException {
+        Clock clock = rm.getResource(Clock.class);
         int d = delay;
 
         if (var != null) {
-            Variable v = getParser().getSymbolTable().getVar(var);
+            JEP parser = rm.getResource(JEP.class);
+            Variable v = parser.getSymbolTable().getVar(var);
             if (v != null && v.hasValidValue()) {
                 Object o = v.getValue();
                 if (o instanceof Number) {
@@ -79,7 +82,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) {
+    public boolean perform(ResourceManager rm) {
         return timer.isConsumed();
     }
 
@@ -109,11 +112,16 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
     @Override
     public Completion getInfo(CompletionProvider provider) {
-        FunctionCompletion fc = new FunctionCompletion(provider, "wait(", null);
-        fc.setShortDescription("Função esperar.");
-        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
-        params.add(new ParameterizedCompletion.Parameter("var", "tempo", true));
-        fc.setParams(params);
+        FunctionCompletion fc = new FunctionCompletion(provider, "wait(t);", null);
+        fc.setShortDescription("Serve para controlar o tempo de duração de uma atividade do robô. O tempo é regulado pelo\n" +
+"parâmetro inteiro t, e é medido em milissegundos. Ao executar um comando e depois usar o wait(t)\n" +
+"o robô mantém o seu “estado de máquina” por um determinado tempo, ou seja, ele fica em stand-by\n" +
+"durante esse período, sem receber novos comandos."
+                + "<p><b>Exemplo:\n" +
+"<p>move (127, 127);" +
+"<p>wait (1000);" +
+"<p>move (0, 0); <\b>\n" +
+"<p><p>Faz o robô acionar os motores em velocidade máxima para frente por 1 segundo e depois parar");
         return fc;
     }
     

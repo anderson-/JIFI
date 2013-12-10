@@ -28,6 +28,7 @@ import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.gui.GUI;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 
 /**
  *
@@ -60,17 +61,17 @@ public class FunctionBlock extends Procedure {
     }
 
     @Override
-    public Command step() throws ExecutionException {
+    public Command step(ResourceManager rm) throws ExecutionException {
         if (function == null){
-            return super.step();
+            return super.step(rm);
         }
         
         if (function.isDone()) {
-            function.breakBlock(false);
+            function.setDone(false);
             function.reset();
-            return super.step();
+            return super.step(rm);
         } else {
-            return function.step();
+            return function.step(rm);
         }
     }
 

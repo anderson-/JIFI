@@ -54,6 +54,7 @@ import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.robot.connection.message.Message;
 import robotinterface.util.trafficsimulator.Clock;
 
@@ -78,7 +79,8 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     }
 
     @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
+    public void begin(ResourceManager rm) throws ExecutionException {
+        Robot robot = rm.getResource(Robot.class);
         device = robot.getDevice(type);
         if (device != null) {
             //mensagem get padrão 
@@ -106,18 +108,18 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     }
 
     @Override
-    public boolean perform(Robot r, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
         try {
             if (device != null && device.isValidRead()) {
                 String deviceState = device.stateToString();
                 if (!deviceState.isEmpty()) {
-                    execute(var + " = " + deviceState);
+                    execute(var + " = " + deviceState, rm);
                 }
                 return true;
             }
         } catch (Message.TimeoutException ex) {
 //            System.err.println("RE-ENVIANDO");
-            begin(r, clock);
+            begin(rm);
         }
         return false;
     }

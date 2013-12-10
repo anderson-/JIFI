@@ -358,6 +358,7 @@ import javax.swing.*;
 import org.fife.ui.autocomplete.*;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.Style;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
@@ -387,6 +388,28 @@ public class EditorPanel extends JPanel {
         AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
         atmf.putMapping("text/Function", "robotinterface.gui.panels.editor.syntaxtextarea.FunctionTokenMaker");
         textArea.setSyntaxEditingStyle("text/Function");
+        //textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C);
+        
+        Color cstring = Color.decode("#f07818");
+        Color cfunction = Color.decode("#6a4a3c");
+        Color cvar = Color.decode("#cc333f");
+        Color cblocks = Color.decode("#00a0b0");
+        Color cfunc = Color.decode("#8fbe00");
+        Color cdevices = Color.decode("#00C12B");
+        
+        //monstrinho:
+        Style styleDATA_TYPE = textArea.getSyntaxScheme().getStyle(Token.DATA_TYPE);//device
+        styleDATA_TYPE.font = textArea.getFontForTokenType(Token.RESERVED_WORD);
+        styleDATA_TYPE.foreground = cstring;
+        styleDATA_TYPE.underline = true;
+        Style styleFUNCTION = textArea.getSyntaxScheme().getStyle(Token.FUNCTION);//funções
+        styleFUNCTION.font = textArea.getFontForTokenType(Token.RESERVED_WORD);
+        styleFUNCTION.foreground = Color.GREEN.darker();
+        Style styleRESERVED_WORD = textArea.getSyntaxScheme().getStyle(Token.RESERVED_WORD);//if else...
+//        styleRESERVED_WORD.foreground = cfunction;
+        Style styleRESERVED_WORD_2 = textArea.getSyntaxScheme().getStyle(Token.RESERVED_WORD_2);//var func
+        styleRESERVED_WORD_2.foreground = cvar;
+        
         textArea.setCodeFoldingEnabled(true);
         super.add(new RTextScrollPane(textArea));
 
@@ -434,8 +457,10 @@ public class EditorPanel extends JPanel {
             }
             FunctionToken ft = functionTokenInstances.get(index);
             Completion completion = ft.getInfo(provider);
-            provider.addCompletion(completion);
-            tokenMap.put(ft.getToken(), Token.RESERVED_WORD_2);
+            if (completion != null) {
+                provider.addCompletion(completion);
+                tokenMap.put(ft.getToken(), Token.FUNCTION);
+            }
         }
 
         for (Class<? extends Device> c : RobotControlPanel.getAvailableDevices()) {

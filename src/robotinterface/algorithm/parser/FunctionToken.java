@@ -7,6 +7,8 @@ package robotinterface.algorithm.parser;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import robotinterface.algorithm.Command;
+import robotinterface.algorithm.parser.decoder.ParseException;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 
 /**
  *
@@ -18,6 +20,10 @@ public interface FunctionToken <T extends Command> {
     
     public Completion getInfo(CompletionProvider provider);
     
-    public T createInstance(String args);
+    public T createInstance(String args) throws ParseException;
+    
+//    public int getParameters ();
+//    
+//    public T createInstance(Argument [] args);
     
 }

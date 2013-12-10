@@ -46,6 +46,7 @@ import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
+import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
@@ -62,6 +63,7 @@ import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Device;
@@ -119,15 +121,18 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     }
 
     @Override
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
+    public void begin(ResourceManager rm) throws ExecutionException {
+        Robot robot = rm.getResource(Robot.class);
         hBridge = robot.getDevice(HBridge.class);
         if (hBridge != null) {
+
+            JEP parser = rm.getResource(JEP.class);
 
             byte t1 = m1;
             byte t2 = m2;
 
             if (var1 != null) {
-                Variable v = getParser().getSymbolTable().getVar(var1);
+                Variable v = parser.getSymbolTable().getVar(var1);
                 if (v != null && v.hasValidValue()) {
                     Object o = v.getValue();
                     if (o instanceof Number) {
@@ -138,7 +143,7 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
             }
 
             if (var2 != null) {
-                Variable v = getParser().getSymbolTable().getVar(var2);
+                Variable v = parser.getSymbolTable().getVar(var2);
                 if (v != null && v.hasValidValue()) {
                     Object o = v.getValue();
                     if (o instanceof Number) {
@@ -156,7 +161,7 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     }
 
     @Override
-    public boolean perform(Robot r, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
         try {
             if (hBridge != null && hBridge.isValidRead()) {
 //                String deviceState = device.stateToString();
@@ -167,7 +172,7 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
             }
         } catch (Device.TimeoutException ex) {
 //            System.err.println("RE-ENVIANDO hBridge");
-            begin(r, clock);
+            begin(rm);
         }
         return false;
     }
@@ -403,20 +408,18 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
 
     @Override
     public Completion getInfo(CompletionProvider provider) {
-        FunctionCompletion fc = new FunctionCompletion(provider, "move(", null);
-        fc.setShortDescription("Função mover.");
-        ArrayList<ParameterizedCompletion.Parameter> params = new ArrayList<>();
-        params.add(new ParameterizedCompletion.Parameter("var", "v1", false));
-        params.add(new ParameterizedCompletion.Parameter("var", "v1", true));
-        fc.setParams(params);
+        FunctionCompletion fc = new FunctionCompletion(provider, "move(r1,r2);", null);
+        fc.setShortDescription("Move o robô, sendo r1 e r2 a roda esquerda e direita respectivamente. Cada roda recebe um valor\n"
+                + "inteiro de velocidade relativa, sendo 0 a roda parada e 127 a velocidade máxima do motor.\n"
+                + "Utilizando valores negativos em r1 ou r2 faz a respectiva roda girar no sentido oposto.");
         return fc;
     }
 
     @Override
-    public String getToken(){
+    public String getToken() {
         return "move";
     }
-    
+
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);

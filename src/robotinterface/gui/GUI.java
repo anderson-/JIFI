@@ -1383,7 +1383,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
              * something like OpenJDK Runtime Environment (build 1.6.0_0-b11), 
              * try installing the official Sun JDK and see if that works.
              */
-            setLibraryPath(newPath);
+//            setLibraryPath(newPath);
 //            System.loadLibrary("rxtxSerial");
         } catch (Error | Exception e) {
 //            e.printStackTrace();

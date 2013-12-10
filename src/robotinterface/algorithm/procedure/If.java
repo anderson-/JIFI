@@ -61,6 +61,7 @@ import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
 
@@ -120,17 +121,17 @@ public class If extends Procedure {
     }
 
     @Override
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
         return true;
     }
 
     @Override
-    public Command step() throws ExecutionException {
+    public Command step(ResourceManager rm) throws ExecutionException {
         //calcula o valor da expressão
-        if (evaluate()) {
-            return blockTrue.step();
+        if (evaluate(rm)) {
+            return blockTrue.step(rm);
         } else {
-            return blockFalse.step();
+            return blockFalse.step(rm);
         }
     }
 

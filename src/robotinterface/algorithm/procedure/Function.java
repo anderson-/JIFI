@@ -55,6 +55,7 @@ import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.GUI;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Interpreter;
+import robotinterface.interpreter.ResourceManager;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -77,7 +78,7 @@ public class Function extends Block {
         }
         
         @Override
-        public Command step() {
+        public Command step(ResourceManager rm) {
             return null;
         }
 

@@ -122,9 +122,10 @@ public class FunctionTokenMaker extends AbstractTokenMaker {
     @Override
     public TokenMap getWordsToHighlight() {
 
-        int reservedWord = Token.MARKUP_CDATA;
+        int reservedWord = Token.RESERVED_WORD_2;
         tokenMap.put("func", reservedWord);
         tokenMap.put("var", reservedWord);
+        tokenMap.put("break", reservedWord);
         reservedWord = Token.RESERVED_WORD;
         tokenMap.put("if", reservedWord);
         tokenMap.put("else", reservedWord);

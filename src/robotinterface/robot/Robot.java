@@ -135,7 +135,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
             d.resetState();
         }
     }
-    
+
     @Deprecated//hbridge para o robo na função stopAll()
     public void stop() {
         rightWheelSpeed = 0;
@@ -252,8 +252,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     }
 
     public void setMainConnection(Connection c) {
-        c.attach(this);
-        connections.add(0, c);
+        if (c != null) {
+            c.attach(this);
+            connections.add(0, c);
+        } else {
+            connections.clear();
+        }
     }
 
     public final Connection getMainConnection() {
@@ -510,7 +514,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                 switch (cmd) {
                     case CMD_STOP: {
                         //skip bytes	
-						STOP_ALL.markUnread();
+                        STOP_ALL.markUnread();
                         message.get();
                         break;
                     }
@@ -729,8 +733,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         double cos_theta = cos(theta);
 
         if (leftWheelSpeed != rightWheelSpeed) {
-			if (b < 0)			b += 2 * Math.PI;
-			if (b >= 2*Math.PI)	b -= 2 * Math.PI;
+            if (b < 0) {
+                b += 2 * Math.PI;
+            }
+            if (b >= 2 * Math.PI) {
+                b -= 2 * Math.PI;
+            }
             theta = b;
             x = x + a * (sin(b) - sin_theta);
             y = y - a * (cos(b) - cos_theta);
@@ -795,7 +803,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         AffineTransform t = ga.getT(o);
         ga.removeRelativePosition(t);
         g.setTransform(t);
-        
+
         perception.draw(g);
 
         t.setTransform(o);

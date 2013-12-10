@@ -778,6 +778,7 @@ public class Decoder implements DecoderConstants {
       case VARIABLE:
       case IF:
       case WHILE:
+      case BREAK:
       case INTEGER_LITERAL:
       case FLOATING_POINT_LITERAL:
       case STRING_LITERAL:
@@ -850,6 +851,11 @@ public class Decoder implements DecoderConstants {
       break;
     case WHILE:
       whileStatement(block);
+      break;
+    case BREAK:
+      jj_consume_token(BREAK);
+      jj_consume_token(SEMICOLON);
+  block.add(new BreakLoop());
       break;
     case VARIABLE:
     m = mark();
@@ -1099,15 +1105,25 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
+  private boolean jj_3R_40() {
+    if (jj_scan_token(COMMA)) return true;
+    if (jj_3R_26()) return true;
+    return false;
+  }
+
   private boolean jj_3R_44() {
     if (jj_scan_token(SC_AND)) return true;
     if (jj_3R_41()) return true;
     return false;
   }
 
-  private boolean jj_3R_40() {
-    if (jj_scan_token(COMMA)) return true;
+  private boolean jj_3R_38() {
     if (jj_3R_26()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_40()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
@@ -1135,16 +1151,6 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
-  private boolean jj_3R_38() {
-    if (jj_3R_26()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_40()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   private boolean jj_3R_56() {
     if (jj_3R_58()) return true;
     Token xsp;
@@ -1158,6 +1164,16 @@ public class Decoder implements DecoderConstants {
   private boolean jj_3R_42() {
     if (jj_scan_token(SC_OR)) return true;
     if (jj_3R_39()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_21() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(LPAREN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_38()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAREN)) return true;
     return false;
   }
 
@@ -1197,16 +1213,6 @@ public class Decoder implements DecoderConstants {
     if (jj_scan_token(LBRACKET)) return true;
     if (jj_3R_26()) return true;
     if (jj_scan_token(RBRACKET)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_21() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_scan_token(LPAREN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_38()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAREN)) return true;
     return false;
   }
 
@@ -1540,7 +1546,7 @@ public class Decoder implements DecoderConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x20,0x0,0x0,0x800000,0x1a2000,0x0,0x1a2000,0x1a2000,0x40000000,0x80000000,0x0,0x0,0x0,0x24000000,0x24000000,0x1b000000,0x1b000000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1a2000,0x0,0x1a2000,0x0,0x0,0x0,0xa2000,0x100000,0xa2000,0x0,0x1a2000,0x1a22a0,0x1a22a0,0x0,0x1a2000,0x100,};
+      jj_la1_0 = new int[] {0x20,0x0,0x0,0x800000,0x1a2000,0x0,0x1a2000,0x1a2000,0x40000000,0x80000000,0x0,0x0,0x0,0x24000000,0x24000000,0x1b000000,0x1b000000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1a2000,0x0,0x1a2000,0x0,0x0,0x0,0xa2000,0x100000,0xa2000,0x0,0x1a2000,0x1a26a0,0x1a26a0,0x0,0x1a2000,0x100,};
    }
    private static void jj_la1_init_1() {
       jj_la1_1 = new int[] {0x0,0x20000,0x4000,0x0,0xc0440f,0x20000,0xc0440f,0xc0040f,0x0,0x0,0x80,0x100,0x40,0x0,0x0,0x0,0x0,0x380000,0x380000,0xc,0xc,0x230,0x230,0xc,0xc0040f,0xc00000,0xc00400,0x3,0x3,0x44000,0x0,0x400,0x0,0x44000,0x0,0xc1140f,0xc1140f,0x20000,0xc0040f,0x0,};

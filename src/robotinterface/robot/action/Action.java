@@ -36,7 +36,7 @@ public abstract class Action extends Message {
 
     public abstract void putMessage(ByteBuffer data, Robot robot);
 
-    public void begin(Robot robot) {
+    public synchronized void begin(Robot robot) {
         buffer.clear();
         putMessage(buffer, robot);
         buffer.flip();

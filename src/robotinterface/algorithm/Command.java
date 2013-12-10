@@ -39,6 +39,7 @@ import robotinterface.drawable.FlowchartBlock;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
+import robotinterface.interpreter.ResourceManager;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
@@ -145,16 +146,16 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
     }
 
     //inicio da execução do comando
-    public void begin(Robot robot, Clock clock) throws ExecutionException {
+    public void begin(ResourceManager rm) throws ExecutionException {
     }
 
     //repete até retornar true ou lançar uma ExecutionException
-    public boolean perform(Robot robot, Clock clock) throws ExecutionException {
+    public boolean perform(ResourceManager rm) throws ExecutionException {
         return true;
     }
 
     //executada ao final do comando a fim de saber qual é o proximo comando a ser executado
-    public Command step() throws ExecutionException {
+    public Command step(ResourceManager rm) throws ExecutionException {
         if (next == null) {
             Command i = getParent();
             Command j;

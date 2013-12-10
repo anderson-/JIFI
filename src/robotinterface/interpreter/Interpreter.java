@@ -58,19 +58,26 @@ public class Interpreter extends Thread {
     public static final int STOP = 0;
     public static final int PLAY = 1;
     public static final int WAITING = 2;
+    private Clock clock;
     private JEP parser;
+    private Robot robot;
+    private ResourceManager resourceManager;
     private Function mainFunction;
     private Command currentCmd = null;
     private int state;
-    private Robot robot;
-    private final Clock clock = new Clock();
     private int timestep = 0;
     private boolean running = false;
 
     public Interpreter() {
         super("Interpreter");
         parser = new JEP();
-        state = WAITING;
+        clock = new Clock();
+        
+        resourceManager = new ResourceManager();
+        resourceManager.setResource(clock);
+        resourceManager.setResource(parser);
+        
+        state = STOP;
     }
 
     public Robot getRobot() {
@@ -79,6 +86,7 @@ public class Interpreter extends Thread {
 
     public void setRobot(Robot robot) {
         this.robot = robot;
+        resourceManager.setResource(robot);
     }
 
     public void reset() {
@@ -175,11 +183,8 @@ public class Interpreter extends Thread {
 
         //System.out.println(currentCmd); //exibe o comando atual
         try {
-            if (currentCmd instanceof Procedure) {
-                ((Procedure) currentCmd).setParser(parser);
-            }
-            currentCmd.begin(robot, clock);
-            while (!currentCmd.perform(robot, clock)) {
+            currentCmd.begin(resourceManager);
+            while (!currentCmd.perform(resourceManager)) {
                 clock.increase();
                 try {
                     Thread.sleep(5);
@@ -189,7 +194,7 @@ public class Interpreter extends Thread {
                     return true;
                 }
             }
-            currentCmd = currentCmd.step();
+            currentCmd = currentCmd.step(resourceManager);
         } catch (ExecutionException e) {
             System.out.println("Erro");
             e.printStackTrace();
