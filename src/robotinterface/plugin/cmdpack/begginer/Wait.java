@@ -24,6 +24,7 @@ import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
@@ -47,10 +48,10 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
     private static Color myColor = Color.decode("#9966FF");
     private Timer timer;
-    private int delay = 0;
-    private String var = null;
+    private Argument arg0;
 
     public Wait() {
+        arg0 = new Argument("0", Argument.NUMBER_LITERAL);
         timer = new Timer(0);
     }
 
@@ -59,24 +60,18 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         timer.setTick(ms);
     }
 
+    private Wait(Argument[] args) {
+        this();
+        arg0.set(args[0]);
+    }
+
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Clock clock = rm.getResource(Clock.class);
-        int d = delay;
-
-        if (var != null) {
-            JEP parser = rm.getResource(JEP.class);
-            Variable v = parser.getSymbolTable().getVar(var);
-            if (v != null && v.hasValidValue()) {
-                Object o = v.getValue();
-                if (o instanceof Number) {
-                    Number n = (Number) o;
-                    d = n.intValue();
-                }
-            }
-        }
-
-        timer.setTick(d);
+        JEP parser = rm.getResource(JEP.class);
+        arg0.parse(parser);
+        timer.setTick((long) arg0.getDoubleValue());
+        System.out.println("v:" + arg0.getDoubleValue());
         timer.reset();
         clock.addTimer(timer);
     }
@@ -132,11 +127,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     
     @Override
     public void toString(String ident, StringBuilder sb) {
-        if (var == null){
-            setProcedure("wait(" + delay + ")");
-        } else {
-            setProcedure("wait(" + var + ")");
-        }
+        setProcedure("wait(" + arg0 + ")");
         super.toString(ident, sb);
     }
     
@@ -150,7 +141,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         return resource;
     }
 
-    public static MutableWidgetContainer createDrawableMove(final Wait w) {
+    public static MutableWidgetContainer createDrawableMove(final Wait W) {
 
         final int TEXTFIELD_WIDTH = 70;
         final int TEXTFIELD_HEIGHT = 25;
@@ -174,17 +165,17 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 boolean num = true;
 
                 MutableWidgetContainer.autoUpdateValue(spinner);
-                MutableWidgetContainer.setAutoFillComboBox(combobox, w);
+                MutableWidgetContainer.setAutoFillComboBox(combobox, W);
                 
                 if (data != null) {
                     if (data instanceof Wait) {
                         Wait w = (Wait) data;
 
-                        if (w.var != null) {
-                            combobox.setSelectedItem(w.var);
+                        if (w.arg0.isVariable()) {
+                            combobox.setSelectedItem(w.arg0.toString());
                             num = false;
                         } else {
-                            spinner.setValue((int) w.delay);
+                            spinner.setValue((int) w.arg0.getDoubleValue());
                         }
                     }
                 }
@@ -254,23 +245,26 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                             Object o = cb.getSelectedItem();
                             if (o != null) {
                                 sb.append(o.toString());
+//                                W.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
+                                System.out.println("v");
                             }
                         } else if (jc instanceof JSpinner) {
                             JSpinner s = (JSpinner) jc;
                             sb.append(s.getValue());
+//                            W.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
+                            System.out.println("n");
                         }
                     }
                 }
 
                 String str = sb.toString() + ")";
-                updateWait(str.substring(str.indexOf("(") + 1, str.indexOf(")")), w);
                 return str;
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(w, myColor) {
+        DrawableCommandBlock dcb = new DrawableCommandBlock(W, myColor) {
             {
-                string = w.getProcedure();
+                string = W.getProcedure();
                 updateLines();
             }
 
@@ -278,11 +272,9 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             public void updateLines() {
                 clear();
                 if (string.length() <= 1) {
-                    addLine(headerLine, w);
+                    addLine(headerLine, W);
                 } else {
-                    String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
-                    updateWait(str, w);
-                    addLine(headerLine, w);
+                    addLine(headerLine, W);
                 }
                 string = getString();
             }
@@ -295,52 +287,54 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Wait){
-            ((Wait)copy).delay = delay;
-            ((Wait)copy).var = var;
+            ((Wait)copy).arg0 = arg0;
+            System.out.println("c");
         }
         return copy;
     }
 
-    private static void updateWait(String args, Wait w) {
-        String[] argv = args.split(",");
-        if (argv.length == 0) {
-            w.delay = 0;
-        } else if (argv.length == 1) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                w.var = argv[0];
-            } else {
-                int v = Integer.parseInt(argv[0].trim());
-                w.delay = v;
-                w.var = null;
-            }
-        } else if (argv.length == 2) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                w.var = argv[0];
-            } else {
-                int v = Integer.parseInt(argv[0].trim());
-                w.var = null;
-            }
-        }
-//        w.updateProcedure();
-    }
+//    private static void updateWait(String args, Wait w) {
+//        String[] argv = args.split(",");
+//        if (argv.length == 0) {
+//            w.delay = 0;
+//        } else if (argv.length == 1) {
+//            argv[0] = argv[0].trim();
+//            if (Character.isLetter(argv[0].charAt(0))) {
+//                w.var = argv[0];
+//            } else {
+//                int v = Integer.parseInt(argv[0].trim());
+//                w.delay = v;
+//                w.var = null;
+//            }
+//        } else if (argv.length == 2) {
+//            argv[0] = argv[0].trim();
+//            if (Character.isLetter(argv[0].charAt(0))) {
+//                w.var = argv[0];
+//            } else {
+//                int v = Integer.parseInt(argv[0].trim());
+//                w.var = null;
+//            }
+//        }
+////        w.updateProcedure();
+//    }
 
-    @Override
-    public Wait createInstance(String args) {
-        Wait w = new Wait();
-        if (!args.isEmpty()) {
-            updateWait(args, w);
-        }
-
-        return w;
-    }
 
     public static void main(String[] args) {
         Wait p = new Wait();
-        Wait.updateWait("100", p);
+//        Wait.updateWait("100", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    @Override
+    public int getParameters() {
+        return 1;
+    }
+
+    @Override
+    public Wait createInstance(Argument[] args) {
+        Wait w = new Wait(args);
+        return w;
     }
 }

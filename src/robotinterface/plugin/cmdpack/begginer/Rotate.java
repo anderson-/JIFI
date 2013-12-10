@@ -27,13 +27,11 @@ package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.ImageIcon;
@@ -48,8 +46,8 @@ import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
-import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
@@ -58,21 +56,16 @@ import robotinterface.drawable.TextLabel;
 import robotinterface.drawable.WidgetContainer;
 import robotinterface.drawable.WidgetContainer.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.graphicresource.SimpleContainer;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
-import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
 import robotinterface.robot.action.RotateAction;
-import robotinterface.robot.connection.Serial;
 import robotinterface.robot.device.Compass;
-import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.robot.simulation.VirtualConnection;
-import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Procedimento de mover o robô.
@@ -416,16 +409,16 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         m.updateProcedure();
     }
 
-    @Override
-    public Rotate createInstance(String args) {
-        Rotate r = new Rotate(0);
-        if (!args.isEmpty()) {
-            updateRotate(args, r);
-        }
-
-        return r;
-        //return new ParseErrorProcedure(this, args);
-    }
+//    @Override
+//    public Rotate createInstance(String args) {
+//        Rotate r = new Rotate(0);
+//        if (!args.isEmpty()) {
+//            updateRotate(args, r);
+//        }
+//
+//        return r;
+//        //return new ParseErrorProcedure(this, args);
+//    }
 
     public static void main(String[] args) {
         Rotate p = new Rotate();
@@ -433,5 +426,15 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    @Override
+    public int getParameters() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Rotate createInstance(Argument[] args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

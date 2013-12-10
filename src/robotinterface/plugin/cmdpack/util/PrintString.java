@@ -33,6 +33,7 @@ import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.MutableWidgetContainer;
@@ -201,7 +202,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     @Override
     public Object createInstance() {
-        return new PrintString("Hello Worlld!");
+        return new PrintString("Hello World!");
     }
 
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
@@ -466,8 +467,18 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         return "print";
     }
 
+//    @Override
+//    public PrintString createInstance(String args) {
+//        return new PrintString(args, true);
+//    }
+
     @Override
-    public PrintString createInstance(String args) {
-        return new PrintString(args, true);
+    public int getParameters() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public PrintString createInstance(Argument[] args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

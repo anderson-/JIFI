@@ -20,10 +20,10 @@ public interface FunctionToken <T extends Command> {
     
     public Completion getInfo(CompletionProvider provider);
     
-    public T createInstance(String args) throws ParseException;
+//    public T createInstance(String args) throws ParseException;
     
-//    public int getParameters ();
-//    
-//    public T createInstance(Argument [] args);
+    public int getParameters ();
+    
+    public T createInstance(Argument [] args);
     
 }

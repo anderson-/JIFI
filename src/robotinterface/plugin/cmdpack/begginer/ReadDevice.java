@@ -44,6 +44,7 @@ import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.MutableWidgetContainer;
 import robotinterface.drawable.TextLabel;
@@ -371,12 +372,22 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         return "read";
     }
 
+//    @Override
+//    public ReadDevice createInstance(String args) {
+//        ReadDevice rd = new ReadDevice();
+//        if (!args.isEmpty()) {
+//            updateReadDevice(args, rd);
+//        }
+//        return rd;
+//    }
+
     @Override
-    public ReadDevice createInstance(String args) {
-        ReadDevice rd = new ReadDevice();
-        if (!args.isEmpty()) {
-            updateReadDevice(args, rd);
-        }
-        return rd;
+    public int getParameters() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ReadDevice createInstance(Argument[] args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

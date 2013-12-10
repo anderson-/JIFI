@@ -5,6 +5,8 @@ import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.procedure.*;
 import robotinterface.algorithm.parser.Parser;
+import robotinterface.algorithm.parser.parameterparser.Argument;
+import robotinterface.algorithm.parser.parameterparser.ParameterParser;
 import robotinterface.gui.panels.editor.EditorPanel;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.robot.device.Device;
@@ -13,10 +15,6 @@ public class Decoder implements DecoderConstants {
   private JEP jep = new JEP();
 
   private boolean functionCall = false;
-
-  private Token functionID = null;
-
-  private String parameters = null;
 
   private Procedure last = null;
 
@@ -855,7 +853,7 @@ public class Decoder implements DecoderConstants {
     case BREAK:
       jj_consume_token(BREAK);
       jj_consume_token(SEMICOLON);
-  block.add(new BreakLoop());
+    block.add(new BreakLoop());
       break;
     case VARIABLE:
     m = mark();
@@ -882,9 +880,12 @@ public class Decoder implements DecoderConstants {
 
   final public void functionCall(Block block) throws ParseException {
   int m = 0;
+  Stack < Integer > argType = new Stack < Integer > ();
+  Stack < String > argEx = new Stack < String > ();
+  Token tmpToken;
+  Token functionID;
     functionID = jj_consume_token(IDENTIFIER);
     jj_consume_token(LPAREN);
-    m = mark();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER_LITERAL:
     case FLOATING_POINT_LITERAL:
@@ -897,7 +898,11 @@ public class Decoder implements DecoderConstants {
     case LPAREN:
     case 54:
     case 55:
+      m = mark();
+      tmpToken = token;
       expression();
+      argType.push(((tmpToken.next.image == token.image) ? token.kind : - 1));
+      argEx.push(getString(m));
       label_17:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -909,54 +914,51 @@ public class Decoder implements DecoderConstants {
           break label_17;
         }
         jj_consume_token(COMMA);
+        m = mark();
+        tmpToken = token;
         expression();
+        argType.push(((tmpToken.next.image == token.image) ? token.kind : - 1));
+        argEx.push(getString(m));
       }
       break;
     default:
       jj_la1[38] = jj_gen;
       ;
     }
-    if (functionID != null)
+    boolean error = true;
+    for (FunctionToken ftoken : EditorPanel.getFunctionTokens())
     {
-      parameters = getString(m);
-      boolean error = true;
-      for (FunctionToken ftoken : EditorPanel.getFunctionTokens())
+      if (ftoken.getToken().equals(functionID.toString()))
       {
-        if (ftoken.getToken().equals(functionID.toString()))
-        {
-          parameters = parameters.trim();
-          block.add(ftoken.createInstance(parameters));
-          error = false;
-          functionCall = true;
-          last = null;
-          break;
-        }
-      }
-      jep.initFunTab(); // clear the contents of the function table
-      jep.addStandardFunctions();
-      for (Object o : jep.getFunctionTable().keySet())
-      {
-        if (o.toString().equals(functionID.toString()))
-        {
-          error = false;
-          break;
-        }
-      }
-      if (error)
-      {
-        {if (true) throw new ParseException(token, new int [ ] [ ]
-        {}
-        , new String [ ]
-        {
-          "Fun\u00e7\u00e3o \u005c"" + functionID.toString() + "\u005c" inv\u00e1lida"
-        }
-        );}
+        Argument [ ] args = ParameterParser.parse(functionID.toString(), argType, argEx, - 1 /*ftoken.getParameters()*/, token);
+        block.add(ftoken.createInstance(args));
+        //parameters = parameters.trim();
+        //block.add(ftoken.createInstance(parameters));
+        error = false;
+        functionCall = true;
+        last = null;
+        break;
       }
     }
-    else
+    jep.initFunTab(); // clear the contents of the function table
+    jep.addStandardFunctions();
+    for (Object o : jep.getFunctionTable().keySet())
     {
-      functionID = null;
-      parameters = null;
+      if (o.toString().equals(functionID.toString()))
+      {
+        error = false;
+        break;
+      }
+    }
+    if (error)
+    {
+      {if (true) throw new ParseException(token, new int [ ] [ ]
+      {}
+      , new String [ ]
+      {
+        "Fun\u00e7\u00e3o \u005c"" + functionID.toString() + "\u005c" inv\u00e1lida"
+      }
+      );}
     }
     jj_consume_token(RPAREN);
   }
@@ -1031,6 +1033,12 @@ public class Decoder implements DecoderConstants {
     finally { jj_save(3, xla); }
   }
 
+  private boolean jj_3R_65() {
+    if (jj_scan_token(INCR)) return true;
+    if (jj_3R_20()) return true;
+    return false;
+  }
+
   private boolean jj_3R_49() {
     if (jj_scan_token(XOR)) return true;
     if (jj_3R_45()) return true;
@@ -1059,6 +1067,12 @@ public class Decoder implements DecoderConstants {
 
   private boolean jj_3R_61() {
     if (jj_3R_65()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_40() {
+    if (jj_scan_token(COMMA)) return true;
+    if (jj_3R_26()) return true;
     return false;
   }
 
@@ -1105,12 +1119,6 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
-  private boolean jj_3R_40() {
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_26()) return true;
-    return false;
-  }
-
   private boolean jj_3R_44() {
     if (jj_scan_token(SC_AND)) return true;
     if (jj_3R_41()) return true;
@@ -1151,6 +1159,16 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
+  private boolean jj_3R_21() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(LPAREN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_38()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAREN)) return true;
+    return false;
+  }
+
   private boolean jj_3R_56() {
     if (jj_3R_58()) return true;
     Token xsp;
@@ -1164,16 +1182,6 @@ public class Decoder implements DecoderConstants {
   private boolean jj_3R_42() {
     if (jj_scan_token(SC_OR)) return true;
     if (jj_3R_39()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_21() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_scan_token(LPAREN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_38()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAREN)) return true;
     return false;
   }
 
@@ -1303,14 +1311,14 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
-  private boolean jj_3_4() {
-    if (jj_3R_21()) return true;
-    return false;
-  }
-
   private boolean jj_3_2() {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_19()) return true;
+    return false;
+  }
+
+  private boolean jj_3_4() {
+    if (jj_3R_21()) return true;
     return false;
   }
 
@@ -1518,12 +1526,6 @@ public class Decoder implements DecoderConstants {
       xsp = jj_scanpos;
       if (jj_3R_51()) { jj_scanpos = xsp; break; }
     }
-    return false;
-  }
-
-  private boolean jj_3R_65() {
-    if (jj_scan_token(INCR)) return true;
-    if (jj_3R_20()) return true;
     return false;
   }
 

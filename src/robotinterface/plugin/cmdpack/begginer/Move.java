@@ -50,6 +50,7 @@ import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.FunctionToken;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
@@ -471,16 +472,16 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
         m.updateProcedure();
     }
 
-    @Override
-    public Move createInstance(String args) {
-        Move m = new Move(0, 0);
-        if (!args.isEmpty()) {
-            updateMove(args, m);
-        }
-
-        return m;
-        //return new ParseErrorProcedure(this, args);
-    }
+//    @Override
+//    public Move createInstance(String args) {
+//        Move m = new Move(0, 0);
+//        if (!args.isEmpty()) {
+//            updateMove(args, m);
+//        }
+//
+//        return m;
+//        //return new ParseErrorProcedure(this, args);
+//    }
 
     public static void main(String[] args) {
         Move p = new Move();
@@ -488,5 +489,15 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
+    }
+
+    @Override
+    public int getParameters() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Move createInstance(Argument[] args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

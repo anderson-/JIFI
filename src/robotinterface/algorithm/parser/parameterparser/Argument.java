@@ -6,23 +6,34 @@
 package robotinterface.algorithm.parser.parameterparser;
 
 import org.nfunk.jep.JEP;
-import robotinterface.interpreter.Expression;
 
 /**
  *
  * @author antunes2
  */
-public class Argument {
+public final class Argument {
 
-    public static final int NUMBER = 1;
-    public static final int STRING = 2;
-    public static final int VARARG = 4;
+    public static final int NUMBER_LITERAL = 1;
+    public static final int STRING_LITERAL = 2;
+    public static final int EXPRESSION = 4;
+    public static final int SINGLE_VARIABLE = 8;
     
-    private final String statement;
+    private String statement;
+    private int type;
     private Object value = null;
 
-    public Argument(String statement) {
-        this.statement = statement;
+    public Argument(Object statement, int type) {
+        set(statement, type);
+    }
+    
+    public void set(Object statement, int type) {
+        this.statement = statement.toString();
+        this.type = type;
+    }
+
+    public void set(Argument argument) {
+        this.statement = argument.statement;
+        this.type = argument.type;
     }
 
     public void parse(JEP parser) {
@@ -31,6 +42,9 @@ public class Argument {
     }
 
     public double getDoubleValue() {
+        if (type == NUMBER_LITERAL){
+            return Double.parseDouble(statement);
+        }
         if (value instanceof Double){
             return (Double) value;
         }
@@ -38,6 +52,9 @@ public class Argument {
     }
 
     public String getStringValue() {
+        if (type == STRING_LITERAL){
+            return statement;
+        }
         if (value instanceof String){
             return (String) value;
         }
@@ -45,10 +62,41 @@ public class Argument {
     }
 
     public boolean getBooleanValue() {
-        if (value instanceof Boolean){
-            return (Boolean) value;
+        if (type == NUMBER_LITERAL){
+            return (getDoubleValue() != 0);
+        }
+        if (type == STRING_LITERAL){
+            return (!getStringValue().isEmpty());
         }
         return false;
     }
+    
+    public boolean isLiteral(){
+        return (type == NUMBER_LITERAL || type == STRING_LITERAL);
+    }
+    
+    public boolean isNumber(){
+        return (type == NUMBER_LITERAL);
+    }
+    
+    public boolean isString(){
+        return (type == STRING_LITERAL);
+    }
+    
+    public boolean isExpression(){
+        return (type == EXPRESSION);
+    }
+    
+    public boolean isVariable (){
+        return (type == SINGLE_VARIABLE);
+    }
 
+    @Override
+    public String toString() {
+        if (statement.contains("\"")){
+            return statement;
+        } else {
+            return statement.replace(" ", "");
+        }
+    }
 }

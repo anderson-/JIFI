@@ -6,6 +6,8 @@
 package robotinterface.algorithm.parser.parameterparser;
 
 import java.util.ArrayList;
+import java.util.List;
+import robotinterface.algorithm.parser.decoder.DecoderConstants;
 import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.parser.decoder.Token;
 
@@ -17,35 +19,52 @@ public class ParameterParser {
 
     private static final ArrayList<Argument> args = new ArrayList();
 
-    public static Argument[] parse(String functionName, String strArgs, int nParameters, Token token) throws ParseException {
-        args.clear();
+    public static Argument[] parse(String functionName, List<Integer> argType, List<String> argEx, int nParameters, Token token) throws ParseException {
+        if (nParameters >= 0 && argEx.size() != nParameters) {
+            throw new ParseException(token, new int[][]{}, new String[]{
+                "Numero de parametros na função \"" + functionName + "\": esperado " + nParameters + ", encontrado " + argEx.size() + "."
+            });
+        }
 
-        for (String arg : strArgs.split(",")) {
-            args.add(new Argument(arg));
-        }
-        
-        if (nParameters >= 0 && args.size() != nParameters){
+        int minParameterNumber = -nParameters - 1;
+
+        if (minParameterNumber > 0 && argEx.size() < minParameterNumber) {
             throw new ParseException(token, new int[][]{}, new String[]{
-                "Numero de parametros na função \"" + functionName + "\": esperado " + nParameters + ", encontrado " +  args.size() + "."
+                "Numero de parametros na função \"" + functionName + "\": esperado ao menos " + minParameterNumber + ", encontrado " + argEx.size() + "."
             });
         }
-        
-        int minParameterNumber = -nParameters -1;
-        
-        if (minParameterNumber > 0 && args.size() < minParameterNumber){
-            throw new ParseException(token, new int[][]{}, new String[]{
-                "Numero de parametros na função \"" + functionName + "\": esperado ao menos " + minParameterNumber + ", encontrado " +  args.size() + "."
-            });
+
+        System.out.println(">>" + functionName);
+
+        for (int i = 0; i < argEx.size(); i++) {
+            System.out.println("p" + i + ": '" + argEx.get(i) + "'::" + argType.get(i));
+        }
+
+        args.clear();
+        for (int i = 0; i < argEx.size(); i++) {
+            int type = argType.get(i);
+
+            switch (type) {
+                case DecoderConstants.INTEGER_LITERAL:
+                case DecoderConstants.DECIMAL_LITERAL:
+                case DecoderConstants.HEX_LITERAL:
+                case DecoderConstants.OCTAL_LITERAL:
+                case DecoderConstants.FLOATING_POINT_LITERAL:
+                    type = Argument.NUMBER_LITERAL;
+                    break;
+                case DecoderConstants.STRING_LITERAL:
+                    type = Argument.STRING_LITERAL;
+                    break;
+                case DecoderConstants.IDENTIFIER:
+                    type = Argument.SINGLE_VARIABLE;
+                    break;
+                default:
+                    type = Argument.EXPRESSION;
+            }
+
+            args.add(new Argument(argEx.get(i), type));
         }
 
         return args.toArray(new Argument[args.size()]);
     }
-
-//    {
-//        //em Function.jj substituir:
-//        parameters = parameters.trim();
-//        block.add(ftoken.createInstance(parameters));
-//        //por:
-//        block.add(ftoken.createInstance(ParameterParser.parse(functionID.toString(), parameters, ftoken.getParameters(), token)));
-//    }
 }

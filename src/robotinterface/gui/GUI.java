@@ -926,7 +926,11 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                 String errorDesc = "";
 
                 try {
+                    long t = System.currentTimeMillis();
                     f = Parser.decode(cep.getTextArea().getText());
+                    long t2 = System.currentTimeMillis();
+                    System.out.println("t:" + ((t2-t)/1000.0));
+                    
                 } catch (ParseException ex) {
                     errorOnLine = ex.currentToken.next.endLine;
                     errorColumn = ex.currentToken.next.beginColumn;
@@ -951,13 +955,15 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                     errorDesc = "Erro lexico";
                 } catch (Throwable e) {
                     errorDesc = e.getMessage();
+                    errorOnLine = -2;
+                    e.printStackTrace();
                 }
 
                 switch (errorOnLine) {
                     case -1:
                         break;
                     case -2:
-                        System.err.println("Erro desconhecido.");
+                        System.err.println("Erro desconhecido: " + errorDesc);
                         return;
                     default:
                         System.err.println(errorDesc + " na linha " + errorOnLine + ".");
