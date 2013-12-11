@@ -128,18 +128,27 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         x = 0;
         y = 0;
         theta = 0;
-        rightWheelSpeed = 0;
-        leftWheelSpeed = 0;
         perception.clearPath();
         for (Device d : devices) {
             d.resetState();
         }
+        stop();
     }
-    
     @Deprecated//hbridge para o robo na função stopAll()
     public void stop() {
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
+        for (Action a : actions) {
+            if (a.isWaiting()){
+                a.markUnread();
+                a.setDone();
+            } else if (a.isRunning()){
+                //System.out.println("reset");
+                //resetSystem();
+                a.markUnread();
+                a.setDone();
+            }
+        }
     }
 
     public void updateObservers(Device d) {
@@ -510,7 +519,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                 switch (cmd) {
                     case CMD_STOP: {
                         //skip bytes	
-						STOP_ALL.markUnread();
+                        STOP_ALL.markUnread();
                         message.get();
                         break;
                     }
@@ -729,8 +738,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         double cos_theta = cos(theta);
 
         if (leftWheelSpeed != rightWheelSpeed) {
-			if (b < 0)			b += 2 * Math.PI;
-			if (b >= 2*Math.PI)	b -= 2 * Math.PI;
+            if (b < 0) {
+                b += 2 * Math.PI;
+            }
+            if (b >= 2 * Math.PI) {
+                b -= 2 * Math.PI;
+            }
             theta = b;
             x = x + a * (sin(b) - sin_theta);
             y = y - a * (cos(b) - cos_theta);
@@ -795,7 +808,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         AffineTransform t = ga.getT(o);
         ga.removeRelativePosition(t);
         g.setTransform(t);
-        
+
         perception.draw(g);
 
         t.setTransform(o);
