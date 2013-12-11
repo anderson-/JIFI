@@ -17,7 +17,7 @@ public final class Argument {
     public static final int STRING_LITERAL = 2;
     public static final int EXPRESSION = 4;
     public static final int SINGLE_VARIABLE = 8;
-    
+
     private String statement;
     private int type;
     private Object value = null;
@@ -25,9 +25,13 @@ public final class Argument {
     public Argument(Object statement, int type) {
         set(statement, type);
     }
-    
+
     public void set(Object statement, int type) {
-        this.statement = statement.toString();
+        if (statement != null) {
+            this.statement = statement.toString();
+        } else {
+            this.statement = "";
+        }
         this.type = type;
     }
 
@@ -42,58 +46,69 @@ public final class Argument {
     }
 
     public double getDoubleValue() {
-        if (type == NUMBER_LITERAL){
+        if (type == NUMBER_LITERAL) {
             return Double.parseDouble(statement);
         }
-        if (value instanceof Double){
+        if (value instanceof Double) {
             return (Double) value;
         }
         return 0.0;
     }
 
     public String getStringValue() {
-        if (type == STRING_LITERAL){
+        if (type == STRING_LITERAL) {
             return statement;
         }
-        if (value instanceof String){
+        if (value instanceof String) {
             return (String) value;
+        }
+        return "";
+    }
+    
+    public Object getValue(){
+        return value;
+    }
+
+    public String getVariableName() {
+        if (type == SINGLE_VARIABLE) {
+            return statement;
         }
         return "";
     }
 
     public boolean getBooleanValue() {
-        if (type == NUMBER_LITERAL){
+        if (type == NUMBER_LITERAL) {
             return (getDoubleValue() != 0);
         }
-        if (type == STRING_LITERAL){
+        if (type == STRING_LITERAL) {
             return (!getStringValue().isEmpty());
         }
         return false;
     }
-    
-    public boolean isLiteral(){
+
+    public boolean isLiteral() {
         return (type == NUMBER_LITERAL || type == STRING_LITERAL);
     }
-    
-    public boolean isNumber(){
+
+    public boolean isNumber() {
         return (type == NUMBER_LITERAL);
     }
-    
-    public boolean isString(){
+
+    public boolean isString() {
         return (type == STRING_LITERAL);
     }
-    
-    public boolean isExpression(){
+
+    public boolean isExpression() {
         return (type == EXPRESSION);
     }
-    
-    public boolean isVariable (){
+
+    public boolean isVariable() {
         return (type == SINGLE_VARIABLE);
     }
 
     @Override
     public String toString() {
-        if (statement.contains("\"")){
+        if (statement.contains("\"")) {
             return statement;
         } else {
             return statement.replace(" ", "");

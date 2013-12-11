@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbench progressCount="13" version="2.0">
+<workbench progressCount="10" version="2.0">
 <workbenchAdvisor/>
-<window height="718" width="1024" x="0" y="25">
+<window height="715" width="1026" x="223" y="88">
 <fastViewData fastViewLocation="1024"/>
 <perspectiveBar>
 <itemSize x="160"/>
@@ -143,7 +143,6 @@
 <trimItem IMemento.internal.id="org.eclise.ui.internal.FastViewBar"/>
 <trimItem IMemento.internal.id="org.eclipse.jface.action.StatusLineManager"/>
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.progress.ProgressRegion"/>
-<trimItem IMemento.internal.id="org.eclipse.ui.internal.intro.impl.presentations.IntroLaunchBar"/>
 </trimArea>
 </trimLayout>
 </window>

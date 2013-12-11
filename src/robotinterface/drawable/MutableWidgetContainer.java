@@ -46,12 +46,12 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         public WidgetLine(int height) {
-            this.height = height;
+//            this.height = height;
         }
 
         public WidgetLine(int width, int height) {
-            this.width = width;
-            this.height = height;
+//            this.width = width;
+//            this.height = height;
         }
 
         public WidgetLine(boolean onPageEnd) {
@@ -92,13 +92,14 @@ public class MutableWidgetContainer extends WidgetContainer {
             return "";
         }
     }
-    private static Font defaultFont;
+    protected static Font defaultFont;
     public static final int INSET_X = 5;
     public static final int INSET_Y = 5;
 
     static {
         defaultFont = new Font("Dialog", Font.BOLD, 12);
     }
+    
     protected String string = "";
     protected Color color;
     protected int shapeStartX = 0;
@@ -106,6 +107,8 @@ public class MutableWidgetContainer extends WidgetContainer {
     protected boolean center = false;
     protected boolean widgetsEnabled = true;
     protected Color stringColor = Color.BLACK;
+    protected Font stringFont = defaultFont;
+    protected Rectangle2D.Double shapeBounds;
     private String name = "";
     private double stringWidth = 0;
     private int firstShapeUpdate = 2;
@@ -116,7 +119,6 @@ public class MutableWidgetContainer extends WidgetContainer {
     private ArrayList<WidgetLine> rowTypes;
     private ArrayList<ArrayList<Widget>> rowWidgets;
     private ArrayList<ArrayList<TextLabel>> rowLabels;
-    private Rectangle2D.Double shapeBounds;
 
     public MutableWidgetContainer(Color color) {
         super(new Rectangle(0, 0, 1, 1));
@@ -317,6 +319,8 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         for (TextLabel tl : labels) {
             g.setFont(tl.getFont());
+            g.setColor(tl.getColor());
+            
             FontMetrics fm = g.getFontMetrics();
             double w = fm.stringWidth(tl.getText());
             tmp.setRect(tl.getPosX(), tl.getPosY(), w, fm.getAscent());
@@ -328,9 +332,14 @@ public class MutableWidgetContainer extends WidgetContainer {
             }
 
             g.translate(w, tl.getPosY());
-            g.setColor(Color.BLACK);
             g.drawString(tl.getText(), 0, 0);
             g.translate(-w, -tl.getPosY());
+//            tmp.x += -INSET_X;
+//            tmp.width += 2*INSET_X;
+//            tmp.y += -INSET_Y;
+//            tmp.height += 2*INSET_Y;
+            g.setColor(Color.BLUE);
+//            g.draw(tmp);
             bounds.add(tmp);
         }
 
@@ -338,14 +347,23 @@ public class MutableWidgetContainer extends WidgetContainer {
             w.setTempLocation(0, y);
             x = (x > w.getX()) ? w.getX() : x;
             tmp.setRect(w.getBounds());
+            tmp.x += -INSET_X;
+            tmp.width += 2*INSET_X;
+            tmp.y += -INSET_Y;
+            tmp.height += 2*INSET_Y;
+//            g.draw(tmp);
+            g.setColor(Color.orange);
             bounds.add(tmp);
         }
 
         bounds.x = 0;
         bounds.y = y;
-        bounds.width = (bounds.width < type.getWidth()) ? type.getWidth() : bounds.width;
-        int tmpHeight = type.getHeight() - y; //calcula a altura real da linha
-        bounds.height = (tmpHeight < type.getHeight()) ? type.getHeight() : tmpHeight;
+        bounds.height -= y;
+        g.setColor(Color.red);
+//        g.draw(bounds);
+//        bounds.width = (bounds.width < type.getWidth()) ? type.getWidth() : bounds.width;
+//        int tmpHeight = type.getHeight() - y; //calcula a altura real da linha
+//        bounds.height = (tmpHeight < type.getHeight()) ? type.getHeight() : tmpHeight;
     }
 
     protected void backDraw(Graphics2D g) {
@@ -380,6 +398,7 @@ public class MutableWidgetContainer extends WidgetContainer {
             }
 
             shapeBounds.add(compBounds);
+//            System.out.println(shapeBounds);
         }
 
         // finaliza
@@ -400,7 +419,7 @@ public class MutableWidgetContainer extends WidgetContainer {
             updateLines = true;
         }
 
-        g.setFont(defaultFont);
+        g.setFont(stringFont);
         FontMetrics fm = g.getFontMetrics();
 
         double x = INSET_X + shapeStartX;

@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
  *
  * @author antunes
  */
-public interface Drawable {
+public interface Drawable extends Placeable{
     
     //constantes de desenho
     public static Stroke DEFAULT_STROKE  = new BasicStroke(1);
@@ -24,12 +24,6 @@ public interface Drawable {
     public static final int BACKGROUND_LAYER = 1;
     public static final int DEFAULT_LAYER = 2;
     public static final int TOP_LAYER = 4;
-
-    public void setLocation(double x, double y);
-    
-    public double getPosX();
-    
-    public double getPosY();
     
     public int getDrawableLayer();
 

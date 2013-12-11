@@ -903,7 +903,11 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                 mapCE.add(cep);
             }
 
+            long t = System.currentTimeMillis();
             cep.getTextArea().setText(Parser.encode(fcp.getFunction()));
+            long t2 = System.currentTimeMillis();
+//            System.out.println("conversão: " + ((t2 - t) / 1000.0) + "ms");
+
             cep.getTextArea().setCaretPosition(0);
 
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
@@ -929,8 +933,8 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                     long t = System.currentTimeMillis();
                     f = Parser.decode(cep.getTextArea().getText());
                     long t2 = System.currentTimeMillis();
-                    System.out.println("t:" + ((t2-t)/1000.0));
-                    
+//                    System.out.println("conversão: " + ((t2 - t) / 1000.0) + "ms");
+
                 } catch (ParseException ex) {
                     errorOnLine = ex.currentToken.next.endLine;
                     errorColumn = ex.currentToken.next.beginColumn;

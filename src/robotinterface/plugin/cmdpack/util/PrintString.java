@@ -54,81 +54,75 @@ import robotinterface.util.trafficsimulator.Timer;
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
     private static Color myColor = Color.decode("#08B9AC");
-    private String format;
-    private ArrayList<String> varNames;
+    private ArrayList<Argument> myArgs;
     private final Timer timer = new Timer(2);
 
     public PrintString() {
-        varNames = new ArrayList<>();
-        format = "";
+        myArgs = new ArrayList<>();
+        myArgs.add(new Argument("", Argument.STRING_LITERAL));
     }
 
-    public PrintString(String str, boolean b) {
-        updateVariables(str);
-        setProcedure(toString());
-    }
-
-    private void updateVariables(String str) {
-        int l = str.lastIndexOf("\"");
-
-        String w = str.substring(l + 1, str.length());
-
-        if (varNames == null) {
-            varNames = new ArrayList<>();
-        }
-
-        varNames.clear();
-
-        for (String var : w.split(",")) {
-            String vart = var.trim();
-            if (vart.endsWith(")")) {
-                vart = vart.replace(")", "");
-            }
-            if (!vart.isEmpty()) {
-                varNames.add(vart);
-            }
-        }
-
-        int s = str.indexOf("\"") + 1;
-
-        this.format = str.substring(s, l);
-    }
-
-    private void setFormat(String format) {
-        this.format = format;
-    }
-
-    private String getFormat() {
-        return format;
-    }
-
-    private ArrayList<String> getVariables() {
-        return varNames;
-    }
-
+    @Deprecated
     public PrintString(String str, String... vars) {
-        if (vars != null) {
-            varNames = new ArrayList<>();
-            varNames.addAll(Arrays.asList(vars));
-        }
-        this.format = str;
+        this();
+    }
+
+    private PrintString(Argument[] args) {
+        myArgs = new ArrayList<>();
+        myArgs.addAll(Arrays.asList(args));
         setProcedure(toString());
     }
+
+//    private void updateVariables(String str) {
+//        int l = str.lastIndexOf("\"");
+//
+//        String w = str.substring(l + 1, str.length());
+//
+//        if (varNames == null) {
+//            varNames = new ArrayList<>();
+//        }
+//
+//        varNames.clear();
+//
+//        for (String var : w.split(",")) {
+//            String vart = var.trim();
+//            if (vart.endsWith(")")) {
+//                vart = vart.replace(")", "");
+//            }
+//            if (!vart.isEmpty()) {
+//                varNames.add(vart);
+//            }
+//        }
+//
+//        int s = str.indexOf("\"") + 1;
+//
+//        this.format = str.substring(s, l);
+//    }
+//    private void setFormat(String format) {
+//        myArgs.get(0).set(format, Argument.STRING_LITERAL);
+//    }
+
+//    private String getFormat() {
+//        return myArgs.get(0).getStringValue();
+//    }
+//
+//    private ArrayList<Argument> getVariables() {
+//        return myArgs;
+//    }
 
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Clock clock = rm.getResource(Clock.class);
-        String out = format;
+        JEP parser = rm.getResource(JEP.class);
+        String out = myArgs.get(0).getStringValue();
 
         String padps = "%V"; //printAllDecimalPlacesStr
         String ptdps = "%v"; //printTwoDecimalPlacesStr
         String replace;
         DecimalFormat df = new DecimalFormat("#.00");
-        Object value;
 
-        for (String varName : varNames) {
-            JEP parser = rm.getResource(JEP.class);
-            Variable var = parser.getSymbolTable().getVar(varName);
+        for (Argument arg : myArgs) {
+            arg.parse(parser);
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
             boolean printTwoDecimalPlaces = ((padpi == -1) ? true
@@ -140,15 +134,11 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 //            System.out.println(printTwoDecimalPlaces);
 //            System.out.println(replace);
 
-            if (var != null && var.hasValidValue()) {
-                value = var.getValue();
-                if (printTwoDecimalPlaces && value instanceof Double) {
-                    out = out.replaceFirst(replace, df.format((Double) value));
-                } else {
-                    out = out.replaceFirst(replace, value.toString());
-                }
+            Object value = arg.getValue();
+            if (printTwoDecimalPlaces && value instanceof Double) {
+                out = out.replaceFirst(replace, df.format((Double) value));
             } else {
-                out = out.replaceFirst(replace, "¿" + varName + "?");
+                out = out.replaceFirst(replace, value.toString());
             }
         }
 
@@ -165,13 +155,18 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-
-        sb.append("print(\"").append(format.replaceAll("\n", "/n")).append("\"");
-
-        for (String s : varNames) {
-            sb.append(", ").append(s);
+        sb.append("print(");
+        boolean format = true;
+        for (Argument arg : myArgs) {
+            if (format) {
+                sb.append("\"");
+                sb.append(arg.getStringValue());
+                sb.append("\"");
+                format = false;
+            } else {
+                sb.append(", ").append(arg);
+            }
         }
-
         sb.append(")");
         return sb.toString();
     }
@@ -200,11 +195,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         return new Item("Exibir", myShape, myColor);
     }
 
-    @Override
-    public Object createInstance() {
-        return new PrintString("Hello World!");
-    }
-
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
 
         final int TEXTFIELD_WIDTH = 130;
@@ -231,20 +221,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     combobVar.setSelectedItem(data);
                 }
 
-//                combobVar.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-//                        JComboBox cb = (JComboBox) e.getSource();
-//                        var = (String) cb.getSelectedItem();
-//                        if (var != nullvar.equals(RELOAD_VARS_ITEM)) {
-//                            cb.removeAllItems();
-//                            cb.addItem(RELOAD_VARS_ITEM);
-////                            for (String str : ReadDevice.super.getDeclaredVariables()) {
-////                                cb.addItem(str);
-////                            }
-//                        }
-//                    }
-//                });
                 int x = BEGIN_X + INSET_X;
                 int y = INSET_Y;
 
@@ -263,7 +239,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                         Object o = ((JComboBox) jComponent).getSelectedItem();
                         if (o != null) {
                             String varName = o.toString();
-                            p.getVariables().add(varName);
+                            p.myArgs.add(new Argument(varName, Argument.SINGLE_VARIABLE));
                             return ", " + varName;
                         }
                     }
@@ -326,6 +302,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
                 if (widgets.size() > 0) {
                     try {
+                        p.myArgs.clear();
                         StringBuilder sb = new StringBuilder();
                         Iterator<Widget> iterator = widgets.iterator();
                         String str;
@@ -336,12 +313,11 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                         jComponent = tmpWidget.getJComponent();
                         if (jComponent instanceof JTextField) {
                             str = ((JTextField) jComponent).getText();
+                            p.myArgs.add(new Argument(str, Argument.STRING_LITERAL));
                             if (!str.isEmpty()) {
                                 sb.append(str);
                             }
                         }
-                        p.setFormat(sb.toString());
-                        p.getVariables().clear();
 
                         return "\"" + sb.toString() + "\"";
                     } catch (NoSuchElementException e) {
@@ -366,24 +342,25 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             public void updateLines() {
 
                 if (string.startsWith("print")) {
-                    p.updateVariables(string);
+//                    p.updateVariables(string);??????????????????????
+                    
 
                     clear();
                 } else {
-                    p.varNames.clear();
+//                    p.myArgs.clear();
                 }
 
-                if (getSize() < 1) {
+                if (getSize() == 0) {
                     clear();
-                    addLine(headerLine, p.format);
+                    addLine(headerLine, p.myArgs.get(0).getStringValue());
                 }
 
                 String subStr = "%v";
                 int ocorrences = (string.length() - string.toLowerCase().replace(subStr, "").length()) / subStr.length();;
-                if (!p.varNames.isEmpty()) {
-                    ocorrences -= p.varNames.size();
-                    for (String var : p.varNames) {
-                        addLine(varSelectiteonLine, var);
+                if (p.myArgs.size() > 1) {
+                    ocorrences -= (p.myArgs.size() -1);
+                    for (int i = 1; i < p.myArgs.size(); i++) {
+                        addLine(varSelectiteonLine, p.myArgs.get(i).getVariableName());
                     }
                 } else {
                     ocorrences -= getSize() - 1;
@@ -439,11 +416,25 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof PrintString) {
-            ((PrintString) copy).format = format;
-            ((PrintString) copy).varNames.clear();
-            ((PrintString) copy).varNames.addAll(varNames);
+            ((PrintString) copy).myArgs.clear();
+            ((PrintString) copy).myArgs.addAll(myArgs);
         }
         return copy;
+    }
+
+    @Override
+    public Object createInstance() {
+        return new PrintString("");
+    }
+
+    @Override
+    public int getParameters() {
+        return -2;
+    }
+
+    @Override
+    public PrintString createInstance(Argument[] args) {
+        return new PrintString(args);
     }
 
     public static void main(String[] args) {
@@ -465,20 +456,5 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     @Override
     public String getToken() {
         return "print";
-    }
-
-//    @Override
-//    public PrintString createInstance(String args) {
-//        return new PrintString(args, true);
-//    }
-
-    @Override
-    public int getParameters() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public PrintString createInstance(Argument[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

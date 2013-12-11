@@ -4,6 +4,7 @@
  */
 package robotinterface.drawable;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -15,7 +16,14 @@ import java.awt.geom.Rectangle2D;
  */
 public class TextLabel {
 
-    private Font font;
+    protected static Font defaultFont;
+
+    static {
+        defaultFont = new Font("Dialog", Font.BOLD, 12);
+    }
+
+    private Font font = defaultFont;
+    private Color color = Color.BLACK;
     private String text;
     private boolean center;
     private double x = 0;
@@ -32,14 +40,22 @@ public class TextLabel {
         this.y = y;
         this.center = center;
     }
-    
+
     public TextLabel(String text, double x, double y) {
         this.text = text;
         this.x = x;
         this.y = y;
         this.center = false;
     }
-    
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public Font getFont() {
         return font;
     }
@@ -47,7 +63,7 @@ public class TextLabel {
     public void setFont(Font font) {
         this.font = font;
     }
-    
+
     public String getText() {
         return text;
     }

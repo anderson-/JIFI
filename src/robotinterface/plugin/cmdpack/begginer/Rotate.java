@@ -76,36 +76,40 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     private RotateAction rotateAction = null;
     private static Color myColor = Color.decode("#FF8533");
+    private Argument arg0;
     private int destAngle;
-    private int turnAngle;
+//    private int turnAngle;
     private int lastAngle;
     private int turnRemaining;
-    private String var = null;
     private GraphicObject resource = null;
     private HBridge hbridge;
     private Compass compass;
 
     public Rotate() {
-        destAngle = 0;
+        arg0 = new Argument("0", Argument.NUMBER_LITERAL);
     }
 
     public Rotate(int angle) {
-        super();
-        this.destAngle = angle;
+        arg0 = new Argument(angle, Argument.NUMBER_LITERAL);
         updateProcedure();
     }
 
+    private Rotate(Argument[] args) {
+        this();
+        arg0.set(args[0]);
+    }
+
     public int getAngle() {
-        return turnAngle;
+        return (int) arg0.getDoubleValue();
     }
 
     public void setAngle(int angle) {
-        this.turnAngle = angle;
+        arg0.set(angle, Argument.NUMBER_LITERAL);
         updateProcedure();
     }
 
     public void updateProcedure() {
-        setProcedure("rotate(" + ((var != null) ? var : turnAngle) + ")");
+        setProcedure("rotate(" + arg0 + ")");
     }
 
     @Override
@@ -147,27 +151,19 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public void begin(ResourceManager rm) throws ExecutionException {
         Robot robot = rm.getResource(Robot.class);
         VirtualConnection vc = (VirtualConnection) robot.getMainConnection();
+        JEP parser = rm.getResource(JEP.class);
+        arg0.parse(parser);
         if (vc.serial()) {
             rotateAction = robot.getAction(RotateAction.class);
             if (rotateAction != null) {
-                rotateAction.setAngle(turnAngle);
+                rotateAction.setAngle((int) arg0.getDoubleValue());
                 rotateAction.begin(robot);
             }
         } else {
+            int turnAngle = (int) arg0.getDoubleValue();
             destAngle = turnAngle;
             hbridge = robot.getDevice(HBridge.class);
             compass = robot.getDevice(Compass.class);
-            if (var != null) {
-                JEP parser = rm.getResource(JEP.class);
-                Variable v = parser.getSymbolTable().getVar(var);
-                if (v != null && v.hasValidValue()) {
-                    Object o = v.getValue();
-                    if (o instanceof Number) {
-                        Number n = (Number) o;
-                        destAngle = n.intValue();
-                    }
-                }
-            }
             if (hbridge != null && compass != null) {
                 turnRemaining = turnAngle;
                 lastAngle = (int) Math.toDegrees(robot.getTheta());
@@ -231,11 +227,11 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                     if (data instanceof Rotate) {
                         Rotate m = (Rotate) data;
 
-                        if (m.var != null) {
-                            combobox1.setSelectedItem(m.var);
+                        if (r.arg0.isVariable()) {
+                            combobox1.setSelectedItem(r.arg0.toString());
                             num1 = false;
                         } else {
-                            spinner1.setValue(m.turnAngle);
+                            spinner1.setValue((int) r.arg0.getDoubleValue());
                         }
                     }
                 }
@@ -306,16 +302,18 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                             Object o = cb.getSelectedItem();
                             if (o != null) {
                                 sb.append(o.toString());
+                                r.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
                             }
                         } else if (jc instanceof JSpinner) {
                             JSpinner s = (JSpinner) jc;
                             sb.append(s.getValue());
+                            r.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
                         }
                     }
                 }
 
                 String str = sb.toString() + ")";
-                updateRotate(str.substring(str.indexOf("(") + 1, str.indexOf(")")), r);
+//                updateRotate(str.substring(str.indexOf("(") + 1, str.indexOf(")")), r);
                 return str;
             }
         };
@@ -333,7 +331,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                     addLine(headerLine, r);
                 } else {
                     String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
-                    updateRotate(str, r);
+//                    updateRotate(str, r);
                     addLine(headerLine, r);
                 }
                 string = getString();
@@ -361,10 +359,20 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
         return new Item("Girar", myShape, myColor);
     }
+    
+    @Override
+    public int getParameters() {
+        return 1;
+    }
 
     @Override
     public Object createInstance() {
         return new Rotate();
+    }
+    
+    @Override
+    public Rotate createInstance(Argument[] args) {
+        return new Rotate(args);
     }
 
     @Override
@@ -386,28 +394,27 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Rotate) {
-            ((Rotate) copy).destAngle = destAngle;
-            ((Rotate) copy).var = var;
+            ((Rotate) copy).arg0 = arg0;
         }
         return copy;
     }
 
-    private static void updateRotate(String str, Rotate m) {
-        String[] argv = str.split(",");
-        if (argv.length == 0) {
-            m.turnAngle = 0;
-        } else if (argv.length == 1) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                m.var = argv[0];
-            } else {
-                int a = Integer.parseInt(argv[0].trim());
-                m.turnAngle = a;
-                m.var = null;
-            }
-        }
-        m.updateProcedure();
-    }
+//    private static void updateRotate(String str, Rotate m) {
+//        String[] argv = str.split(",");
+//        if (argv.length == 0) {
+//            m.turnAngle = 0;
+//        } else if (argv.length == 1) {
+//            argv[0] = argv[0].trim();
+//            if (Character.isLetter(argv[0].charAt(0))) {
+//                m.var = argv[0];
+//            } else {
+//                int a = Integer.parseInt(argv[0].trim());
+//                m.turnAngle = a;
+//                m.var = null;
+//            }
+//        }
+//        m.updateProcedure();
+//    }
 
 //    @Override
 //    public Rotate createInstance(String args) {
@@ -422,19 +429,9 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     public static void main(String[] args) {
         Rotate p = new Rotate();
-        Rotate.updateRotate("x", p);
+//        Rotate.updateRotate("x", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
-    }
-
-    @Override
-    public int getParameters() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Rotate createInstance(Argument[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

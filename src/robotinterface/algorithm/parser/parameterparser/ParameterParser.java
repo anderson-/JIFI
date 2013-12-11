@@ -34,16 +34,15 @@ public class ParameterParser {
             });
         }
 
-        System.out.println(">>" + functionName);
-
-        for (int i = 0; i < argEx.size(); i++) {
-            System.out.println("p" + i + ": '" + argEx.get(i) + "'::" + argType.get(i));
-        }
-
+//        System.out.println(">>" + functionName);
+//
+//        for (int i = 0; i < argEx.size(); i++) {
+//            System.out.println("p" + i + ": '" + argEx.get(i) + "'::" + argType.get(i));
+//        }
         args.clear();
         for (int i = 0; i < argEx.size(); i++) {
             int type = argType.get(i);
-
+            String str = argEx.get(i);
             switch (type) {
                 case DecoderConstants.INTEGER_LITERAL:
                 case DecoderConstants.DECIMAL_LITERAL:
@@ -54,6 +53,7 @@ public class ParameterParser {
                     break;
                 case DecoderConstants.STRING_LITERAL:
                     type = Argument.STRING_LITERAL;
+                    str = str.replace("\"", "");
                     break;
                 case DecoderConstants.IDENTIFIER:
                     type = Argument.SINGLE_VARIABLE;
@@ -62,7 +62,7 @@ public class ParameterParser {
                     type = Argument.EXPRESSION;
             }
 
-            args.add(new Argument(argEx.get(i), type));
+            args.add(new Argument(str, type));
         }
 
         return args.toArray(new Argument[args.size()]);

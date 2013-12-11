@@ -71,7 +71,6 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         JEP parser = rm.getResource(JEP.class);
         arg0.parse(parser);
         timer.setTick((long) arg0.getDoubleValue());
-        System.out.println("v:" + arg0.getDoubleValue());
         timer.reset();
         clock.addTimer(timer);
     }
@@ -245,14 +244,12 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                             Object o = cb.getSelectedItem();
                             if (o != null) {
                                 sb.append(o.toString());
-//                                W.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
-                                System.out.println("v");
+                                W.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
                             }
                         } else if (jc instanceof JSpinner) {
                             JSpinner s = (JSpinner) jc;
                             sb.append(s.getValue());
-//                            W.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
-                            System.out.println("n");
+                            W.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
                         }
                     }
                 }
@@ -288,7 +285,6 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         super.copy(copy);
         if (copy instanceof Wait){
             ((Wait)copy).arg0 = arg0;
-            System.out.println("c");
         }
         return copy;
     }

@@ -68,17 +68,28 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     private static Color myColor = Color.decode("#ED4A6A");
     private Device device;
     private Class<? extends Device> type;
-    private String deviceName = "";
-    private String var;
+//    private String deviceName = "";
+    private Argument arg0;
+    private Argument arg1;
 
     public ReadDevice() {
+        arg0 = new Argument("Distancia", Argument.SINGLE_VARIABLE);
+        arg1 = new Argument("", Argument.SINGLE_VARIABLE);
     }
 
-    public ReadDevice(Class<? extends Device> type, String var) {
-        this.type = type;
-        this.var = var;
+    public ReadDevice(Argument[] args) {
+        this();
+        arg0.set(args[0]);
+        if (args.length > 1) {
+            arg1.set(args[1]);
+        }
     }
 
+//    public ReadDevice(Class<? extends Device> type, String var) {
+//        this();
+//        this.type = type;
+//        arg0.set("", Argument.SINGLE_VARIABLE);
+//    }
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Robot robot = rm.getResource(Robot.class);
@@ -114,12 +125,11 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             if (device != null && device.isValidRead()) {
                 String deviceState = device.stateToString();
                 if (!deviceState.isEmpty()) {
-                    execute(var + " = " + deviceState, rm);
+                    execute(arg1.getVariableName() + " = " + deviceState, rm);
                 }
                 return true;
             }
         } catch (Message.TimeoutException ex) {
-//            System.err.println("RE-ENVIANDO");
             begin(rm);
         }
         return false;
@@ -149,25 +159,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             comboboxDev.addItem(str);
         }
 
-//        comboboxDev.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JComboBox cb = (JComboBox) e.getSource();
-//                String devName = (String) cb.getSelectedItem();
-//                m.deviceName = devName;
-//                m.type = deviceMap.get(devName);
-//                System.out.println(m.type);
-//            }
-//        });
-//
-//        comboboxVar.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JComboBox cb = (JComboBox) e.getSource();
-//                String varName = (String) cb.getSelectedItem();
-//                m.var = varName;
-//            }
-//        });
         final int TEXTFIELD_WIDTH = 100;
         final int TEXTFIELD_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
@@ -188,12 +179,12 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                     if (data instanceof ReadDevice) {
                         ReadDevice rd = (ReadDevice) data;
 
-                        if (rd.var != null && !rd.var.isEmpty()) {
-                            comboboxVar.setSelectedItem(rd.var);
+                        if (!rd.arg0.getVariableName().isEmpty()) {
+                            comboboxDev.setSelectedItem(rd.arg0.getVariableName());
                         }
 
-                        if (rd.deviceName != null) {
-                            comboboxDev.setSelectedItem(rd.deviceName);
+                        if (!rd.arg1.getVariableName().isEmpty()) {
+                            comboboxVar.setSelectedItem(rd.arg1.getVariableName());
                         }
                     }
                 }
@@ -238,11 +229,11 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             @Override
             public String getString() {
                 String devName = (String) comboboxDev.getSelectedItem();
-                rd.deviceName = devName;
+                rd.arg0.set(devName, Argument.SINGLE_VARIABLE);
                 rd.type = deviceMap.get(devName);
 
                 String varName = (String) comboboxVar.getSelectedItem();
-                rd.var = varName;
+                rd.arg1.set(varName, Argument.SINGLE_VARIABLE);
 
                 return rd.toString();
             }
@@ -251,33 +242,28 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         return dcb;
     }
 
-    private static void updateReadDevice(String args, ReadDevice rd) {
-        String[] argv = args.split(",");
-        if (argv.length == 1) {
-            argv[0] = argv[0].trim();
-            rd.deviceName = argv[0];
-            rd.var = null;
-        } else if (argv.length == 2) {
-            argv[0] = argv[0].trim();
-            argv[1] = argv[1].trim();
-            rd.deviceName = argv[0];
-            rd.var = argv[1];
-        } else {
-            rd.deviceName = null;
-            rd.var = null;
-        }
-    }
-
+//    private static void updateReadDevice(String args, ReadDevice rd) {
+//        String[] argv = args.split(",");
+//        if (argv.length == 1) {
+//            argv[0] = argv[0].trim();
+//            rd.deviceName = argv[0];
+//            rd.var = null;
+//        } else if (argv.length == 2) {
+//            argv[0] = argv[0].trim();
+//            argv[1] = argv[1].trim();
+//            rd.deviceName = argv[0];
+//            rd.var = argv[1];
+//        } else {
+//            rd.deviceName = null;
+//            rd.var = null;
+//        }
+//    }
     @Override
     public String toString() {
-        if (deviceName != null) {
-            if (var != null) {
-                return "read(" + deviceName + "," + var + ")";
-            } else {
-                return "read(" + deviceName + ")";
-            }
+        if (!arg1.getVariableName().isEmpty()) {
+            return "read(" + arg0 + "," + arg1 + ")";
         } else {
-            return "read()";
+            return "read(" + arg0 + ")";
         }
     }
 
@@ -336,9 +322,9 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);
-        if (copy instanceof ReadDevice){
-            ((ReadDevice)copy).deviceName = deviceName;
-            ((ReadDevice)copy).var = var;
+        if (copy instanceof ReadDevice) {
+            ((ReadDevice) copy).arg0 = arg0;
+            ((ReadDevice) copy).arg1 = arg1;
         }
         return copy;
     }
@@ -348,9 +334,19 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         return new ReadDevice();
     }
 
+    @Override
+    public int getParameters() {
+        return -2;
+    }
+
+    @Override
+    public ReadDevice createInstance(Argument[] args) {
+        return new ReadDevice(args);
+    }
+
     public static void main(String[] args) {
         ReadDevice p = new ReadDevice();
-        updateReadDevice("Distancia, y", p);
+//        updateReadDevice("Distancia, y", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
@@ -366,9 +362,9 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         fc.setParams(params);
         return fc;
     }
-    
+
     @Override
-    public String getToken(){
+    public String getToken() {
         return "read";
     }
 
@@ -380,14 +376,4 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 //        }
 //        return rd;
 //    }
-
-    @Override
-    public int getParameters() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ReadDevice createInstance(Argument[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

@@ -492,14 +492,14 @@ public class Interpreter extends Thread {
 //        ifCompass3.addFalse(new PrintString("Girando para a direita"));
 //        ifCompass2.addTrue(ifCompass3);
         loopCompass.add(ifCompass);
-        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
+//        loopCompass.add(new ReadDevice(Compass.class, "alpha"));
         loopCompass.add(new PrintString("Angulo atual: %v", "alpha"));
         func.add(loopCompass);
         func.add(new Move(0, 0));
 //        func.add(new ReadDevice(aw));
 //        func.add(new BlockRoboF(aw));
         func.add(new Wait(500));
-        func.add(new ReadDevice(Compass.class, "alpha"));
+//        func.add(new ReadDevice(Compass.class, "alpha"));
         func.add(new PrintString("Angulo final: %v", "alpha"));
         func.add(new PrintString("fim"));
         return func;

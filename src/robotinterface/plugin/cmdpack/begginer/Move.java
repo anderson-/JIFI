@@ -77,42 +77,29 @@ import robotinterface.util.trafficsimulator.Clock;
 public class Move extends Procedure implements Classifiable, FunctionToken<Move> {
 
     private static Color myColor = Color.decode("#47B56C");
-    private byte m1, m2;
-    private String var1 = null;
-    private String var2 = null;
+    private Argument arg0;
+    private Argument arg1;
     private HBridge hBridge = null;
 
     public Move() {
-        m1 = m2 = 0;
+        arg0 = new Argument("0", Argument.NUMBER_LITERAL);
+        arg1 = new Argument("0", Argument.NUMBER_LITERAL);
     }
 
     public Move(int m1, int m2) {
-        super();
-        this.m1 = (byte) m1;
-        this.m2 = (byte) m2;
+        arg0 = new Argument(m1, Argument.NUMBER_LITERAL);
+        arg1 = new Argument(m2, Argument.NUMBER_LITERAL);
         updateProcedure();
     }
 
-    public byte getM1() {
-        return m1;
-    }
-
-    public void setM1(byte m1) {
-        this.m1 = m1;
-        updateProcedure();
-    }
-
-    public byte getM2() {
-        return m2;
-    }
-
-    public void setM2(byte m2) {
-        this.m2 = m2;
-        updateProcedure();
+    public Move(Argument[] args) {
+        this();
+        arg0.set(args[0]);
+        arg1.set(args[1]);
     }
 
     public void updateProcedure() {
-        setProcedure("move(" + ((var1 != null) ? var1 : m1) + "," + ((var2 != null) ? var2 : m2) + ")");
+        setProcedure("move(" + arg0 + "," + arg1 + ")");
     }
 
     @Override
@@ -125,34 +112,14 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     public void begin(ResourceManager rm) throws ExecutionException {
         Robot robot = rm.getResource(Robot.class);
         hBridge = robot.getDevice(HBridge.class);
+
         if (hBridge != null) {
-
             JEP parser = rm.getResource(JEP.class);
+            arg0.parse(parser);
+            arg1.parse(parser);
 
-            byte t1 = m1;
-            byte t2 = m2;
-
-            if (var1 != null) {
-                Variable v = parser.getSymbolTable().getVar(var1);
-                if (v != null && v.hasValidValue()) {
-                    Object o = v.getValue();
-                    if (o instanceof Number) {
-                        Number n = (Number) o;
-                        t1 = n.byteValue();
-                    }
-                }
-            }
-
-            if (var2 != null) {
-                Variable v = parser.getSymbolTable().getVar(var2);
-                if (v != null && v.hasValidValue()) {
-                    Object o = v.getValue();
-                    if (o instanceof Number) {
-                        Number n = (Number) o;
-                        t2 = n.byteValue();
-                    }
-                }
-            }
+            byte t1 = (byte) arg0.getDoubleValue();
+            byte t2 = (byte) arg1.getDoubleValue();
 
             hBridge.setWaiting();
             hBridge.setFullState(t1, t2);
@@ -221,18 +188,18 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
                     if (data instanceof Move) {
                         Move m = (Move) data;
 
-                        if (m.var1 != null) {
-                            combobox1.setSelectedItem(m.var1);
+                        if (m.arg0.isVariable()) {
+                            combobox1.setSelectedItem(m.arg0.getVariableName());
                             num1 = false;
                         } else {
-                            spinner1.setValue((int) m.m1);
+                            spinner1.setValue((int) m.arg0.getDoubleValue());
                         }
 
-                        if (m.var2 != null) {
-                            combobox2.setSelectedItem(m.var2);
+                        if (m.arg1.isVariable()) {
+                            combobox2.setSelectedItem(m.arg1.getVariableName());
                             num2 = false;
                         } else {
-                            spinner2.setValue((int) m.m2);
+                            spinner2.setValue((int) m.arg1.getDoubleValue());
                         }
                     }
                 }
@@ -335,6 +302,8 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
 
                 sb.append("move(");
 
+                boolean firstArg = true;
+
                 for (Widget w : widgets) {
                     if (container.contains(w)) {
                         JComponent jc = w.getJComponent();
@@ -344,22 +313,30 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
                             if (o != null) {
                                 sb.append(o.toString());
                                 sb.append(" ");
+                                if (firstArg) {
+                                    m.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
+                                    firstArg = false;
+                                } else {
+                                    m.arg1.set(o.toString(), Argument.SINGLE_VARIABLE);
+                                }
                             }
                         } else if (jc instanceof JSpinner) {
                             JSpinner s = (JSpinner) jc;
                             sb.append(s.getValue());
                             sb.append(" ");
+                            if (firstArg) {
+                                m.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
+                                firstArg = false;
+                            } else {
+                                m.arg1.set(s.getValue(), Argument.NUMBER_LITERAL);
+                            }
                         }
                     }
                 }
 
                 String str = sb.toString().trim().replace(" ", ",") + ")";
-                updateMove(str.substring(str.indexOf("(") + 1, str.indexOf(")")), m);
+//                updateMove(str.substring(str.indexOf("(") + 1, str.indexOf(")")), m);
                 return str;
-            }
-
-            private void autoUpdateValue(JSpinner spinner1) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
 
@@ -375,8 +352,8 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
                 if (string.length() <= 1) {
                     addLine(headerLine, m);
                 } else {
-                    String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
-                    updateMove(str, m);
+//                    String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
+//                    updateMove(str, m);
                     addLine(headerLine, m);
                 }
                 string = getString();
@@ -408,6 +385,16 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     }
 
     @Override
+    public int getParameters() {
+        return 2;
+    }
+
+    @Override
+    public Move createInstance(Argument[] args) {
+        return new Move(args);
+    }
+
+    @Override
     public Completion getInfo(CompletionProvider provider) {
         FunctionCompletion fc = new FunctionCompletion(provider, "move(r1,r2);", null);
         fc.setShortDescription("Move o robô, sendo r1 e r2 a roda esquerda e direita respectivamente. Cada roda recebe um valor\n"
@@ -425,52 +412,50 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Move) {
-            ((Move) copy).m1 = m1;
-            ((Move) copy).m2 = m2;
-            ((Move) copy).var1 = var1;
-            ((Move) copy).var2 = var2;
+            ((Move) copy).arg0 = arg0;
+            ((Move) copy).arg1 = arg1;
         }
         return copy;
     }
 
-    private static void updateMove(String str, Move m) {
-        String[] argv = str.split(",");
-        if (argv.length == 0) {
-            m.m1 = (byte) 0;
-            m.m2 = (byte) 0;
-        } else if (argv.length == 1) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                m.var1 = argv[0];
-                m.var2 = argv[0];
-            } else {
-                int v = Integer.parseInt(argv[0].trim());
-                m.m1 = (byte) v;
-                m.m2 = (byte) v;
-                m.var1 = null;
-                m.var2 = null;
-            }
-        } else if (argv.length == 2) {
-            argv[0] = argv[0].trim();
-            if (Character.isLetter(argv[0].charAt(0))) {
-                m.var1 = argv[0];
-            } else {
-                int v = Integer.parseInt(argv[0].trim());
-                m.m1 = (byte) v;
-                m.var1 = null;
-            }
-
-            argv[1] = argv[1].trim();
-            if (Character.isLetter(argv[1].charAt(0))) {
-                m.var2 = argv[1];
-            } else {
-                int v = Integer.parseInt(argv[1].trim());
-                m.m2 = (byte) v;
-                m.var2 = null;
-            }
-        }
-        m.updateProcedure();
-    }
+//    private static void updateMove(String str, Move m) {
+//        String[] argv = str.split(",");
+//        if (argv.length == 0) {
+//            m.m1 = (byte) 0;
+//            m.m2 = (byte) 0;
+//        } else if (argv.length == 1) {
+//            argv[0] = argv[0].trim();
+//            if (Character.isLetter(argv[0].charAt(0))) {
+//                m.var1 = argv[0];
+//                m.var2 = argv[0];
+//            } else {
+//                int v = Integer.parseInt(argv[0].trim());
+//                m.m1 = (byte) v;
+//                m.m2 = (byte) v;
+//                m.var1 = null;
+//                m.var2 = null;
+//            }
+//        } else if (argv.length == 2) {
+//            argv[0] = argv[0].trim();
+//            if (Character.isLetter(argv[0].charAt(0))) {
+//                m.var1 = argv[0];
+//            } else {
+//                int v = Integer.parseInt(argv[0].trim());
+//                m.m1 = (byte) v;
+//                m.var1 = null;
+//            }
+//
+//            argv[1] = argv[1].trim();
+//            if (Character.isLetter(argv[1].charAt(0))) {
+//                m.var2 = argv[1];
+//            } else {
+//                int v = Integer.parseInt(argv[1].trim());
+//                m.m2 = (byte) v;
+//                m.var2 = null;
+//            }
+//        }
+//        m.updateProcedure();
+//    }
 
 //    @Override
 //    public Move createInstance(String args) {
@@ -482,22 +467,11 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
 //        return m;
 //        //return new ParseErrorProcedure(this, args);
 //    }
-
     public static void main(String[] args) {
         Move p = new Move();
-        Move.updateMove("x", p);
+//        Move.updateMove("x", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
-    }
-
-    @Override
-    public int getParameters() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Move createInstance(Argument[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

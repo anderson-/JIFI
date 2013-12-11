@@ -11,97 +11,101 @@ public interface DecoderConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int VARIABLE = 5;
+  int COMMENT = 5;
   /** RegularExpression Id. */
-  int FUNCTION = 6;
+  int MULTICOMMENT = 6;
   /** RegularExpression Id. */
-  int IF = 7;
+  int VARIABLE = 7;
   /** RegularExpression Id. */
-  int ELSE = 8;
+  int FUNCTION = 8;
   /** RegularExpression Id. */
-  int WHILE = 9;
+  int IF = 9;
   /** RegularExpression Id. */
-  int BREAK = 10;
+  int ELSE = 10;
   /** RegularExpression Id. */
-  int CONTINUE = 11;
+  int WHILE = 11;
   /** RegularExpression Id. */
-  int RETURN = 12;
+  int BREAK = 12;
   /** RegularExpression Id. */
-  int INTEGER_LITERAL = 13;
+  int CONTINUE = 13;
   /** RegularExpression Id. */
-  int DECIMAL_LITERAL = 14;
+  int RETURN = 14;
   /** RegularExpression Id. */
-  int HEX_LITERAL = 15;
+  int INTEGER_LITERAL = 15;
   /** RegularExpression Id. */
-  int OCTAL_LITERAL = 16;
+  int DECIMAL_LITERAL = 16;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 17;
+  int HEX_LITERAL = 17;
   /** RegularExpression Id. */
-  int EXPONENT = 18;
+  int OCTAL_LITERAL = 18;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 19;
+  int FLOATING_POINT_LITERAL = 19;
   /** RegularExpression Id. */
-  int IDENTIFIER = 20;
+  int EXPONENT = 20;
   /** RegularExpression Id. */
-  int LETTER = 21;
+  int STRING_LITERAL = 21;
   /** RegularExpression Id. */
-  int DIGIT = 22;
+  int IDENTIFIER = 22;
   /** RegularExpression Id. */
-  int ASSIGN = 23;
+  int LETTER = 23;
   /** RegularExpression Id. */
-  int GT = 24;
+  int DIGIT = 24;
   /** RegularExpression Id. */
-  int LT = 25;
+  int ASSIGN = 25;
   /** RegularExpression Id. */
-  int EQ = 26;
+  int GT = 26;
   /** RegularExpression Id. */
-  int LE = 27;
+  int LT = 27;
   /** RegularExpression Id. */
-  int GE = 28;
+  int EQ = 28;
   /** RegularExpression Id. */
-  int NE = 29;
+  int LE = 29;
   /** RegularExpression Id. */
-  int SC_OR = 30;
+  int GE = 30;
   /** RegularExpression Id. */
-  int SC_AND = 31;
+  int NE = 31;
   /** RegularExpression Id. */
-  int INCR = 32;
+  int SC_OR = 32;
   /** RegularExpression Id. */
-  int DECR = 33;
+  int SC_AND = 33;
   /** RegularExpression Id. */
-  int PLUS = 34;
+  int INCR = 34;
   /** RegularExpression Id. */
-  int MINUS = 35;
+  int DECR = 35;
   /** RegularExpression Id. */
-  int STAR = 36;
+  int PLUS = 36;
   /** RegularExpression Id. */
-  int SLASH = 37;
+  int MINUS = 37;
   /** RegularExpression Id. */
-  int BIT_AND = 38;
+  int STAR = 38;
   /** RegularExpression Id. */
-  int BIT_OR = 39;
+  int SLASH = 39;
   /** RegularExpression Id. */
-  int XOR = 40;
+  int BIT_AND = 40;
   /** RegularExpression Id. */
-  int REM = 41;
+  int BIT_OR = 41;
   /** RegularExpression Id. */
-  int LPAREN = 42;
+  int XOR = 42;
   /** RegularExpression Id. */
-  int RPAREN = 43;
+  int REM = 43;
   /** RegularExpression Id. */
-  int LBRACE = 44;
+  int LPAREN = 44;
   /** RegularExpression Id. */
-  int RBRACE = 45;
+  int RPAREN = 45;
   /** RegularExpression Id. */
-  int LBRACKET = 46;
+  int LBRACE = 46;
   /** RegularExpression Id. */
-  int RBRACKET = 47;
+  int RBRACE = 47;
   /** RegularExpression Id. */
-  int SEMICOLON = 48;
+  int LBRACKET = 48;
   /** RegularExpression Id. */
-  int COMMA = 49;
+  int RBRACKET = 49;
   /** RegularExpression Id. */
-  int DOT = 50;
+  int SEMICOLON = 50;
+  /** RegularExpression Id. */
+  int COMMA = 51;
+  /** RegularExpression Id. */
+  int DOT = 52;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -113,6 +117,8 @@ public interface DecoderConstants {
     "\"\\r\"",
     "\"\\t\"",
     "\"\\n\"",
+    "<COMMENT>",
+    "<MULTICOMMENT>",
     "\"var\"",
     "\"func\"",
     "\"if\"",
