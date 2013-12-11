@@ -18,7 +18,6 @@ public abstract class Action extends Message {
 
     private static final ByteBuffer buffer = ByteBuffer.allocate(256);
     protected boolean running = false;
-    protected boolean done = false;
     protected boolean autoSend = true;
     protected boolean singleMessage = false;
 
@@ -43,7 +42,6 @@ public abstract class Action extends Message {
         setWaiting();
         send(buffer);
         running = false;
-        done = false;
         if (!singleMessage){
             setWaiting(Long.MAX_VALUE); //espera terminar a ação
             run(this, robot); //espera confimação do comando
@@ -76,11 +74,9 @@ public abstract class Action extends Message {
 
     public final void setRunning() {
         running = true;
-        done = false;
     }
 
     public final void setDone() {
         running = false;
-        done = true;
     }
 }

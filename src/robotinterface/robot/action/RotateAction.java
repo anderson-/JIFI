@@ -5,6 +5,7 @@
 package robotinterface.robot.action;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.HBridge;
@@ -27,8 +28,9 @@ public class RotateAction extends Action {
     
     @Override
     public void putMessage(ByteBuffer data, Robot robot) {
+        data.order(ByteOrder.LITTLE_ENDIAN);
         data.put(Robot.CMD_RUN); //comando executar ação
-        data.put(getID()); //id da ação
+        data.put((byte) 1);//data.put(getID()); //id da ação
         data.put((byte) 2);//numero de dispositivos utilizados
         HBridge hbridge = robot.getDevice(HBridge.class);
         Compass compass = robot.getDevice(Compass.class);

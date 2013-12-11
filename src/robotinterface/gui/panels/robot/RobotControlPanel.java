@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.JComboBox;
@@ -18,6 +19,7 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.robot.Robot;
+import robotinterface.robot.action.Action;
 import robotinterface.robot.action.RotateAction;
 import robotinterface.robot.connection.Connection;
 import robotinterface.robot.connection.Serial;
@@ -155,7 +157,13 @@ public class RobotControlPanel extends JPanel {
         robot.add(new Compass());
         robot.add(new IRProximitySensor());
         robot.add(new ReflectanceSensorArray());
-        robot.add(new RotateAction());
+        robot.add(new Action() { //ação 0
+            @Override
+            public void putMessage(ByteBuffer data, Robot robot) {
+                
+            }
+        });
+        robot.add(new RotateAction());//ação 1 (como na biblioteca em cpp)
 
         initComponents();
         border = javax.swing.BorderFactory.createTitledBorder("Robô " + INSTANCE);
