@@ -9,7 +9,6 @@ import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
-import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -20,21 +19,20 @@ import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
-import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
-import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
 import robotinterface.util.trafficsimulator.Clock;
@@ -152,10 +150,9 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
         int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 87;
-        final MutableWidgetContainer.WidgetLine headerLine;
-        headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
             @Override
-            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Espera:", 20, true));
 
                 final JSpinner spinner = new JSpinner();
@@ -195,14 +192,14 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
                 x += strLen;
                 y -= 18;
 
-                final WidgetContainer.Widget wspinner1 = new WidgetContainer.Widget(spinner, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                final WidgetContainer.Widget wcombobox1 = new WidgetContainer.Widget(combobox, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wspinner1 = new Widget(spinner, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wcombobox1 = new Widget(combobox, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
                 widgets.add(wspinner1);
                 widgets.add(wcombobox1);
 
                 x += INSET_Y + TEXTFIELD_WIDTH;
 
-                widgets.add(new WidgetContainer.Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
 
                 x -= INSET_Y + TEXTFIELD_WIDTH;
 
@@ -230,13 +227,13 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             }
 
             @Override
-            public String getString(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
 
                 StringBuilder sb = new StringBuilder();
 
                 sb.append("wait(");
 
-                for (WidgetContainer.Widget w : widgets) {
+                for (Widget w : widgets) {
                     if (container.contains(w)) {
                         JComponent jc = w.getJComponent();
                         if (jc instanceof JComboBox) {

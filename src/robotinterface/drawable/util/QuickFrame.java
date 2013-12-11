@@ -6,7 +6,7 @@ package robotinterface.drawable.util;
 
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import java.awt.Dimension;
 import java.awt.event.ComponentListener;
 import javax.swing.JComponent;

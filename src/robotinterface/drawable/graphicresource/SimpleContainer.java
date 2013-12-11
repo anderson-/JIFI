@@ -32,7 +32,7 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 

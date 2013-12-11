@@ -8,7 +8,7 @@ import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.robot.Robot;

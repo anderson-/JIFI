@@ -29,7 +29,7 @@ import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;

@@ -45,12 +45,12 @@ import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer.Widget;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.GUI;
 import robotinterface.interpreter.ExecutionException;
@@ -295,7 +295,7 @@ public class Function extends Block {
         int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + 18 + TEXTFIELD_WIDTH;
         final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Função:", 20, true));
                 labels.add(new TextLabel("Nome:", INSET_X, 3 * INSET_Y + 28));
 
@@ -320,7 +320,7 @@ public class Function extends Block {
             private int argN = 0;
 
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 JTextField txArg = new JTextField();
 
                 if (data instanceof String) {
@@ -375,7 +375,7 @@ public class Function extends Block {
             private Widget remButton;
 
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 JButton bTmp = new JButton("+");
                 bTmp.setEnabled(false); //temporario
 
@@ -422,7 +422,7 @@ public class Function extends Block {
         int nullLineHeight = INSET_Y + TEXTFIELD_HEIGHT;
         final WidgetLine nullLine = new WidgetLine(nullLineHeight) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Argumentos:", INSET_X, 18));
             }
         };

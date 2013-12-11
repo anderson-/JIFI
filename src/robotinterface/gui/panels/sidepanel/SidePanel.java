@@ -12,7 +12,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.UIManager;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.plugin.Pluggable;

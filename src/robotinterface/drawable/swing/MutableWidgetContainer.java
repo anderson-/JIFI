@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package robotinterface.drawable;
+package robotinterface.drawable.swing;
 
+import robotinterface.drawable.swing.component.WidgetLine;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -27,6 +28,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import robotinterface.algorithm.procedure.Procedure;
+import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.util.QuickFrame;
 
 /**
@@ -35,63 +39,8 @@ import robotinterface.drawable.util.QuickFrame;
  */
 public class MutableWidgetContainer extends WidgetContainer {
 
-    public static abstract class WidgetLine {
-
-        private int width = 0;
-        private int height = 0;
-        private boolean onPageEnd = false;
-        private int index;
-
-        public WidgetLine() {
-        }
-
-        public WidgetLine(int height) {
-//            this.height = height;
-        }
-
-        public WidgetLine(int width, int height) {
-//            this.width = width;
-//            this.height = height;
-        }
-
-        public WidgetLine(boolean onPageEnd) {
-            this.onPageEnd = onPageEnd;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
-
-        public boolean isOnPageEnd() {
-            return onPageEnd;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public void setHeight(int height) {
-            this.height = height;
-        }
-
-        public int getWidth() {
-            return width;
-        }
-
-        public void setWidth(int width) {
-            this.width = width;
-        }
-
-        protected abstract void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data);
-
-        public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
-            return "";
-        }
-    }
+   
+    
     protected static Font defaultFont;
     public static final int INSET_X = 5;
     public static final int INSET_Y = 5;
@@ -195,7 +144,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         index = (index < 0) ? 0 : index;
-        line.setIndex(index);
+//        line.setIndex(index); TODO
         rowTypes.add(index, line);
         rowWidgets.add(index, newRowWidgets);
         rowLabels.add(index, newRowLabels);
@@ -323,17 +272,17 @@ public class MutableWidgetContainer extends WidgetContainer {
             
             FontMetrics fm = g.getFontMetrics();
             double w = fm.stringWidth(tl.getText());
-            tmp.setRect(tl.getPosX(), tl.getPosY(), w, fm.getAscent());
-            x = (x > tl.getPosX()) ? (int) tl.getPosX() : x;
-            if (tl.center()) {
-                w = (width - w) / 2;
-            } else {
-                w = tl.getPosX();
-            }
+//            tmp.setRect(tl.getPosX(), tl.getPosY(), w, fm.getAscent()); TODO
+//            x = (x > tl.getPosX()) ? (int) tl.getPosX() : x;
+//            if (tl.center()) {
+//                w = (width - w) / 2;
+//            } else {
+//                w = tl.getPosX();
+//            }
 
-            g.translate(w, tl.getPosY());
+//            g.translate(w, tl.getPosY());TODO
             g.drawString(tl.getText(), 0, 0);
-            g.translate(-w, -tl.getPosY());
+//            g.translate(-w, -tl.getPosY());TODO
 //            tmp.x += -INSET_X;
 //            tmp.width += 2*INSET_X;
 //            tmp.y += -INSET_Y;
@@ -543,7 +492,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //
 //        final WidgetLine headerLine = new WidgetLine(20) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Procedimento:", 20, true));
 //            }
 //        };
@@ -554,7 +503,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
 //        final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                JTextField textField = new JTextField((String) data);
 //
 //                textField.addActionListener(new ActionListener() {
@@ -588,7 +537,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //            private Widget remButton;
 //
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                JButton bTmp = new JButton("+");
 //
 //                bTmp.addActionListener(new ActionListener() {
@@ -673,7 +622,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        //HEADER LINE
 //        final WidgetLine headerLine = new WidgetLine(20) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("If:", 20, true));
 //            }
 //        };
@@ -682,7 +631,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int textFieldLineHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + COMBOBOX_HEIGHT;
 //        final WidgetLine conditionalLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                JTextField primeiro = new JTextField();
 //                JTextField segundo = new JTextField();
 //                JComboBox comparacao = new JComboBox(comparadores);
@@ -945,7 +894,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + 18 + TEXTFIELD_WIDTH;
 //        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Função:", 20, true));
 //                labels.add(new TextLabel("Nome:", INSET_X, 3 * INSET_Y + 28));
 //                JTextField tfName = new JTextField();
@@ -959,7 +908,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //            private int argN = 0;
 //
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                JTextField primeiro = new JTextField();
 //
 //                if (data instanceof String) {
@@ -1042,7 +991,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //            private Widget remButton;
 //
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                JButton bTmp = new JButton("+");
 //
 //                bTmp.addActionListener(new ActionListener() {
@@ -1087,7 +1036,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int nullLineHeight =  INSET_Y + TEXTFIELD_HEIGHT;
 //        final WidgetLine nullLine = new WidgetLine(nullLineHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Argumentos:", INSET_X, 18));
 //            }
 //        };
@@ -1144,7 +1093,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //            private int varN = 0;
 //
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
 //                JComboBox combobVar = new JComboBox();
 //                combobVar.addItem(RELOAD_VARS_ITEM);
 //
@@ -1193,7 +1142,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int headerWidth = BEGIN_X + 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
 //        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Exibir:", 20, true));
 //                labels.add(new TextLabel("Formato:", BEGIN_X + INSET_X, 3 * INSET_Y + 28));
 //                final JTextField tfName = new JTextField();
@@ -1295,7 +1244,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
 //        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
 //            @Override
-//            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Mover:", 20, true));
 //
 //                final JSpinner spinner1 = new JSpinner();

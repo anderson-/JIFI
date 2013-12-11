@@ -39,12 +39,12 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer.Widget;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.Widget;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -254,7 +254,7 @@ public class Procedure extends Command implements Classifiable {
 
         final WidgetLine headerLine = new WidgetLine(20) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Procedimento:", 20, true));
             }
         };
@@ -265,7 +265,7 @@ public class Procedure extends Command implements Classifiable {
         int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
         final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 JTextField textField = new JTextField((String) data);
 
                 textField.addActionListener(new ActionListener() {
@@ -303,7 +303,7 @@ public class Procedure extends Command implements Classifiable {
             private Widget remButton;
 
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")));
 
                 bTmp.addActionListener(new ActionListener() {

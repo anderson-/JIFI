@@ -36,12 +36,14 @@ import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
@@ -80,9 +82,9 @@ public class Comment extends Procedure {
         final int INSET_Y = 5;
 
         //HEADER LINE
-        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(20) {
+        final WidgetLine headerLine = new WidgetLine(20) {
             @Override
-            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Comentário:", 20, true));
             }
         };
@@ -90,9 +92,9 @@ public class Comment extends Procedure {
         //TEXTFIELD LINES
         int textFieldLineWidth = 2 * INSET_X + TEXTFIELD_WIDTH;
         int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
-        final MutableWidgetContainer.WidgetLine textFieldLine = new MutableWidgetContainer.WidgetLine(textFieldLineWidth, textFieldLineHeight) {
+        final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
             @Override
-            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 JTextArea textField = new JTextArea((String) data);
 
 //                textField.addActionListener(new ActionListener() {
@@ -102,13 +104,13 @@ public class Comment extends Procedure {
 //                    }
 //                });
                 int textFieldX = INSET_X;
-                widgets.add(new WidgetContainer.Widget(textField, textFieldX, INSET_Y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                widgets.add(new Widget(textField, textFieldX, INSET_Y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
             }
 
             @Override
-            public String getString(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
                 if (widgets.size() > 0) {
-                    WidgetContainer.Widget widget = widgets.iterator().next();
+                    Widget widget = widgets.iterator().next();
                     JComponent jComponent = widget.getJComponent();
                     if (jComponent instanceof JTextArea) {
                         return ((JTextArea) jComponent).getText();

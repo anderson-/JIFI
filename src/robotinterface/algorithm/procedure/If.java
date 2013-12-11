@@ -50,13 +50,13 @@ import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import static robotinterface.algorithm.procedure.Procedure.INSET_X;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer;
-import robotinterface.drawable.WidgetContainer.Widget;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.swing.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -304,7 +304,7 @@ public class If extends Procedure {
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine(20) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel(container.getName() + ":", 20, true));
             }
         };
@@ -313,7 +313,7 @@ public class If extends Procedure {
         int textFieldLineHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + COMBOBOX_HEIGHT;
         final WidgetLine conditionalLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 JTextField primeiro = new JTextField();
                 JTextField segundo = new JTextField();
                 JComboBox comparacao = new JComboBox(comparadores);

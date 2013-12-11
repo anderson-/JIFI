@@ -67,7 +67,7 @@ import robotinterface.algorithm.parser.decoder.ParseException;
 import robotinterface.algorithm.parser.decoder.TokenMgrError;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.drawable.DrawingPanel;
-import static robotinterface.drawable.MutableWidgetContainer.autoUpdateValue;
+import static robotinterface.drawable.swing.MutableWidgetContainer.autoUpdateValue;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.Interpertable;
 import robotinterface.gui.panels.SimulationPanel;

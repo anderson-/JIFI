@@ -25,6 +25,7 @@
  */
 package robotinterface.drawable;
 
+import robotinterface.drawable.swing.WidgetContainer;
 import java.awt.BasicStroke;
 import robotinterface.drawable.util.QuickFrame;
 import java.awt.Color;
@@ -54,7 +55,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.WidgetContainer.Widget;
+import robotinterface.drawable.swing.Widget;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;

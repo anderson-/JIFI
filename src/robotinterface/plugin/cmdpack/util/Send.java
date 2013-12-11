@@ -60,7 +60,7 @@
 //import robotinterface.drawable.MutableWidgetContainer;
 //import robotinterface.drawable.TextLabel;
 //import robotinterface.drawable.WidgetContainer;
-//import robotinterface.drawable.WidgetContainer.Widget;
+//import robotinterface.drawable.Widget;
 //import robotinterface.drawable.graphicresource.GraphicResource;
 //import robotinterface.drawable.graphicresource.SimpleContainer;
 //import robotinterface.drawable.util.QuickFrame;
@@ -196,9 +196,9 @@
 //
 //        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
 //        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
-//        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+//        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
 //            @Override
-//            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+//            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
 //                labels.add(new TextLabel("Mover:", 20, true));
 //
 //                final JSpinner spinner1 = new JSpinner();
@@ -248,14 +248,14 @@
 //                x += 26;
 //                y -= 18;
 //
-//                final WidgetContainer.Widget wspinner1 = new WidgetContainer.Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-//                final WidgetContainer.Widget wcombobox1 = new WidgetContainer.Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wspinner1 = new Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wcombobox1 = new Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
 //                widgets.add(wspinner1);
 //                widgets.add(wcombobox1);
 //
 //                x += INSET_Y + TEXTFIELD_WIDTH;
 //
-//                widgets.add(new WidgetContainer.Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+//                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
 //
 //                x -= INSET_Y + TEXTFIELD_WIDTH;
 //
@@ -267,14 +267,14 @@
 //                x += 26;
 //                y -= 18;
 //
-//                final WidgetContainer.Widget wspinner2 = new WidgetContainer.Widget(spinner2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-//                final WidgetContainer.Widget wcombobox2 = new WidgetContainer.Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wspinner2 = new Widget(spinner2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+//                final Widget wcombobox2 = new Widget(combobox2, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
 //                widgets.add(wspinner2);
 //                widgets.add(wcombobox2);
 //
 //                x += INSET_Y + TEXTFIELD_WIDTH;
 //
-//                widgets.add(new WidgetContainer.Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
+//                widgets.add(new Widget(changeButton2, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
 //
 //                x -= INSET_Y + TEXTFIELD_WIDTH;
 //
@@ -324,7 +324,7 @@
 //            }
 //
 //            @Override
-//            public String getString(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
+//            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
 //
 //                StringBuilder sb = new StringBuilder();
 //

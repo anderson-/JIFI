@@ -12,7 +12,7 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.JButton;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.util.trafficsimulator.ColorChanger;
 
 /**

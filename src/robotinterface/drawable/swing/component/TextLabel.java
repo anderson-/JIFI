@@ -2,10 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package robotinterface.drawable;
+package robotinterface.drawable.swing.component;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
@@ -14,7 +15,7 @@ import java.awt.geom.Rectangle2D;
  *
  * @author antunes
  */
-public class TextLabel {
+public class TextLabel extends Component {
 
     protected static Font defaultFont;
 
@@ -24,27 +25,32 @@ public class TextLabel {
 
     private Font font = defaultFont;
     private Color color = Color.BLACK;
-    private String text;
-    private boolean center;
-    private double x = 0;
-    private double y = 0;
+    private String text = "";
+    private boolean center = false;
+    private FontMetrics metrics = null;
+    private double forceWidth = 0; //TODO
 
     public TextLabel() {
-        text = "";
-        center = false;
     }
 
-    public TextLabel(String text, double y, boolean center) {
+    public TextLabel(String text) {
         this.text = text;
-        this.x = 0;
-        this.y = y;
+    }
+
+    public TextLabel(String text, boolean center) {
+        this.text = text;
         this.center = center;
     }
 
+    @Deprecated
+    public TextLabel(String text, double y, boolean center) {
+        this.text = text;
+        this.center = center;
+    }
+
+    @Deprecated
     public TextLabel(String text, double x, double y) {
         this.text = text;
-        this.x = x;
-        this.y = y;
         this.center = false;
     }
 
@@ -79,17 +85,12 @@ public class TextLabel {
     public void setCenter(boolean center) {
         this.center = center;
     }
-
-    public void setLocation(double x, double y) {
-        this.x = x;
-        this.y = y;
+    
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, Graphics2D g) {
+//        metrics.getStringBounds(text, null)
+        return tmp;
     }
-
-    public double getPosX() {
-        return x;
-    }
-
-    public double getPosY() {
-        return y;
-    }
+    
+    
 }

@@ -31,9 +31,6 @@ import java.awt.geom.AffineTransform;
 import robotinterface.drawable.DrawingPanel.GraphicAttributes;
 import robotinterface.drawable.DrawingPanel.InputState;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 /**
  * Interface que torna uma classe desenhável por um {@link DrawingPanel}.
@@ -42,12 +39,11 @@ public interface GraphicObject extends Drawable {
 
     public static class SimpleDrawableObject implements GraphicObject {
 
-        private AffineTransform transform;
+        private static final AffineTransform transform = new AffineTransform();;
         protected Shape shape;
         protected Rectangle2D.Double bounds;
 
         public SimpleDrawableObject(Shape shape) {
-            transform = new AffineTransform();
             this.shape = shape;
             bounds = new Rectangle2D.Double();
             bounds.setRect(shape.getBounds2D());

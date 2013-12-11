@@ -28,16 +28,14 @@ package robotinterface.plugin.cmdpack.begginer;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.WidgetContainer;
+import robotinterface.drawable.swing.WidgetContainer;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.geom.Area;
-import java.awt.geom.RoundRectangle2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
 import javax.swing.JComboBox;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
@@ -45,10 +43,12 @@ import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.DrawableCommandBlock;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.TextLabel;
+import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -57,7 +57,6 @@ import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
 import robotinterface.robot.connection.message.Message;
-import robotinterface.util.trafficsimulator.Clock;
 
 /**
  *
@@ -168,9 +167,9 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         //HEADER LINE
         int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
         int headerWidth = 4 * INSET_X + TEXTFIELD_WIDTH + 64;
-        final MutableWidgetContainer.WidgetLine headerLine = new MutableWidgetContainer.WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
             @Override
-            protected void createRow(Collection<WidgetContainer.Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Ler Sensor:", 20, true));
 
                 MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
@@ -197,7 +196,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 x += strlen;
                 y -= 18;
 
-                final WidgetContainer.Widget wcombobox1 = new WidgetContainer.Widget(comboboxDev, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wcombobox1 = new Widget(comboboxDev, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
                 widgets.add(wcombobox1);
 
                 x -= strlen;
@@ -208,7 +207,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 x += strlen;
                 y -= 18;
 
-                final WidgetContainer.Widget wcombobox2 = new WidgetContainer.Widget(comboboxVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wcombobox2 = new Widget(comboboxVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
                 widgets.add(wcombobox2);
             }
         };

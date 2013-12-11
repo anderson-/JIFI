@@ -39,7 +39,7 @@ import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import robotinterface.algorithm.procedure.Function.FunctionEnd;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
+import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;

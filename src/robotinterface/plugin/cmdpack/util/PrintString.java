@@ -34,12 +34,12 @@ import org.nfunk.jep.JEP;
 import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.MutableWidgetContainer;
-import robotinterface.drawable.MutableWidgetContainer.WidgetLine;
-import robotinterface.drawable.TextLabel;
-import robotinterface.drawable.WidgetContainer.Widget;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.WidgetLine;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.Widget;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -101,7 +101,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 //    private void setFormat(String format) {
 //        myArgs.get(0).set(format, Argument.STRING_LITERAL);
 //    }
-
 //    private String getFormat() {
 //        return myArgs.get(0).getStringValue();
 //    }
@@ -109,7 +108,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 //    private ArrayList<Argument> getVariables() {
 //        return myArgs;
 //    }
-
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Clock clock = rm.getResource(Clock.class);
@@ -119,9 +117,10 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         String padps = "%V"; //printAllDecimalPlacesStr
         String ptdps = "%v"; //printTwoDecimalPlacesStr
         String replace;
-        DecimalFormat df = new DecimalFormat("#.00");
-
-        for (Argument arg : myArgs) {
+        DecimalFormat df = new DecimalFormat("0.00");
+        Argument arg;
+        for (int i = 1; i < myArgs.size(); i++) {
+            arg = myArgs.get(i);
             arg.parse(parser);
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
@@ -129,16 +128,12 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     : ((ptdpi == -1) ? false
                     : (ptdpi < padpi)));
             replace = (printTwoDecimalPlaces) ? ptdps : padps;
-//            System.out.println(padpi);
-//            System.out.println(ptdpi);
-//            System.out.println(printTwoDecimalPlaces);
-//            System.out.println(replace);
 
             Object value = arg.getValue();
             if (printTwoDecimalPlaces && value instanceof Double) {
                 out = out.replaceFirst(replace, df.format((Double) value));
             } else {
-                out = out.replaceFirst(replace, value.toString());
+                out = out.replaceFirst(replace, "" + value);
             }
         }
 
@@ -211,7 +206,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             private String var;
 
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
                 JComboBox combobVar = new JComboBox();
                 combobVar.setFocusable(false);
 
@@ -253,7 +248,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         int headerWidth = BEGIN_X + 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
         final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
             @Override
-            protected void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
                 labels.add(new TextLabel("Exibir:", 20, true));
                 labels.add(new TextLabel("Formato:", BEGIN_X + INSET_X, 3 * INSET_Y + 28));
                 final JTextField tfName = new JTextField();
@@ -343,7 +338,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
                 if (string.startsWith("print")) {
 //                    p.updateVariables(string);??????????????????????
-                    
 
                     clear();
                 } else {
@@ -358,7 +352,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 String subStr = "%v";
                 int ocorrences = (string.length() - string.toLowerCase().replace(subStr, "").length()) / subStr.length();;
                 if (p.myArgs.size() > 1) {
-                    ocorrences -= (p.myArgs.size() -1);
+                    ocorrences -= (p.myArgs.size() - 1);
                     for (int i = 1; i < p.myArgs.size(); i++) {
                         addLine(varSelectiteonLine, p.myArgs.get(i).getVariableName());
                     }
