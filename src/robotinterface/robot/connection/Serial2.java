@@ -292,6 +292,7 @@ public class Serial2 implements Connection, SerialPortEventListener {
         ByteBuffer message = ByteBuffer.allocate(bufferSize+1); // TODO: REMOVER +1
         message.put((byte)bufferSize); // TODO: REMOVER
         readBytes(message);
+		message.flip();
         for (Observer<ByteBuffer, Connection> o : observers) {
           o.update(message.asReadOnlyBuffer(), this);
         }
