@@ -30,7 +30,7 @@ public class RotateAction extends Action {
     public void putMessage(ByteBuffer data, Robot robot) {
         data.order(ByteOrder.LITTLE_ENDIAN);
         data.put(Robot.CMD_RUN); //comando executar ação
-        data.put((byte) 1);//data.put(getID()); //id da ação
+        data.put(getID()); //id da ação
         data.put((byte) 2);//numero de dispositivos utilizados
         HBridge hbridge = robot.getDevice(HBridge.class);
         Compass compass = robot.getDevice(Compass.class);
@@ -42,6 +42,6 @@ public class RotateAction extends Action {
         data.put(compass.getID());//dispositivo 2
         data.put((byte) 3);//tamanho do vetor de dados
         data.putChar((char) angle); //2bytes->int = angulo
-        data.put((byte) 10); //precisão
+        data.put((byte) 2); //precisão
     }
 }

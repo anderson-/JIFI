@@ -74,7 +74,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     //outras constantes
     public final double MIN_ZOOM = 0.5;
     public final double MAX_ZOOM = 4.0;
-    protected long PAINT_DELAY = 5;
+    protected long PAINT_DELAY = 20;
     protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
     private final int tempTransformsSize = 6;
