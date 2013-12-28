@@ -54,8 +54,11 @@ import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.WidgetContainer;
-import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -209,60 +212,52 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         final int INSET_Y = 5;
 
         //HEADER LINE
-        int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 80;
-        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Girar:", 20, true));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, Object data) {
+                components.add(new TextLabel("Girar:", true));
+                components.add(new LineBreak());
 
                 final JSpinner spinner1 = new JSpinner();
                 spinner1.setModel(new SpinnerNumberModel(0, -360, 360, 2));
                 JComboBox combobox1 = new JComboBox();
-                boolean num1 = true;
+//                boolean num1 = true;
 
                 MutableWidgetContainer.autoUpdateValue(spinner1);
                 MutableWidgetContainer.setAutoFillComboBox(combobox1, r);
 
-                if (data != null) {
-                    if (data instanceof Rotate) {
-                        Rotate m = (Rotate) data;
-
-                        if (r.arg0.isVariable()) {
-                            combobox1.setSelectedItem(r.arg0.toString());
-                            num1 = false;
-                        } else {
-                            spinner1.setValue((int) r.arg0.getDoubleValue());
-                        }
-                    }
-                }
+                
+                
+//                if (data != null) {
+//                    if (data instanceof Rotate) {
+//                        Rotate m = (Rotate) data;
+//
+//                        if (r.arg0.isVariable()) {
+//                            combobox1.setSelectedItem(r.arg0.toString());
+//                            num1 = false;
+//                        } else {
+//                            spinner1.setValue((int) r.arg0.getDoubleValue());
+//                        }
+//                    }
+//                }
 
                 final JButton changeButton1 = new JButton();
                 ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
                 changeButton1.setIcon(icon);
                 changeButton1.setToolTipText("Selecionar variável");
 
-                int x = INSET_X;
-                int y = INSET_Y + 40;
-                int strLen = 81;
-                labels.add(new TextLabel("Ângulo (°):", x + 5, y));
+                components.add(new TextLabel("Ângulo (°):"));
 
-                x += strLen;
-                y -= 18;
+                final Widget wspinner1 = new Widget(spinner1, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                final Widget wcombobox1 = new Widget(combobox1, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                components.add(wspinner1);
+                components.add(wcombobox1);
+                
+                container.entangle(r.arg0, wspinner1, wcombobox1);
 
-                final Widget wspinner1 = new Widget(spinner1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                final Widget wcombobox1 = new Widget(combobox1, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(wspinner1);
-                widgets.add(wcombobox1);
+                components.add(new Widget(changeButton1, BUTTON_WIDTH, BUTTON_WIDTH));
 
-                x += INSET_Y + TEXTFIELD_WIDTH;
-
-                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
-
-                x -= INSET_Y + TEXTFIELD_WIDTH;
-
-                x -= strLen;
-                y += 50;
+                components.add(new LineBreak(true));//todo: juntar os dois
 
                 changeButton1.addActionListener(new ActionListener() {
                     @Override
@@ -280,35 +275,49 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
                 wspinner1.setDynamic(true);
                 wcombobox1.setDynamic(true);
 
-                if (num1) {
-                    container.addWidget(wspinner1);
-                } else {
-                    container.addWidget(wcombobox1);
-                }
+//                if (num1) {
+//                    container.addWidget(wspinner1);
+//                } else {
+//                    container.addWidget(wcombobox1);
+//                }
 
+            }
+            
+            @Override
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                sb.append("rotate(");
+                for (int i = 0; i < arguments.size(); i++){
+                    sb.append(arguments.get(i));
+                    if (i < arguments.size()-1){
+                        sb.append(",");
+                    }
+                }
+                sb.append(")");
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
+            public String getString(Collection<Component> components, MutableWidgetContainer container) {
 
                 StringBuilder sb = new StringBuilder();
 
                 sb.append("rotate(");
-
-                for (Widget w : widgets) {
-                    if (container.contains(w)) {
-                        JComponent jc = w.getJComponent();
-                        if (jc instanceof JComboBox) {
-                            JComboBox cb = (JComboBox) jc;
-                            Object o = cb.getSelectedItem();
-                            if (o != null) {
-                                sb.append(o.toString());
-                                r.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
+                for (Component c : components) {
+                    if (c instanceof Widget) {
+                        Widget w = (Widget) c;
+                        if (container.contains(w)) {
+                            JComponent jc = w.getJComponent();
+                            if (jc instanceof JComboBox) {
+                                JComboBox cb = (JComboBox) jc;
+                                Object o = cb.getSelectedItem();
+                                if (o != null) {
+                                    sb.append(o.toString());
+                                    r.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
+                                }
+                            } else if (jc instanceof JSpinner) {
+                                JSpinner s = (JSpinner) jc;
+                                sb.append(s.getValue());
+                                r.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
                             }
-                        } else if (jc instanceof JSpinner) {
-                            JSpinner s = (JSpinner) jc;
-                            sb.append(s.getValue());
-                            r.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
                         }
                     }
                 }
@@ -328,13 +337,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
             @Override
             public void updateLines() {
                 clear();
-                if (string.length() <= 1) {
-                    addLine(headerLine, r);
-                } else {
-                    String str = string.substring(string.indexOf("(") + 1, string.indexOf(")"));
-//                    updateRotate(str, r);
-                    addLine(headerLine, r);
-                }
+                addLine(headerLine, r);
                 string = getString();
             }
         };
@@ -360,7 +363,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
         return new Item("Girar", myShape, myColor);
     }
-    
+
     @Override
     public int getParameters() {
         return 1;
@@ -370,7 +373,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public Object createInstance() {
         return new Rotate();
     }
-    
+
     @Override
     public Rotate createInstance(Argument[] args) {
         return new Rotate(args);
@@ -416,7 +419,6 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 //        }
 //        m.updateProcedure();
 //    }
-
 //    @Override
 //    public Rotate createInstance(String args) {
 //        Rotate r = new Rotate(0);
@@ -427,7 +429,6 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 //        return r;
 //        //return new ParseErrorProcedure(this, args);
 //    }
-
     public static void main(String[] args) {
         Rotate p = new Rotate();
 //        Rotate.updateRotate("x", p);

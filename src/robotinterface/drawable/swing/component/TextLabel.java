@@ -27,7 +27,6 @@ public class TextLabel extends Component {
     private Color color = Color.BLACK;
     private String text = "";
     private boolean center = false;
-    private FontMetrics metrics = null;
     private double forceWidth = 0; //TODO
 
     public TextLabel() {
@@ -88,9 +87,16 @@ public class TextLabel extends Component {
     
     @Override
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, Graphics2D g) {
-//        metrics.getStringBounds(text, null)
+        tmp.setRect(g.getFontMetrics(font).getStringBounds(text, g));
+        tmp.x = 0;
+        tmp.y = 0;
         return tmp;
     }
     
+    @Override
+    public Rectangle2D.Double getInsets (Rectangle2D.Double tmp){
+        tmp.setRect(DEFAULT_INSETS);
+        return tmp;
+    }
     
 }

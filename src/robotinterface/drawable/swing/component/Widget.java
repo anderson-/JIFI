@@ -3,23 +3,25 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package robotinterface.drawable.swing;
+package robotinterface.drawable.swing.component;
 
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import javax.swing.JComponent;
 
 /**
  *
  * @author antunes2
  */
-public class Widget {
+public class Widget extends Component {
 
-    JComponent widget;
-    private Rectangle bounds;
+    public final JComponent widget;
+    private Rectangle bounds;//TODO: USAR SEMPRE DOUBLE!
     private Rectangle tmpRect;
-    private boolean isStatic;
+    private boolean visible = false;
+    private boolean isStatic;// TODO: o que é isso?
     private boolean dynamic = false;
-    private int x, y;
 
     public Widget(JComponent widget, Rectangle bounds) {
         tmpRect = new Rectangle();
@@ -28,10 +30,24 @@ public class Widget {
         isStatic = false;
     }
 
+    @Deprecated
     public Widget(JComponent widget, int x, int y, int width, int height) {
         this(widget, new Rectangle(x, y, width, height));
     }
 
+    public Widget(JComponent widget, int width, int height) {
+        this(widget, new Rectangle(0, 0, width, height));
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Deprecated //usado apenas por MotableWidgetContainer
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+    
     public boolean isDynamic() {
         return dynamic;
     }
@@ -72,9 +88,10 @@ public class Widget {
         updateBounds();
     }
 
+    @Override
     public void setTempLocation(int x, int y) {
-        this.x = x;
-        this.y = y;
+        super.setTempLocation(x, y);
+//        System.out.println("x:" + x + " -> " + this.widget);
         updateBounds();
     }
 
@@ -95,5 +112,11 @@ public class Widget {
 
     public void updateBounds() {
         widget.setBounds(getBounds());
+    }
+
+    @Override
+    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, Graphics2D g) {
+        tmp.setRect(bounds);
+        return tmp;
     }
 }

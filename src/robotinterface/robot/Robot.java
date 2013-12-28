@@ -128,18 +128,28 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         x = 0;
         y = 0;
         theta = 0;
-        rightWheelSpeed = 0;
-        leftWheelSpeed = 0;
         perception.clearPath();
         for (Device d : devices) {
             d.resetState();
         }
+        stop();
     }
-
+    
     @Deprecated//hbridge para o robo na função stopAll()
     public void stop() {
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
+        for (Action a : actions) {
+            if (a.isWaiting()){
+                a.markUnread();
+                a.setDone();
+            } else if (a.isRunning()){
+                //System.out.println("reset");
+                //resetSystem();
+                a.markUnread();
+                a.setDone();
+            }
+        }
     }
 
     public void updateObservers(Device d) {

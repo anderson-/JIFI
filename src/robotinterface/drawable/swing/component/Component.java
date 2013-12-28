@@ -15,12 +15,21 @@ import java.awt.geom.Rectangle2D;
  */
 public class Component {
     
+    public static final Rectangle2D.Double DEFAULT_INSETS = new Rectangle2D.Double(6,5,0,0);
+    
+    protected int x, y;
+    
     public Rectangle2D.Double getBounds (Rectangle2D.Double tmp, Graphics2D g){
         return tmp;
     }
     
     public Rectangle2D.Double getInsets (Rectangle2D.Double tmp){
+        tmp.setRect(DEFAULT_INSETS);
         return tmp;
     }
     
+    public void setTempLocation(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }

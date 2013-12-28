@@ -50,7 +50,7 @@ import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
-import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.gui.GUI;
 import robotinterface.interpreter.ExecutionException;

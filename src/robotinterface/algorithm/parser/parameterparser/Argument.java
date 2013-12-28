@@ -5,7 +5,12 @@
  */
 package robotinterface.algorithm.parser.parameterparser;
 
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
+import robotinterface.drawable.swing.component.Widget;
 
 /**
  *
@@ -64,8 +69,8 @@ public final class Argument {
         }
         return "";
     }
-    
-    public Object getValue(){
+
+    public Object getValue() {
         return value;
     }
 
@@ -104,6 +109,59 @@ public final class Argument {
 
     public boolean isVariable() {
         return (type == SINGLE_VARIABLE);
+    }
+
+    public void getValueFrom(Widget w) {
+        JComponent jc = w.getJComponent();
+        if (jc instanceof JSpinner) {
+            JSpinner c = (JSpinner) jc;
+            set(c.getValue(), NUMBER_LITERAL);
+        } else if (jc instanceof JComboBox) {
+            JComboBox c = (JComboBox) jc;
+            set(c.getSelectedItem(), SINGLE_VARIABLE);
+        } else if (jc instanceof JTextField) {
+            JTextField c = (JTextField) jc;
+            if (w.isDynamic() && !c.getText().contains("\"")){
+                set(c.getText(), EXPRESSION);
+            } else {
+                String str = c.getText();
+                set(str.replaceAll("\"", ""), STRING_LITERAL);
+            }
+        } else {
+            throw new Error("Invalid JComponent...");
+        }
+    }
+
+    public Widget setValueOf(Widget... ws) {
+        if (type == NUMBER_LITERAL) {
+            //JSpinner
+            for (Widget w : ws) {
+                if (w.getJComponent() instanceof JSpinner) {
+                    JSpinner c = (JSpinner) w.getJComponent();
+                    c.setValue((int) getDoubleValue());
+                    return w;
+                }
+            }
+        } else if (type == SINGLE_VARIABLE) {
+            //JComboBox
+            for (Widget w : ws) {
+                if (w.getJComponent() instanceof JComboBox) {
+                    JComboBox c = (JComboBox) w.getJComponent();
+                    c.setSelectedItem(value);
+                    return w;
+                }
+            }
+        } else {
+            //JTextField
+            for (Widget w : ws) {
+                if (w.getJComponent() instanceof JTextField) {
+                    JTextField c = (JTextField) w.getJComponent();
+                    c.setText(statement);
+                    return w;
+                }
+            }
+        }
+        throw new Error("JComponent not found");
     }
 
     @Override

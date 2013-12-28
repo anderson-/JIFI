@@ -55,7 +55,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.Widget;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
@@ -75,7 +75,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     //outras constantes
     public final double MIN_ZOOM = 0.5;
     public final double MAX_ZOOM = 4.0;
-    protected long PAINT_DELAY = 5;
+    protected long PAINT_DELAY = 20;
     protected long NO_PAINT_DELAY = 100;
     protected final Clock clock;
     private final int tempTransformsSize = 6;
@@ -380,15 +380,15 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-//            int x = (int) ((mouse.x - globalX) / zoom);
-//            int y = (int) ((mouse.y - globalY) / zoom);
-//
-//            if (mouseClick) {
-//                g.setColor(Color.red);
-//            } else {
-//                g.setColor(Color.black);
-//            }
-//            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+            int x = (int) ((mouse.x - globalX) / zoom);
+            int y = (int) ((mouse.y - globalY) / zoom);
+
+            if (mouseClick) {
+                g.setColor(Color.red);
+            } else {
+                g.setColor(Color.black);
+            }
+            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
         
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);

@@ -12,12 +12,27 @@ import static robotinterface.drawable.swing.component.Component.DEFAULT_INSETS;
  *
  * @author antunes2
  */
-public class Space extends Component {
+public class LineBreak extends Component {
 
-    @Override
-    public Rectangle2D.Double getInsets (Rectangle2D.Double tmp){
-        tmp.setRect(DEFAULT_INSETS);
-        return tmp;
+    private boolean endLine = false;
+
+    public LineBreak() {
+    }
+
+    public LineBreak(boolean endLine) {
+        this.endLine = endLine;
+    }
+
+    public boolean isEndLine() {
+        return endLine;
     }
     
+    @Override
+    public Rectangle2D.Double getInsets(Rectangle2D.Double tmp) {
+        if (endLine) {
+            tmp.setRect(DEFAULT_INSETS);
+        }
+        return tmp;
+    }
+
 }

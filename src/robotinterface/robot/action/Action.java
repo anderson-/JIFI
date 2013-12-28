@@ -17,10 +17,10 @@ import robotinterface.robot.connection.message.Message;
 public abstract class Action extends Message {
 
     private static final ByteBuffer buffer = ByteBuffer.allocate(256);
-    protected boolean running = false;
-    protected boolean done = false;
-    protected boolean autoSend = true;
-    protected boolean singleMessage = false;
+    private boolean waitingMessage = false;
+    private boolean autoSend = true;
+    private boolean singleMessage = false;
+    private boolean running = false;
 
     public Action (){
         
@@ -41,19 +41,19 @@ public abstract class Action extends Message {
         putMessage(buffer, robot);
         buffer.flip();
         setWaiting();
+        running = true;
         send(buffer);
-        running = false;
-        done = false;
+        waitingMessage = false;
         if (!singleMessage){
             setWaiting(Long.MAX_VALUE); //espera terminar a ação
-            run(this, robot); //espera confimação do comando
+            run(this, robot); //espera confimação do comando 1
         }
     }
 
     public static void run(Action action, Robot robot) {
         while (!action.perform(robot)) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(5);
             } catch (InterruptedException ex) {
             }
         }
@@ -75,12 +75,20 @@ public abstract class Action extends Message {
     }
 
     public final void setRunning() {
+        waitingMessage = true;
         running = true;
-        done = false;
     }
 
     public final void setDone() {
+        waitingMessage = false;
         running = false;
-        done = true;
+    }
+
+    public boolean isWaiting() {
+        return waitingMessage;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

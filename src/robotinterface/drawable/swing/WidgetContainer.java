@@ -34,7 +34,7 @@ import java.util.Iterator;
 import javax.swing.JComponent;
 import robotinterface.drawable.DrawingPanel.GraphicAttributes;
 import robotinterface.drawable.DrawingPanel.InputState;
-import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.Widget;
 import java.awt.geom.Rectangle2D;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
@@ -82,7 +82,7 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
         }
     }
 
-    public void cleanRemoved (){
+    public void cleanRemoved() {
         if (parent != null) {
             for (Widget dc : widgets) {
                 //remove possiveis duplicados
@@ -95,15 +95,18 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
             }
         }
     }
-    
-    public boolean contains (Widget w){
+
+    public boolean contains(Widget w) {
         return widgets.contains(w);
     }
-    
+
     public void addWidget(Widget w) {
-        widgets.add(w);
-        updateWidgets();
-        cleanRemoved();
+        if (w != null) {
+            w.setVisible(true);
+            widgets.add(w);
+            updateWidgets();
+            cleanRemoved();
+        }
     }
 
     public final Widget addWidget(JComponent comp, int x, int y, int width, int height) {
@@ -126,26 +129,27 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
         }
         return w;
     }
-    
+
     public final Widget addWidget(JComponent comp, Rectangle bounds) {
         Widget w = null;
         if (comp != null) {
-             w = new Widget(comp, bounds);
-             addWidget(w);
+            w = new Widget(comp, bounds);
+            addWidget(w);
         }
         return w;
     }
 
     public final Widget addWidget(JComponent comp) {
-         Widget w = null;
+        Widget w = null;
         if (comp != null) {
-             w = new Widget(comp, comp.getBounds());
-             addWidget(w);
+            w = new Widget(comp, comp.getBounds());
+            addWidget(w);
         }
         return w;
     }
-    
+
     public final void removeWidget(Widget w) {
+        w.setVisible(false);
         widgets.remove(w);
         updateWidgets();
         if (parent != null) {

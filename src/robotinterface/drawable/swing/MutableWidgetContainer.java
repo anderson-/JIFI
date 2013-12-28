@@ -4,10 +4,10 @@
  */
 package robotinterface.drawable.swing;
 
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -22,14 +22,16 @@ import java.awt.geom.Rectangle2D;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.util.QuickFrame;
 
@@ -39,16 +41,14 @@ import robotinterface.drawable.util.QuickFrame;
  */
 public class MutableWidgetContainer extends WidgetContainer {
 
-   
-    
     protected static Font defaultFont;
-    public static final int INSET_X = 5;
-    public static final int INSET_Y = 5;
+    public static final int INSET_Xd = 5;
+    public static final int INSET_Yd = 5;
 
     static {
         defaultFont = new Font("Dialog", Font.BOLD, 12);
     }
-    
+
     protected String string = "";
     protected Color color;
     protected int shapeStartX = 0;
@@ -64,17 +64,19 @@ public class MutableWidgetContainer extends WidgetContainer {
     private boolean updateLines = false;
     private boolean updateShape = false;
     private boolean updateHeight = false;
-    private ArrayList<String> splittedString;
-    private ArrayList<WidgetLine> rowTypes;
-    private ArrayList<ArrayList<Widget>> rowWidgets;
-    private ArrayList<ArrayList<TextLabel>> rowLabels;
+    private final ArrayList<String> splittedString;
+    private final ArrayList<WidgetLine> rowTypes;
+    private final ArrayList<ArrayList<Component>> rows;
+    private final ArrayList<Argument> tmpArguments;
+    private final HashMap<Widget, Argument> eMap;
 
     public MutableWidgetContainer(Color color) {
         super(new Rectangle(0, 0, 1, 1));
         splittedString = new ArrayList<>();
         rowTypes = new ArrayList<>();
-        rowWidgets = new ArrayList<>();
-        rowLabels = new ArrayList<>();
+        rows = new ArrayList<>();
+        tmpArguments = new ArrayList<>();
+        eMap = new HashMap<>();
         shapeBounds = new Rectangle2D.Double();
         setWidgetVisible(false);
         this.color = color;
@@ -108,14 +110,35 @@ public class MutableWidgetContainer extends WidgetContainer {
         this.widgetsEnabled = widgetsEnebled;
     }
 
+    public void entangle(Argument arg, Widget... ws) {
+        for (Widget w : ws) {
+            eMap.put(w, arg);
+        }
+        Widget chosen = arg.setValueOf(ws);
+        addWidget(chosen);
+    }
+
     public String getString() {
         StringBuilder sb = new StringBuilder();
+        tmpArguments.clear();
 
         for (int i = 0; i < rowTypes.size(); i++) {
             WidgetLine type = rowTypes.get(i);
-            Collection<Widget> widgets = rowWidgets.get(i);
-            Collection<TextLabel> labels = rowLabels.get(i);
-            sb.append(type.getString(widgets, labels, this));
+
+            for (Component c : rows.get(i)) {
+                if (c instanceof Widget) {
+                    Widget w = (Widget) c;
+                    if (w.isVisible()) {
+                        Argument arg = eMap.get(w);
+                        if (arg != null) {
+                            arg.getValueFrom(w);
+                            tmpArguments.add(arg);
+                        }
+                    }
+                }
+            }
+
+            type.toString(sb, tmpArguments, this);
         }
 
         return sb.toString();
@@ -131,9 +154,9 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public void addLine(WidgetLine line, Object data) {
-        ArrayList<Widget> newRowWidgets = new ArrayList<>();
-        ArrayList<TextLabel> newRowLabels = new ArrayList<>();
-        line.createRow(newRowWidgets, newRowLabels, this, data);
+        ArrayList<Component> newRowComponents = new ArrayList<>();
+        line.createRow(newRowComponents, this, data);
+        resetY();
 
         int index = rowTypes.size() - 1;
         for (; index >= 0; index--) {
@@ -146,12 +169,14 @@ public class MutableWidgetContainer extends WidgetContainer {
         index = (index < 0) ? 0 : index;
 //        line.setIndex(index); TODO
         rowTypes.add(index, line);
-        rowWidgets.add(index, newRowWidgets);
-        rowLabels.add(index, newRowLabels);
+        rows.add(index, newRowComponents);
 
-        for (Widget w : newRowWidgets) {
-            if (!w.isDynamic()) {
-                super.addWidget(w);
+        for (Component c : newRowComponents) {
+            if (c instanceof Widget) {
+                Widget w = (Widget) c;
+                if (!w.isDynamic()) {
+                    super.addWidget(w);
+                }
             }
         }
         updateHeight = true;
@@ -162,7 +187,7 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public int getLineIndex(Widget w) {
-        return rowWidgets.indexOf(w);
+        return rows.indexOf(w);
     }
 
     public int getLineIndex(WidgetLine wl) {
@@ -172,11 +197,13 @@ public class MutableWidgetContainer extends WidgetContainer {
     public void removeLine(int index) {
         if (rowTypes.size() > index) {
             rowTypes.remove(index);
-            for (Widget w : rowWidgets.get(index)) {
-                super.removeWidget(w);
+            for (Component c : rows.get(index)) {
+                if (c instanceof Widget) {
+                    Widget w = (Widget) c;
+                    super.removeWidget(w);
+                }
             }
-            rowWidgets.remove(index);
-            rowLabels.remove(index);
+            rows.remove(index);
             //força a atualização do tamanho desse objeto
             shapeBounds.setRect(0, 0, 0, 0);
             updateHeight = true;
@@ -188,15 +215,18 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public void clear() {
-        for (int i = 0; i < rowTypes.size(); i++) {
-            for (Widget w : rowWidgets.get(i)) {
-                super.removeWidget(w);
+        for (ArrayList<Component> ac : rows) {
+            for (Component c : ac) {
+                if (c instanceof Widget) {
+                    Widget w = (Widget) c;
+                    super.removeWidget(w);
+                }
             }
         }
 
         rowTypes.clear();
-        rowWidgets.clear();
-        rowLabels.clear();
+        rows.clear();
+        eMap.clear();
 
         //força a atualização do tamanho desse objeto
         shapeBounds.setRect(0, 0, 0, 0);
@@ -207,9 +237,9 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public Shape updateShape(Rectangle2D bounds) {
-        Rectangle2D.Double shape = new Rectangle2D.Double();
-        shape.setRect(bounds);
-        return shape;
+        Rectangle2D.Double s = new Rectangle2D.Double();
+        s.setRect(bounds);
+        return s;
     }
 
     @Override
@@ -262,61 +292,113 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     }
 
-    public static void draw(Graphics2D g, int y, int width, Rectangle2D.Double bounds, Rectangle2D.Double tmp, WidgetLine type, Collection<Widget> widgets, Collection<TextLabel> labels) {
+    private double getLineHeight(Graphics2D g, int line, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, Collection<Component> components) {
+        double lineHeight = 0;
+        int i = 0;
+        boolean currentLine = (i == line);
 
-        int x = Integer.MAX_VALUE;
+        for (Component c : components) {
+            if (c instanceof LineBreak) {
+                i++;
+                if (i > line) {
+                    break;
+                } else {
+                    currentLine = (i == line);
+                }
+                continue;
+            }
 
-        for (TextLabel tl : labels) {
-            g.setFont(tl.getFont());
-            g.setColor(tl.getColor());
-            
-            FontMetrics fm = g.getFontMetrics();
-            double w = fm.stringWidth(tl.getText());
-//            tmp.setRect(tl.getPosX(), tl.getPosY(), w, fm.getAscent()); TODO
-//            x = (x > tl.getPosX()) ? (int) tl.getPosX() : x;
-//            if (tl.center()) {
-//                w = (width - w) / 2;
-//            } else {
-//                w = tl.getPosX();
-//            }
-
-//            g.translate(w, tl.getPosY());TODO
-            g.drawString(tl.getText(), 0, 0);
-//            g.translate(-w, -tl.getPosY());TODO
-//            tmp.x += -INSET_X;
-//            tmp.width += 2*INSET_X;
-//            tmp.y += -INSET_Y;
-//            tmp.height += 2*INSET_Y;
-            g.setColor(Color.BLUE);
-//            g.draw(tmp);
-            bounds.add(tmp);
+            if (currentLine) {
+                tmp.setRect(0, 0, 0, 0);
+                tmp2.setRect(0, 0, 0, 0);
+                c.getBounds(tmp, g);
+                c.getInsets(tmp2);
+                double tmpHeight = tmp.height + tmp2.y + tmp2.height;
+                lineHeight = (tmpHeight > lineHeight) ? tmpHeight : lineHeight;
+            }
         }
 
-        for (Widget w : widgets) {
-            w.setTempLocation(0, y);
-            x = (x > w.getX()) ? w.getX() : x;
-            tmp.setRect(w.getBounds());
-            tmp.x += -INSET_X;
-            tmp.width += 2*INSET_X;
-            tmp.y += -INSET_Y;
-            tmp.height += 2*INSET_Y;
+        return lineHeight;
+    }
+
+    public void draw(Graphics2D g, double y, double width, Rectangle2D.Double bounds, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, WidgetLine type, Collection<Component> components) {
+
+        int x = 0;
+
+        int line = 0;
+
+        for (Component c : components) {
+
+            if (c instanceof LineBreak) {
+                if (((LineBreak) c).isEndLine()) {
+                    tmp2.setRect(0, 0, 0, 0);
+                    c.getInsets(tmp2);
+                    tmp2.x += x;
+                    tmp2.y += y;
+                    bounds.add(tmp2);
+                }
+                x = 0;
+                y += getLineHeight(g, line, tmp, tmp2, components);
+                line++;
+            }
+
+            if (c instanceof Widget && !contains((Widget) c)) {
+                continue;
+            }
+
+            double lineHeight = getLineHeight(g, line, tmp, tmp2, components);
+
+            tmp.setRect(0, 0, 0, 0);
+            tmp2.setRect(0, 0, 0, 0);
+            c.getBounds(tmp, g);
+            c.getInsets(tmp2);
+
+            c.setTempLocation((int) (x + tmp2.x), (int) (y + tmp2.y));
+
+            if (c instanceof TextLabel) {
+                TextLabel tl = (TextLabel) c;
+                g.setFont(tl.getFont());
+                g.setColor(tl.getColor());
+
+                double posX;
+                double posY = (y + tmp.height) + (lineHeight - tmp.height) / 2;
+
+                if (tl.center()) {
+                    posX = (width - tmp.width) / 2;
+                } else {
+                    posX = x + tmp2.x;
+                }
+
+                g.translate(posX, posY);
+                g.drawString(tl.getText(), 0, 0);
+                g.translate(-posX, -posY);
+            }
+
+            tmp.x += x;
+            tmp.width += tmp2.x + tmp2.width;
+            tmp.y += y;
+            tmp.height += tmp2.y + tmp2.height;
+
+//            g.setStroke(DEFAULT_STROKE);
+//            g.setColor(Color.orange);
 //            g.draw(tmp);
-            g.setColor(Color.orange);
+            x += (int) tmp.getWidth();
             bounds.add(tmp);
         }
 
         bounds.x = 0;
-        bounds.y = y;
-        bounds.height -= y;
-        g.setColor(Color.red);
+
+//        g.setColor(Color.red);
 //        g.draw(bounds);
-//        bounds.width = (bounds.width < type.getWidth()) ? type.getWidth() : bounds.width;
-//        int tmpHeight = type.getHeight() - y; //calcula a altura real da linha
-//        bounds.height = (tmpHeight < type.getHeight()) ? type.getHeight() : tmpHeight;
     }
 
     protected void backDraw(Graphics2D g) {
     }
+
+    //usados em drawWJC();
+    Rectangle2D.Double compBounds = new Rectangle2D.Double();
+    Rectangle2D.Double tmp = new Rectangle2D.Double();
+    Rectangle2D.Double tmp2 = new Rectangle2D.Double();
 
     protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         //escreve coisas quando os jcomponets estão visiveis
@@ -325,19 +407,14 @@ public class MutableWidgetContainer extends WidgetContainer {
             updateLines = false;
         }
 
-        // rows
-        Rectangle2D.Double compBounds = new Rectangle2D.Double();
-        Rectangle2D.Double tmp = new Rectangle2D.Double();
-
         double y = 0;
 
         for (int i = 0; i < rowTypes.size(); i++) {
             WidgetLine type = rowTypes.get(i);
-            Collection<Widget> widgets = rowWidgets.get(i);
-            Collection<TextLabel> labels = rowLabels.get(i);
+            Collection<Component> components = rows.get(i);
             compBounds.setRect(0, 0, 0, 0);
             tmp.setRect(0, 0, 0, 0);
-            draw(g, (int) y, (int) shapeBounds.width, compBounds, tmp, type, widgets, labels);
+            draw(g, y, shapeBounds.width, compBounds, tmp, tmp2, type, components);
 
             if (i < rowTypes.size() - 1 && rowTypes.get(i + 1).isOnPageEnd()) {
                 //mantem os componentes sobrepostos
@@ -371,8 +448,8 @@ public class MutableWidgetContainer extends WidgetContainer {
         g.setFont(stringFont);
         FontMetrics fm = g.getFontMetrics();
 
-        double x = INSET_X + shapeStartX;
-        double y = INSET_Y + shapeStartY;
+        double x = INSET_Xd + shapeStartX;
+        double y = INSET_Yd + shapeStartY;
 
         double tmpWidth;
 
@@ -417,8 +494,8 @@ public class MutableWidgetContainer extends WidgetContainer {
         x -= shapeStartX;
         y -= shapeStartY;
 
-        shapeBounds.width = stringWidth + 2 * INSET_X;
-        shapeBounds.height = y + 2 * INSET_Y;
+        shapeBounds.width = stringWidth + 2 * INSET_Xd;
+        shapeBounds.height = y + 2 * INSET_Yd;
 
         if (!updateShape || firstShapeUpdate > 0) {
             shape = updateShape(shapeBounds);
@@ -457,7 +534,7 @@ public class MutableWidgetContainer extends WidgetContainer {
             public void mouseEntered(MouseEvent e) {
                 Object o = cb.getSelectedItem();
                 cb.removeAllItems();
-                if (allowEmpty){
+                if (allowEmpty) {
                     cb.addItem(null);
                 }
                 for (String str : p.getDeclaredVariables()) {
@@ -475,7 +552,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         ml.mouseEntered(null);
 
-        for (Component c : cb.getComponents()) {
+        for (java.awt.Component c : cb.getComponents()) {
             c.addMouseListener(ml);
         }
     }
@@ -1368,5 +1445,13 @@ public class MutableWidgetContainer extends WidgetContainer {
     public static void main(String[] args) {
         QuickFrame.applyLookAndFeel();
 //        QuickFrame.drawTest(createDrawableMove());
+    }
+
+    private void resetY() {
+
+    }
+
+    private void breakCurrentLine() {
+
     }
 }

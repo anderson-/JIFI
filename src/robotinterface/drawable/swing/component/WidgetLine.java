@@ -5,12 +5,10 @@
  */
 package robotinterface.drawable.swing.component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.drawable.swing.MutableWidgetContainer;
-import robotinterface.drawable.swing.MutableWidgetContainer;
-import robotinterface.drawable.swing.Widget;
-import robotinterface.drawable.swing.WidgetContainer;
-import robotinterface.drawable.swing.WidgetContainer;
 
 /**
  *
@@ -42,9 +40,27 @@ public abstract class WidgetLine extends Component {
         return onPageEnd;
     }
 
-    public abstract void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data);
-
+    @Deprecated
+    public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data){
+        
+    }
+    
+    @Deprecated
     public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
         return "";
+    }
+    
+    //abstract
+    public void createRow(Collection<Component> components, MutableWidgetContainer container, Object data){
+        
+    }
+
+    @Deprecated
+    public String getString(Collection<Component> components, MutableWidgetContainer container) {
+        return "";
+    }
+    
+    public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+        
     }
 }

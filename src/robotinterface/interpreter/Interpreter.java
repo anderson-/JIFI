@@ -96,6 +96,9 @@ public class Interpreter extends Thread {
             currentCmd = null;
         }
 
+        state = STOP;
+        running = false;
+
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
 //        parser.setTraverse(true); //exibe debug
@@ -131,28 +134,28 @@ public class Interpreter extends Thread {
 
             @Override
             public void run() {
-                while (running) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ex) {
+
+                if (tmpState != PLAY) {
+                    if (robot != null) {
+                        robot.stop();
+                        while (running) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException ex) {
+                            }
+                        }
+                        robot.stopAll();
                     }
                 }
+
                 if (tmpState == STOP) {
                     reset();
                     if (robot != null) {
                         robot.reset();
                     }
-                } else if (tmpState == WAITING) {
-                    if (robot != null) {
-                        robot.stop();
-                    }
                 }
 
                 GUI.getInstance().updateControlBar(Interpreter.this);
-
-//                if (tmpState == PLAY) {
-//                    GUI.getInstance().setSimulationMode();
-//                }
             }
 
         }.start();
@@ -191,7 +194,7 @@ public class Interpreter extends Thread {
                 } catch (InterruptedException ex) {
                 }
                 if (state == STOP) {
-                    return true;
+                    return false;
                 }
             }
             currentCmd = currentCmd.step(resourceManager);
@@ -209,7 +212,7 @@ public class Interpreter extends Thread {
             while (true) {
                 if (state == PLAY) {
                     if (!step()) {
-                        state = WAITING;
+                        state = STOP;
                         reset();
                         GUI.getInstance().updateControlBar(this);
                     }
@@ -230,6 +233,7 @@ public class Interpreter extends Thread {
                 }
             }
         } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
     }
 

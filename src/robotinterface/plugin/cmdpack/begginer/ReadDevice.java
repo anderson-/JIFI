@@ -47,7 +47,7 @@ import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
-import robotinterface.drawable.swing.Widget;
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
