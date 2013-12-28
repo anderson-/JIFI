@@ -39,9 +39,13 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
@@ -62,6 +66,7 @@ public class Procedure extends Command implements Classifiable {
     private static Color myColor = Color.decode("#ACD630");
     private ArrayList<String> names;
     private ArrayList<Object> values;
+    private ArrayList<Argument> args;
     private String procedure;
     public static final int TEXTFIELD_WIDTH = 110;
     public static final int TEXTFIELD_HEIGHT = 23;
@@ -73,14 +78,16 @@ public class Procedure extends Command implements Classifiable {
         procedure = "0";
         names = new ArrayList<>();
         values = new ArrayList<>();
-    }
-
-    public Procedure(Procedure p) {
+        args = new ArrayList<>();
     }
 
     public Procedure(String procedure) {
         this();
         setProcedure(procedure);
+    }
+
+    public Procedure(Procedure p) {
+        this(p.procedure);
     }
 
     public final String getProcedure() {
@@ -160,7 +167,6 @@ public class Procedure extends Command implements Classifiable {
         }
 
 //        parser.parseExpression(procedure);
-
         return o;
     }
 
@@ -232,6 +238,23 @@ public class Procedure extends Command implements Classifiable {
     public Object createInstance() {
         return new Procedure("var x = 1");
     }
+
+    private Argument addLineArg(int index) {
+        if (args.size() > index) {
+            return args.get(index);
+        } else {
+            Argument arg = new Argument("", Argument.EXPRESSION);
+            args.add(arg);
+            return arg;
+        }
+    }
+
+    private void removeLineArg() {
+        if (args.size() > 0) {
+            args.remove(args.size() - 1);
+        }
+    }
+
     private GraphicObject resource = null;
 
     @Override
@@ -251,65 +274,76 @@ public class Procedure extends Command implements Classifiable {
         final int INSET_Y = 5;
 
         //HEADER LINE
-
-        final WidgetLine headerLine = new WidgetLine(20) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Procedimento:", 20, true));
+            public void createRow(Collection<Component> components, MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Procedimento:", true));
             }
         };
 
         //TEXTFIELD LINES
-
-        int textFieldLineWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
-        int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
-        final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
+        final WidgetLine textFieldLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                JTextField textField = new JTextField((String) data);
+            public void createRow(Collection<Component> components, MutableWidgetContainer container, int index) {
+                JTextField textField = new JTextField();
 
-                textField.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-//                            updateProcedure();
-                    }
-                });
+                Widget wTextField = new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
 
-                int textFieldX = 2 * INSET_X + BUTTON_WIDTH;
-                widgets.add(new Widget(textField, textFieldX, INSET_Y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                container.entangle(p.addLineArg(index - 1), wTextField);
+
+                components.add(new Space(BUTTON_WIDTH));
+                components.add(wTextField);
+
+//                textField.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+////                            updateProcedure();
+//                    }
+//                });
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                if (widgets.size() > 0) {
-                    Widget widget = widgets.iterator().next();
-                    JComponent jComponent = widget.getJComponent();
-                    if (jComponent instanceof JTextField) {
-                        String str = ((JTextField) jComponent).getText();
-                        if (!str.endsWith(";")) {
-                            str += ";";
-                        }
-                        return str;
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                if (arguments.size() > 0) {
+                    String str = arguments.get(0).toString();
+                    if (!str.endsWith(";")) {
+                        str += ";";
                     }
+                    sb.append(str);
                 }
-                return "";
             }
+
+//            @Override
+//            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+//                if (widgets.size() > 0) {
+//                    Widget widget = widgets.iterator().next();
+//                    JComponent jComponent = widget.getJComponent();
+//                    if (jComponent instanceof JTextField) {
+//                        String str = ((JTextField) jComponent).getText();
+//                        if (!str.endsWith(";")) {
+//                            str += ";";
+//                        }
+//                        return str;
+//                    }
+//                }
+//                return "";
+//            }
         };
 
         //END LINE
-
         final WidgetLine endLine = new WidgetLine(true) {
             private Widget addButton;
             private Widget remButton;
 
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")));
+                bTmp.setFocusable(false);
 
                 bTmp.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        container.addLine(textFieldLine, "");
+                        container.addLine(textFieldLine);
                         //desconta headerLine e endLine
                         int size = container.getSize() - 2;
                         if (size > 1) {
@@ -319,10 +353,11 @@ public class Procedure extends Command implements Classifiable {
                     }
                 });
 
-                addButton = new Widget(bTmp, INSET_X, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                addButton = new Widget(bTmp, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
                 bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-remove.png")));
                 bTmp.setEnabled(false);
+                bTmp.setFocusable(false);
 
                 bTmp.addActionListener(new ActionListener() {
                     @Override
@@ -331,6 +366,7 @@ public class Procedure extends Command implements Classifiable {
                         int size = container.getSize() - 2;
                         if (size > 1) {
                             container.removeLine(size);
+                            p.removeLineArg();
                         }
                         if (size - 1 == 1) {
                             JButton btn = (JButton) remButton.getJComponent();
@@ -339,10 +375,11 @@ public class Procedure extends Command implements Classifiable {
                     }
                 });
 
-                int remButtonX = 3 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH;
-                remButton = new Widget(bTmp, remButtonX, INSET_Y, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(addButton);
-                widgets.add(remButton);
+                remButton = new Widget(bTmp, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                components.add(addButton);
+                components.add(new Space(TEXTFIELD_WIDTH));
+                components.add(remButton);
+                components.add(new LineBreak(true));
             }
         };
 
@@ -357,19 +394,23 @@ public class Procedure extends Command implements Classifiable {
             public void updateLines() {
                 clear();
 
-                addLine(headerLine, null);
+                addLine(headerLine);
 
                 boolean empty = true;
+                int index = 0;
                 for (String str : string.split(";")) {
-                    addLine(textFieldLine, str);
+                    Argument arg = p.addLineArg(index);
+                    arg.set(str, Argument.EXPRESSION);
+                    index++;
+                    addLine(textFieldLine);
                     empty = false;
                 }
 
                 if (empty) {
-                    addLine(textFieldLine, "");
+                    addLine(textFieldLine);
                 }
 
-                addLine(endLine, null);
+                addLine(endLine);
             }
 
             @Override

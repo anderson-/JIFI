@@ -121,7 +121,7 @@ public final class Argument {
             set(c.getSelectedItem(), SINGLE_VARIABLE);
         } else if (jc instanceof JTextField) {
             JTextField c = (JTextField) jc;
-            if (w.isDynamic() && !c.getText().contains("\"")){
+            if (w.isDynamic() && !c.getText().contains("\"")) {
                 set(c.getText(), EXPRESSION);
             } else {
                 String str = c.getText();
@@ -147,7 +147,7 @@ public final class Argument {
             for (Widget w : ws) {
                 if (w.getJComponent() instanceof JComboBox) {
                     JComboBox c = (JComboBox) w.getJComponent();
-                    c.setSelectedItem(value);
+                    c.setSelectedItem(statement);
                     return w;
                 }
             }
@@ -166,7 +166,7 @@ public final class Argument {
 
     @Override
     public String toString() {
-        if (statement.contains("\"")) {
+        if (statement.contains("\"") || statement.contains("var")) {
             return statement;
         } else {
             return statement.replace(" ", "");

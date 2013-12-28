@@ -134,7 +134,6 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         }
         stop();
     }
-    
     @Deprecated//hbridge para o robo na função stopAll()
     public void stop() {
         rightWheelSpeed = 0;

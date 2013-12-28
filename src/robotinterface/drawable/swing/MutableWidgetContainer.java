@@ -26,6 +26,9 @@ import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawingPanel;
@@ -112,6 +115,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     public void entangle(Argument arg, Widget... ws) {
         for (Widget w : ws) {
+            w.setDynamic(true);
             eMap.put(w, arg);
         }
         Widget chosen = arg.setValueOf(ws);
@@ -120,9 +124,9 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     public String getString() {
         StringBuilder sb = new StringBuilder();
-        tmpArguments.clear();
 
         for (int i = 0; i < rowTypes.size(); i++) {
+            tmpArguments.clear();
             WidgetLine type = rowTypes.get(i);
 
             for (Component c : rows.get(i)) {
@@ -153,11 +157,14 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
     }
 
+    @Deprecated
     public void addLine(WidgetLine line, Object data) {
+        
+    }
+    
+    public void addLine(WidgetLine line) {
         ArrayList<Component> newRowComponents = new ArrayList<>();
-        line.createRow(newRowComponents, this, data);
-        resetY();
-
+        
         int index = rowTypes.size() - 1;
         for (; index >= 0; index--) {
             if (!rowTypes.get(index).isOnPageEnd()) {
@@ -165,8 +172,11 @@ public class MutableWidgetContainer extends WidgetContainer {
                 break;
             }
         }
-
         index = (index < 0) ? 0 : index;
+        
+        line.createRow(newRowComponents, this, index);
+        resetY();
+
 //        line.setIndex(index); TODO
         rowTypes.add(index, line);
         rows.add(index, newRowComponents);
@@ -387,6 +397,8 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
 
         bounds.x = 0;
+        bounds.y = y;
+        bounds.height -= y;
 
 //        g.setColor(Color.red);
 //        g.draw(bounds);
@@ -550,13 +562,38 @@ public class MutableWidgetContainer extends WidgetContainer {
             }
         };
 
-        ml.mouseEntered(null);
-
         for (java.awt.Component c : cb.getComponents()) {
             c.addMouseListener(ml);
         }
+
+        ml.mouseEntered(null);
     }
 
+//    public static void setFocusableTextField(final JTextField jTextField, final MutableWidgetContainer container) {
+//        
+//                jTextField.getDocument().addDocumentListener(new DocumentListener() {
+//                    @Override
+//                    public void insertUpdate(DocumentEvent e) {
+//                        container.setString(jTextField.getText());
+//                        container.updateLines();
+//                        jTextField.requestFocusInWindow();
+//                    }
+//
+//                    @Override
+//                    public void removeUpdate(DocumentEvent e) {
+//                        container.setString(jTextField.getText());
+//                        container.updateLines();
+//                        jTextField.requestFocusInWindow();
+//                    }
+//
+//                    @Override
+//                    public void changedUpdate(DocumentEvent e) {
+//                        container.setString(jTextField.getText());
+//                        container.updateLines();
+//                        jTextField.requestFocusInWindow();
+//                    }
+//                });
+//    }
 //    public static MutableWidgetContainer createDrawableProcedure() {
 //
 //        final int TEXTFIELD_WIDTH = 110;

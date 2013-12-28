@@ -28,24 +28,18 @@ package robotinterface.plugin.cmdpack.begginer;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
@@ -53,12 +47,10 @@ import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
-import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.LineBreak;
-import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -205,90 +197,22 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     public static MutableWidgetContainer createDrawableRotate(final Rotate r) {
 
-        final int TEXTFIELD_WIDTH = 80;
-        final int TEXTFIELD_HEIGHT = 25;
-        final int BUTTON_WIDTH = 25;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
-
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Component> components, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Girar:", true));
                 components.add(new LineBreak());
-
-                final JSpinner spinner1 = new JSpinner();
-                spinner1.setModel(new SpinnerNumberModel(0, -360, 360, 2));
-                JComboBox combobox1 = new JComboBox();
-//                boolean num1 = true;
-
-                MutableWidgetContainer.autoUpdateValue(spinner1);
-                MutableWidgetContainer.setAutoFillComboBox(combobox1, r);
-
-                
-                
-//                if (data != null) {
-//                    if (data instanceof Rotate) {
-//                        Rotate m = (Rotate) data;
-//
-//                        if (r.arg0.isVariable()) {
-//                            combobox1.setSelectedItem(r.arg0.toString());
-//                            num1 = false;
-//                        } else {
-//                            spinner1.setValue((int) r.arg0.getDoubleValue());
-//                        }
-//                    }
-//                }
-
-                final JButton changeButton1 = new JButton();
-                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
-                changeButton1.setIcon(icon);
-                changeButton1.setToolTipText("Selecionar variável");
-
-                components.add(new TextLabel("Ângulo (°):"));
-
-                final Widget wspinner1 = new Widget(spinner1, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                final Widget wcombobox1 = new Widget(combobox1, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                components.add(wspinner1);
-                components.add(wcombobox1);
-                
-                container.entangle(r.arg0, wspinner1, wcombobox1);
-
-                components.add(new Widget(changeButton1, BUTTON_WIDTH, BUTTON_WIDTH));
-
-                components.add(new LineBreak(true));//todo: juntar os dois
-
-                changeButton1.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (container.contains(wspinner1)) {
-                            container.removeWidget(wspinner1);
-                            container.addWidget(wcombobox1);
-                        } else {
-                            container.removeWidget(wcombobox1);
-                            container.addWidget(wspinner1);
-                        }
-                    }
-                });
-
-                wspinner1.setDynamic(true);
-                wcombobox1.setDynamic(true);
-
-//                if (num1) {
-//                    container.addWidget(wspinner1);
-//                } else {
-//                    container.addWidget(wcombobox1);
-//                }
-
+                createGenericField(r, r.arg0, "Ângulo (°):", 80, 25, components, container);
+                components.add(new LineBreak(true));
             }
-            
+
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
                 sb.append("rotate(");
-                for (int i = 0; i < arguments.size(); i++){
+                for (int i = 0; i < arguments.size(); i++) {
                     sb.append(arguments.get(i));
-                    if (i < arguments.size()-1){
+                    if (i < arguments.size() - 1) {
                         sb.append(",");
                     }
                 }
@@ -337,7 +261,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
             @Override
             public void updateLines() {
                 clear();
-                addLine(headerLine, r);
+                addLine(headerLine);
                 string = getString();
             }
         };

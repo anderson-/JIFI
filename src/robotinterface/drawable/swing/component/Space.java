@@ -14,10 +14,24 @@ import static robotinterface.drawable.swing.component.Component.DEFAULT_INSETS;
  */
 public class Space extends Component {
 
+    private int x, y;
+
+    public Space() {
+    }
+
+    public Space(int x) {
+        this.x = x;
+    }
+
+    public Space(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     @Override
-    public Rectangle2D.Double getInsets (Rectangle2D.Double tmp){
-        tmp.setRect(DEFAULT_INSETS);
+    public Rectangle2D.Double getInsets(Rectangle2D.Double tmp) {
+        tmp.setRect(DEFAULT_INSETS.x + x, DEFAULT_INSETS.y + y, DEFAULT_INSETS.width, DEFAULT_INSETS.width);
         return tmp;
     }
-    
+
 }
