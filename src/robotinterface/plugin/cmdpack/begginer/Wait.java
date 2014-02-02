@@ -6,16 +6,9 @@ package robotinterface.plugin.cmdpack.begginer;
 
 import java.awt.Color;
 import java.awt.Polygon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Area;
+import java.util.ArrayList;
 import java.util.Collection;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -26,9 +19,9 @@ import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
-import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.TextLabel;
-import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -140,119 +133,27 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
     public static MutableWidgetContainer createDrawableMove(final Wait W) {
 
-        final int TEXTFIELD_WIDTH = 70;
-        final int TEXTFIELD_HEIGHT = 25;
-        final int BUTTON_WIDTH = 25;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
-
         //HEADER LINE
-
-        int headerHeight = 3 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + BUTTON_WIDTH + TEXTFIELD_WIDTH + 87;
-        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Espera:", 20, true));
-
-                final JSpinner spinner = new JSpinner();
-                spinner.setModel(new SpinnerNumberModel(500, 0, 10000, 50));
-                JComboBox combobox = new JComboBox();
-                boolean num = true;
-
-                MutableWidgetContainer.autoUpdateValue(spinner);
-                MutableWidgetContainer.setAutoFillComboBox(combobox, W);
-                
-                if (data != null) {
-                    if (data instanceof Wait) {
-                        Wait w = (Wait) data;
-
-                        if (w.arg0.isVariable()) {
-                            combobox.setSelectedItem(w.arg0.toString());
-                            num = false;
-                        } else {
-                            spinner.setValue((int) w.arg0.getDoubleValue());
-                        }
-                    }
-                }
-
-                final JButton changeButton1 = new JButton();
-                ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
-                changeButton1.setIcon(icon);
-                changeButton1.setToolTipText("Selecionar variável");
-
-//                changeButton1.setEnabled(false);
-//                changeButton2.setEnabled(false);
-
-                int x = INSET_X;
-                int y = INSET_Y + 40;
-                int strLen = 88;
-                labels.add(new TextLabel("Tempo (ms):", x + 5, y));
-
-                x += strLen;
-                y -= 18;
-
-                final Widget wspinner1 = new Widget(spinner, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                final Widget wcombobox1 = new Widget(combobox, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(wspinner1);
-                widgets.add(wcombobox1);
-
-                x += INSET_Y + TEXTFIELD_WIDTH;
-
-                widgets.add(new Widget(changeButton1, x, y, BUTTON_WIDTH, BUTTON_WIDTH));
-
-                x -= INSET_Y + TEXTFIELD_WIDTH;
-
-                changeButton1.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (container.contains(wspinner1)) {
-                            container.removeWidget(wspinner1);
-                            container.addWidget(wcombobox1);
-                        } else {
-                            container.removeWidget(wcombobox1);
-                            container.addWidget(wspinner1);
-                        }
-                    }
-                });
-
-                wspinner1.setDynamic(true);
-                wcombobox1.setDynamic(true);
-
-                if (num) {
-                    container.addWidget(wspinner1);
-                } else {
-                    container.addWidget(wcombobox1);
-                }
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Espera:", true));
+                components.add(new LineBreak());
+                createGenericField(W, W.arg0, "Tempo (ms):", 80, 25, components, container);
+//                spinner.setModel(new SpinnerNumberModel(500, 0, 10000, 50));
+                components.add(new LineBreak(true));
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
-
-                StringBuilder sb = new StringBuilder();
-
-                sb.append("wait(");
-
-                for (Widget w : widgets) {
-                    if (container.contains(w)) {
-                        JComponent jc = w.getJComponent();
-                        if (jc instanceof JComboBox) {
-                            JComboBox cb = (JComboBox) jc;
-                            Object o = cb.getSelectedItem();
-                            if (o != null) {
-                                sb.append(o.toString());
-                                W.arg0.set(o.toString(), Argument.SINGLE_VARIABLE);
-                            }
-                        } else if (jc instanceof JSpinner) {
-                            JSpinner s = (JSpinner) jc;
-                            sb.append(s.getValue());
-                            W.arg0.set(s.getValue(), Argument.NUMBER_LITERAL);
-                        }
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                sb.append("rotate(");
+                for (int i = 0; i < arguments.size(); i++) {
+                    sb.append(arguments.get(i));
+                    if (i < arguments.size() - 1) {
+                        sb.append(",");
                     }
                 }
-
-                String str = sb.toString() + ")";
-                return str;
+                sb.append(")");
             }
         };
 
@@ -265,11 +166,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             @Override
             public void updateLines() {
                 clear();
-                if (string.length() <= 1) {
-                    addLine(headerLine, W);
-                } else {
-                    addLine(headerLine, W);
-                }
+                addLine(headerLine);
                 string = getString();
             }
         };

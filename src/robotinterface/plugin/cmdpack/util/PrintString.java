@@ -37,6 +37,7 @@ import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
@@ -192,70 +193,33 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {
 
-        final int TEXTFIELD_WIDTH = 130;
-        final int TEXTFIELD_HEIGHT = 25;
-        final int BUTTON_WIDTH = 25;
-        final int BEGIN_X = 20;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
-
         //LINES
-        int varSelectiteonLineWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
-        int varSelectiteonLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
-        final WidgetLine varSelectiteonLine = new WidgetLine(varSelectiteonLineWidth, varSelectiteonLineHeight) {
+        final WidgetLine varSelectiteonLine = new WidgetLine() {
             private String var;
 
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                JComboBox combobVar = new JComboBox();
-                combobVar.setFocusable(false);
-
-                MutableWidgetContainer.setAutoFillComboBox(combobVar, p);
-
-                if (data != null) {
-                    combobVar.setSelectedItem(data);
-                }
-
-                int x = BEGIN_X + INSET_X;
-                int y = INSET_Y;
-
-                labels.add(new TextLabel("v" + container.getSize() + ":", x, y + 18));
-                x += 25;
-                //x += 2 * INSET_X + BUTTON_WIDTH;
-                widgets.add(new Widget(combobVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                createGenericField(p, p.addLineArg(index - 1), "v" + index + ":", 80, 25, components, container, WidgetLine.ARG_COMBOBOX);
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                if (widgets.size() > 0) {
-                    Widget widget = widgets.iterator().next();
-                    JComponent jComponent = widget.getJComponent();
-                    if (jComponent instanceof JComboBox) {
-                        Object o = ((JComboBox) jComponent).getSelectedItem();
-                        if (o != null) {
-                            String varName = o.toString();
-                            p.myArgs.add(new Argument(varName, Argument.SINGLE_VARIABLE));
-                            return ", " + varName;
-                        }
-                    }
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                if (arguments.size() > 0) {
+                    String varName = arguments.get(0).toString();
+                    p.myArgs.add(new Argument(varName, Argument.SINGLE_VARIABLE));
+                    sb.append(", ").append(varName);
                 }
-                return "";
             }
         };
 
         //HEADER LINE
-        int headerHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = BEGIN_X + 4 * INSET_X + 2 * BUTTON_WIDTH + TEXTFIELD_WIDTH;
-        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Exibir:", 20, true));
-                labels.add(new TextLabel("Formato:", BEGIN_X + INSET_X, 3 * INSET_Y + 28));
-                final JTextField tfName = new JTextField();
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Exibir:", true));
 
-                if (data != null) {
-                    tfName.setText(data.toString());
-                }
+                Widget wtfName = createGenericField(p, p.addLineArg(index), "Formato:", 130, 25, components, container, WidgetLine.ARG_TEXTFIELD)[0];
+                final JTextField tfName = (JTextField) wtfName.getJComponent();
 
                 tfName.getDocument().addDocumentListener(new DocumentListener() {
                     @Override
@@ -280,46 +244,31 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     }
                 });
 
-                widgets.add(new Widget(tfName, BEGIN_X + 65, INSET_Y + 20, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png")));
-                bTmp.setToolTipText("Selecionar variável");
+                JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/fugue/asterisk.png")));
+                bTmp.setToolTipText("Adicionar");
                 bTmp.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         tfName.setText(tfName.getText() + " %v");
                     }
                 });
-
-                widgets.add(new Widget(bTmp, BEGIN_X + INSET_X + 65 + TEXTFIELD_WIDTH, INSET_Y + 20, BUTTON_WIDTH, TEXTFIELD_HEIGHT));
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
-                if (widgets.size() > 0) {
-                    try {
-                        p.myArgs.clear();
-                        StringBuilder sb = new StringBuilder();
-                        Iterator<Widget> iterator = widgets.iterator();
-                        String str;
-                        Widget tmpWidget;
-                        JComponent jComponent;
-                        //JTextField 1
-                        tmpWidget = iterator.next();
-                        jComponent = tmpWidget.getJComponent();
-                        if (jComponent instanceof JTextField) {
-                            str = ((JTextField) jComponent).getText();
-                            p.myArgs.add(new Argument(str, Argument.STRING_LITERAL));
-                            if (!str.isEmpty()) {
-                                sb.append(str);
-                            }
-                        }
-
-                        return "\"" + sb.toString() + "\"";
-                    } catch (NoSuchElementException e) {
-                        e.printStackTrace();
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                try {
+                    sb.append("\"");
+                    p.myArgs.clear();
+                    //JTextField 1
+                    String str = arguments.iterator().next().toString();
+                    p.myArgs.add(new Argument(str, Argument.STRING_LITERAL));
+                    if (!str.isEmpty()) {
+                        sb.append(str);
                     }
+                    sb.append("\"");
+                } catch (NoSuchElementException e) {
+                    e.printStackTrace();
                 }
-                return "";
             }
         };
 
@@ -346,7 +295,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
                 if (getSize() == 0) {
                     clear();
-                    addLine(headerLine, p.myArgs.get(0).getStringValue());
+                    addLine(headerLine);
                 }
 
                 String subStr = "%v";
@@ -354,12 +303,12 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 if (p.myArgs.size() > 1) {
                     ocorrences -= (p.myArgs.size() - 1);
                     for (int i = 1; i < p.myArgs.size(); i++) {
-                        addLine(varSelectiteonLine, p.myArgs.get(i).getVariableName());
+                        addLine(varSelectiteonLine);
                     }
                 } else {
                     ocorrences -= getSize() - 1;
                     for (int i = 0; i < ocorrences; i++) {
-                        addLine(varSelectiteonLine, null);
+                        addLine(varSelectiteonLine);
                     }
                 }
 

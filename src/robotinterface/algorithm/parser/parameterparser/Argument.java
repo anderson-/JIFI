@@ -142,7 +142,9 @@ public final class Argument {
                     return w;
                 }
             }
-        } else if (type == SINGLE_VARIABLE) {
+        }
+        
+        if (type == SINGLE_VARIABLE) {
             //JComboBox
             for (Widget w : ws) {
                 if (w.getJComponent() instanceof JComboBox) {
@@ -151,17 +153,18 @@ public final class Argument {
                     return w;
                 }
             }
-        } else {
-            //JTextField
-            for (Widget w : ws) {
-                if (w.getJComponent() instanceof JTextField) {
-                    JTextField c = (JTextField) w.getJComponent();
-                    c.setText(statement);
-                    return w;
-                }
+        }
+        
+        //JTextField
+        for (Widget w : ws) {
+            if (w.getJComponent() instanceof JTextField) {
+                JTextField c = (JTextField) w.getJComponent();
+                c.setText(statement);
+                return w;
             }
         }
-        throw new Error("JComponent not found");
+
+        throw new Error("JComponent not found : " + type);
     }
 
     @Override

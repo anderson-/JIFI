@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.swing.DrawableCommandBlock;
@@ -43,6 +45,8 @@ import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -82,41 +86,22 @@ public class Comment extends Procedure {
         final int INSET_Y = 5;
 
         //HEADER LINE
-        final WidgetLine headerLine = new WidgetLine(20) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Comentário:", 20, true));
-            }
-        };
-
-        //TEXTFIELD LINES
-        int textFieldLineWidth = 2 * INSET_X + TEXTFIELD_WIDTH;
-        int textFieldLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
-        final WidgetLine textFieldLine = new WidgetLine(textFieldLineWidth, textFieldLineHeight) {
-            @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                JTextArea textField = new JTextArea((String) data);
-
-//                textField.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-////                            updateProcedure();
-//                    }
-//                });
-                int textFieldX = INSET_X;
-                widgets.add(new Widget(textField, textFieldX, INSET_Y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Comentário:", true));
+                components.add(new LineBreak());
+                JTextArea textField = new JTextArea();//(String) data);
+                components.add(new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                components.add(new LineBreak(true));
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                if (widgets.size() > 0) {
-                    Widget widget = widgets.iterator().next();
-                    JComponent jComponent = widget.getJComponent();
-                    if (jComponent instanceof JTextArea) {
-                        return ((JTextArea) jComponent).getText();
-                    }
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                if (arguments.size() > 0) {
+                    Argument arg = arguments.get(1);
+                    sb.append(arg);
                 }
-                return "";
             }
         };
 
@@ -153,10 +138,9 @@ public class Comment extends Procedure {
             @Override
             public void updateLines() {
                 clear();
-                addLine(headerLine, null);
                 c.comment = string;
                 c.setProcedure(string);
-                addLine(textFieldLine, string);
+                addLine(headerLine);
             }
 
             @Override

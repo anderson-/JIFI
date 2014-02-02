@@ -44,6 +44,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import robotinterface.algorithm.parser.parameterparser.Argument;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.GraphicObject;
@@ -52,6 +53,7 @@ import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.component.Component;
 import robotinterface.gui.GUI;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Interpreter;
@@ -76,7 +78,7 @@ public class Function extends Block {
             }
             return resource;
         }
-        
+
         @Override
         public Command step(ResourceManager rm) {
             return null;
@@ -101,7 +103,7 @@ public class Function extends Block {
         this.name = name;
         updateFunction(name, args, this);
     }
-    
+
     private static void updateFunction(String name, String args, Function f) {
         f.setName(name);
         f.getArgs().clear();
@@ -186,8 +188,6 @@ public class Function extends Block {
         g.setTransform(o);
     }
 
-    
-    
     public static Command find(Point2D p, Block b) {
         Command it = b.start;
         while (it != null) {
@@ -287,85 +287,73 @@ public class Function extends Block {
 
         final int TEXTFIELD_WIDTH = 100;
         final int TEXTFIELD_HEIGHT = 25;
-        final int COMBOBOX_WIDTH = 55;
-        final int COMBOBOX_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
         //HEADER LINE
-        int headerHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + 2 * BUTTON_WIDTH + 18 + TEXTFIELD_WIDTH;
-        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Função:", 20, true));
-                labels.add(new TextLabel("Nome:", INSET_X, 3 * INSET_Y + 28));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Função:", true));
+                components.add(new TextLabel("Nome:"));
 
                 tfName.setText(f.name);
 
-                widgets.add(new Widget(tfName, 2 * INSET_X + 50, INSET_Y + 20, TEXTFIELD_WIDTH + 20, TEXTFIELD_HEIGHT));
+                components.add(new Widget(tfName, TEXTFIELD_WIDTH + 20, TEXTFIELD_HEIGHT));
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
 
                 f.name = tfName.getText();
                 f.args.clear();
 
-                return f.name + " (";
+                sb.append(f.name).append(" (");
             }
         };
 
         //LINES
-        int argumentLineHeight = 2 * INSET_Y + TEXTFIELD_HEIGHT;
-        final WidgetLine argumentLine = new WidgetLine(argumentLineHeight) {
+        final WidgetLine argumentLine = new WidgetLine() {
             private int argN = 0;
 
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 JTextField txArg = new JTextField();
 
-                if (data instanceof String) {
-                    txArg.setText((String) data);
-                }
-
-                int x = INSET_X;
-                int y = 0;
-
                 argN++;
-                labels.add(new TextLabel(argN + ":", INSET_X, y + 18));
-                x += 18;
-                widgets.add(new Widget(txArg, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
+                components.add(new TextLabel(argN + ":"));
+
+                components.add(new Widget(txArg, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
             }
 
             @Override
-            public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container) {
-                if (widgets.size() > 0) {
-                    try {
-                        StringBuilder sb = new StringBuilder();
-                        Iterator<Widget> iterator = widgets.iterator();
-                        String str;
-                        Widget tmpWidget;
-                        JComponent jComponent;
-                        //JTextField 1
-                        tmpWidget = iterator.next();
-                        jComponent = tmpWidget.getJComponent();
-                        if (jComponent instanceof JTextField) {
-                            str = ((JTextField) jComponent).getText();
-                            if (!str.isEmpty()) {
-                                if (!f.args.isEmpty()) {
-                                    sb.append(", ");
-                                }
-
-                                sb.append("var ");
-                                sb.append(str);
-                                f.args.add(str);
-                            }
-                        }
-                        return sb.toString();
-                    } catch (NoSuchElementException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return "";
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+//                if (widgets.size() > 0) {
+//                    try {
+//                        StringBuilder sb = new StringBuilder();
+//                        Iterator<Widget> iterator = widgets.iterator();
+//                        String str;
+//                        Widget tmpWidget;
+//                        JComponent jComponent;
+//                        //JTextField 1
+//                        tmpWidget = iterator.next();
+//                        jComponent = tmpWidget.getJComponent();
+//                        if (jComponent instanceof JTextField) {
+//                            str = ((JTextField) jComponent).getText();
+//                            if (!str.isEmpty()) {
+//                                if (!f.args.isEmpty()) {
+//                                    sb.append(", ");
+//                                }
+//
+//                                sb.append("var ");
+//                                sb.append(str);
+//                                f.args.add(str);
+//                            }
+//                        }
+//                        return sb.toString();
+//                    } catch (NoSuchElementException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                return "";
             }
         };
 
@@ -375,14 +363,14 @@ public class Function extends Block {
             private Widget remButton;
 
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 JButton bTmp = new JButton("+");
                 bTmp.setEnabled(false); //temporario
 
                 bTmp.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        container.addLine(argumentLine, "");
+                        container.addLine(argumentLine);
                         //desconta headerLine e endLine
                         int size = container.getSize() - 2;
                         if (size > 1) {
@@ -392,7 +380,7 @@ public class Function extends Block {
                     }
                 });
 
-                addButton = new Widget(bTmp, 2 * INSET_X + 18 + TEXTFIELD_WIDTH, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                addButton = new Widget(bTmp, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
 
                 bTmp = new JButton("-");
                 bTmp.setEnabled(false);
@@ -412,18 +400,16 @@ public class Function extends Block {
                     }
                 });
 
-                int remButtonX = 3 * INSET_X + BUTTON_WIDTH + 18 + TEXTFIELD_WIDTH;
-                remButton = new Widget(bTmp, remButtonX, 0, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(addButton);
-                widgets.add(remButton);
+                remButton = new Widget(bTmp, BUTTON_WIDTH, TEXTFIELD_HEIGHT);
+                components.add(addButton);
+                components.add(remButton);
             }
         };
 
-        int nullLineHeight = INSET_Y + TEXTFIELD_HEIGHT;
-        final WidgetLine nullLine = new WidgetLine(nullLineHeight) {
+        final WidgetLine nullLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Argumentos:", INSET_X, 18));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Argumentos:"));
             }
         };
 
@@ -443,16 +429,16 @@ public class Function extends Block {
                 clear();
 
                 //adiciona cabeçalho
-                addLine(headerLine, null);
+                addLine(headerLine);
 
                 //adiciona uma nova linha sem dados
-                addLine(nullLine, null);
+                addLine(nullLine);
 
                 for (String arg : f.args) {
-                    addLine(argumentLine, arg);
+                    addLine(argumentLine);
                 }
 
-                addLine(endLine, null);
+                addLine(endLine);
                 string = getString();
 
                 //CUIDADO
@@ -482,5 +468,22 @@ public class Function extends Block {
             resource = createDrawableFunction(this);
         }
         return resource;
+    }
+
+    @Override
+    public void drawLines(Graphics2D g) {
+        GraphicObject resource = getDrawableResource();
+        if (resource != null) {
+            Command c = super.start;
+            if (c instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                if (d != null) {
+                    Rectangle2D.Double bThis = resource.getObjectBouds();
+                    Rectangle2D.Double bStart = d.getObjectBouds();
+                    Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bStart.getCenterX(), bStart.getMinY());
+                    g.draw(l);
+                }
+            }
+        }
     }
 }

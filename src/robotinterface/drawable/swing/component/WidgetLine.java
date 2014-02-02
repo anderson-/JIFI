@@ -12,8 +12,11 @@ import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.swing.MutableWidgetContainer;
@@ -26,18 +29,15 @@ public abstract class WidgetLine extends Component {
 
     private boolean onPageEnd = false;
 
+    @Deprecated
+    public WidgetLine(int i) {
+    }
+
+    @Deprecated
+    public WidgetLine(int i, int j) {
+    }
+
     public WidgetLine() {
-    }
-
-    @Deprecated
-    public WidgetLine(int height) {
-//            this.height = height;
-    }
-
-    @Deprecated
-    public WidgetLine(int width, int height) {
-//            this.width = width;
-//            this.height = height;
     }
 
     public WidgetLine(boolean onPageEnd) {
@@ -48,86 +48,197 @@ public abstract class WidgetLine extends Component {
         return onPageEnd;
     }
 
-    @Deprecated
-    public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container, Object data) {
-
-    }
-
-    @Deprecated
-    public String getString(Collection<Widget> widgets, Collection<TextLabel> labels, MutableWidgetContainer container) {
-        return "";
-    }
-
-    //abstract
-    public void createRow(Collection<Component> components, MutableWidgetContainer container, int index) {
-
-    }
-
-    @Deprecated
-    public String getString(Collection<Component> components, MutableWidgetContainer container) {
-        return "";
-    }
+    public abstract void createRow(Collection<Component> components, MutableWidgetContainer container, int index);
 
     public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
 
     }
 
-    protected void createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container) {
-
-        final JSpinner spinner1 = new JSpinner();
-        spinner1.setModel(new SpinnerNumberModel(0, -360, 360, 2));
-        JComboBox combobox1 = new JComboBox();
-//                boolean num1 = true;
-
-        MutableWidgetContainer.autoUpdateValue(spinner1);
-        MutableWidgetContainer.setAutoFillComboBox(combobox1, p);
-
-//                if (data != null) {
-//                    if (data instanceof Rotate) {
-//                        Rotate m = (Rotate) data;
+//    protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container) {
+//        //cria componentes swing
+//        JSpinner spinner = new JSpinner();
+//        JComboBox combobox = new JComboBox();
+//        JTextField textfield = new JTextField();
+//        final JButton changeButton = new JButton();
 //
-//                        if (r.arg0.isVariable()) {
-//                            combobox1.setSelectedItem(r.arg0.toString());
-//                            num1 = false;
-//                        } else {
-//                            spinner1.setValue((int) r.arg0.getDoubleValue());
-//                        }
-//                    }
+//        //habilita o foco
+//        spinner.setFocusable(true);
+//        combobox.setFocusable(true);
+//        textfield.setFocusable(true);
+//
+//        //define comportamento durante o foco e adiciona valores
+//        spinner.setModel(new SpinnerNumberModel(0, -360, 360, 2));
+//        MutableWidgetContainer.autoUpdateValue(spinner);
+//        MutableWidgetContainer.setAutoFillComboBox(combobox, p);
+//
+//        //cria widgets e define seus respectivos tamanhos
+//        final Widget wspinner = new Widget(spinner, fieldWidth, fieldHeight);
+//        final Widget wcombobox = new Widget(combobox, fieldWidth, fieldHeight);
+//        final Widget wtextfield = new Widget(textfield, fieldWidth, fieldHeight);
+//
+//        //aciona a atualização e seleção automática dos componentes de acordo
+//        //com o tipo de argumento
+//        final Widget chosen = container.entangle(arg, wspinner, wcombobox, wtextfield);
+//
+//        //obtem o foco para o widget selecionado
+//        SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                chosen.getJComponent().requestFocus();
+//            }
+//        });
+//
+//        //adiciona widgets criados
+//        components.add(new TextLabel(fieldName));
+//        components.add(wspinner);
+//        components.add(wcombobox);
+//        components.add(wtextfield);
+//        components.add(new Widget(changeButton, fieldHeight, fieldHeight));
+//
+//        //define o icone e comportamento do botão
+//        final ImageIcon iconcb = new ImageIcon(getClass().getResource("/resources/fugue/ui-combo-box.png"));
+//        final ImageIcon iconsp = new ImageIcon(getClass().getResource("/resources/fugue/ui-spin.png"));
+//        final ImageIcon icontf = new ImageIcon(getClass().getResource("/resources/fugue/ui-text-field.png"));
+//
+//        if (container.contains(wspinner)) {
+//            changeButton.setIcon(iconcb);
+//            changeButton.setToolTipText("Selecionar variável");
+//        } else if (container.contains(wcombobox)) {
+//            changeButton.setIcon(icontf);
+//            changeButton.setToolTipText("Edição livre");
+//        } else {
+//            changeButton.setIcon(iconsp);
+//            changeButton.setToolTipText("Selecionar valor");
+//        }
+//
+//        ActionListener actionListener = new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (container.contains(wspinner)) {
+//                    container.removeWidget(wspinner);
+//                    container.addWidget(wcombobox);
+//                    wcombobox.getJComponent().requestFocusInWindow();
+//                    changeButton.setIcon(icontf);
+//                    changeButton.setToolTipText("Edição livre");
+//                } else if (container.contains(wcombobox)) {
+//                    container.removeWidget(wcombobox);
+//                    container.addWidget(wtextfield);
+//                    wtextfield.getJComponent().requestFocusInWindow();
+//                    changeButton.setIcon(iconsp);
+//                    changeButton.setToolTipText("Selecionar valor");
+//                } else {
+//                    container.removeWidget(wtextfield);
+//                    container.addWidget(wspinner);
+//                    wspinner.getJComponent().requestFocusInWindow();
+//                    changeButton.setIcon(iconcb);
+//                    changeButton.setToolTipText("Selecionar variável");
 //                }
-        final JButton changeButton1 = new JButton();
-        ImageIcon icon = new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/system-search.png"));
-        changeButton1.setIcon(icon);
-        changeButton1.setToolTipText("Selecionar variável");
+//            }
+//        };
+//
+//        changeButton.addActionListener(actionListener);
+////        actionListener.actionPerformed(null);
+//
+//        return new Widget[]{wspinner, wcombobox, wtextfield};
+//    }
+    public static final int ARG_SPINNER = 1;
+    public static final int ARG_COMBOBOX = 2;
+    public static final int ARG_TEXTFIELD = 4;
+    public static final int DEFAULT = ARG_SPINNER | ARG_COMBOBOX | ARG_TEXTFIELD;
+
+    protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container) {
+        return createGenericField(p, arg, fieldName, fieldWidth, fieldHeight, components, container, DEFAULT);
+    }
+
+    protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container, int type) {
+
+        final ArrayList<Widget> ws = new ArrayList<>();
+        final ArrayList<Object[]> infos = new ArrayList<>();
 
         components.add(new TextLabel(fieldName));
 
-        final Widget wspinner1 = new Widget(spinner1, fieldWidth, fieldHeight);
-        final Widget wcombobox1 = new Widget(combobox1, fieldWidth, fieldHeight);
-        components.add(wspinner1);
-        components.add(wcombobox1);
+        if ((type & ARG_SPINNER) != 0) {
+            JSpinner spinner = new JSpinner();
+            spinner.setModel(new SpinnerNumberModel(0, -360, 360, 2));
+            spinner.setFocusable(true);
+            MutableWidgetContainer.autoUpdateValue(spinner);
+            Widget wspinner = new Widget(spinner, fieldWidth, fieldHeight);
+            components.add(wspinner);
+            ws.add(wspinner);
+            ImageIcon icon = new ImageIcon(getClass().getResource("/resources/fugue/ui-spin.png"));
+            infos.add(new Object[]{"Selecionar valor", icon, wspinner});
+        }
 
-        container.entangle(arg, wspinner1, wcombobox1);
+        if ((type & ARG_COMBOBOX) != 0) {
+            JComboBox combobox = new JComboBox();
+            combobox.setFocusable(true);
+            MutableWidgetContainer.setAutoFillComboBox(combobox, p);
+            Widget wcombobox = new Widget(combobox, fieldWidth, fieldHeight);
+            components.add(wcombobox);
+            ws.add(wcombobox);
+            ImageIcon icon = new ImageIcon(getClass().getResource("/resources/fugue/ui-combo-box.png"));
+            infos.add(new Object[]{"Selecionar variável", icon, wcombobox});
+        }
 
-        components.add(new Widget(changeButton1, fieldHeight, fieldHeight));
+        if ((type & ARG_TEXTFIELD) != 0) {
+            JTextField textfield = new JTextField();
+            textfield.setFocusable(true);
+            Widget wtextfield = new Widget(textfield, fieldWidth, fieldHeight);
+            components.add(wtextfield);
+            ws.add(wtextfield);
+            ImageIcon icon = new ImageIcon(getClass().getResource("/resources/fugue/ui-text-field.png"));
+            infos.add(new Object[]{"Edição livre", icon, wtextfield});
+        }
 
-        changeButton1.addActionListener(new ActionListener() {
+        Widget[] aws = new Widget[]{};
+        aws = ws.toArray(aws);
+        final Widget chosen = container.entangle(arg, aws);
+
+        //obtem o foco para o widget selecionado
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                if (container.contains(wspinner1)) {
-                    container.removeWidget(wspinner1);
-                    container.addWidget(wcombobox1);
-                } else {
-                    container.removeWidget(wcombobox1);
-                    container.addWidget(wspinner1);
-                }
+            public void run() {
+                chosen.getJComponent().requestFocus();
             }
         });
 
-//                if (num1) {
-//                    container.addWidget(wspinner1);
-//                } else {
-//                    container.addWidget(wcombobox1);
-//                }
+        if (infos.size() > 1) {
+            final JButton changeButton = new JButton();
+            components.add(new Widget(changeButton, fieldHeight, fieldHeight));
+
+            for (int i = 0; i < infos.size(); i++) {
+                if (container.contains(ws.get(i))) {
+                    int next = (i + 1 >= infos.size()) ? 0 : i + 1;
+                    Object[] info = infos.get(next);
+                    changeButton.setToolTipText((String) info[0]);
+                    changeButton.setIcon((ImageIcon) info[1]);
+                    break;
+                }
+            }
+
+            ActionListener actionListener = new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for (int i = 0; i < infos.size(); i++) {
+                        if (container.contains(ws.get(i))) {
+                            container.removeWidget(ws.get(i));
+                            int next = (i + 1 >= infos.size()) ? 0 : i + 1;
+                            Object[] info = infos.get(next);
+                            changeButton.setToolTipText((String) info[0]);
+                            changeButton.setIcon((ImageIcon) info[1]);
+                            container.addWidget((Widget) info[2]);
+                            ((Widget) info[2]).getJComponent().requestFocusInWindow();
+                            break;
+                        }
+                    }
+                }
+            };
+
+            changeButton.addActionListener(actionListener);
+        }
+
+        return aws;
+
     }
 
 }

@@ -68,11 +68,11 @@ public class Procedure extends Command implements Classifiable {
     private ArrayList<Object> values;
     private ArrayList<Argument> args;
     private String procedure;
-    public static final int TEXTFIELD_WIDTH = 110;
-    public static final int TEXTFIELD_HEIGHT = 23;
-    public static final int BUTTON_WIDTH = 20;
-    public static final int INSET_X = 5;
-    public static final int INSET_Y = 5;
+//    public static final int TEXTFIELD_WIDTH = 110;
+//    public static final int TEXTFIELD_HEIGHT = 23;
+//    public static final int BUTTON_WIDTH = 20;
+//    public static final int INSET_X = 5;
+//    public static final int INSET_Y = 5;
 
     public Procedure() {
         procedure = "0";
@@ -239,8 +239,11 @@ public class Procedure extends Command implements Classifiable {
         return new Procedure("var x = 1");
     }
 
-    private Argument addLineArg(int index) {
+    protected Argument addLineArg(int index) {
         if (args.size() > index) {
+            if (index == -1){
+                System.out.println("opa");
+            }
             return args.get(index);
         } else {
             Argument arg = new Argument("", Argument.EXPRESSION);
@@ -253,6 +256,10 @@ public class Procedure extends Command implements Classifiable {
         if (args.size() > 0) {
             args.remove(args.size() - 1);
         }
+    }
+    
+    private int lineArgSize (){
+        return args.size();
     }
 
     private GraphicObject resource = null;
@@ -270,8 +277,6 @@ public class Procedure extends Command implements Classifiable {
         final int TEXTFIELD_WIDTH = 110;
         final int TEXTFIELD_HEIGHT = 25;
         final int BUTTON_WIDTH = 25;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
 
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine() {

@@ -86,6 +86,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private final ArrayList<Integer> keys;
     private final Point mouse;
     private boolean dragEnabled = true;
+    private boolean keyMoveEnabled = true;
+    private int keyMoveConst = 10;
     private boolean dragging = false;
     private int mouseDragX = 0;
     private int mouseDragY = 0;
@@ -379,7 +381,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 }
             }
         }
-        
+
 //            int x = (int) ((mouse.x - globalX) / zoom);
 //            int y = (int) ((mouse.y - globalY) / zoom);
 //
@@ -389,7 +391,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 //                g.setColor(Color.black);
 //            }
 //            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
-            
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);
             mouseDragX = 0;
@@ -418,6 +419,23 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         synchronized (keys) {
             if (e.getKeyCode() != 0 && !keys.contains(e.getKeyCode())) {
                 keys.add(e.getKeyCode());
+
+                if (keyMoveEnabled) {
+                    switch (e.getKeyCode()) {
+                        case KeyEvent.VK_UP:
+                            globalY+= keyMoveConst;
+                            break;
+                        case KeyEvent.VK_DOWN:
+                            globalY-= keyMoveConst;
+                            break;
+                        case KeyEvent.VK_LEFT:
+                            globalX-= keyMoveConst;
+                            break;
+                        case KeyEvent.VK_RIGHT:
+                            globalX+= keyMoveConst;
+                            break;
+                    }
+                }
             }
         }
     }
@@ -495,7 +513,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         mouseDragY = (int) (mouse.getY() - e.getPoint().getY());
         dragging = true;
         mouse.setLocation(e.getPoint());
-        
+
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);
             mouseDragX = 0;

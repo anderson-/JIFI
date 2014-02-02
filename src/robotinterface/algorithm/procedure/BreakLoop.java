@@ -6,6 +6,7 @@
 package robotinterface.algorithm.procedure;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -77,6 +78,11 @@ public class BreakLoop extends Procedure {
         
         myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
         return new Item("Parar Repetição", myShape, myColor);
+    }
+    
+    @Override
+    public void drawLines(Graphics2D g) {
+        
     }
 
     @Override

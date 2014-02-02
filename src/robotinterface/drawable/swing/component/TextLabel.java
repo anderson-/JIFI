@@ -6,9 +6,7 @@ package robotinterface.drawable.swing.component;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -39,18 +37,6 @@ public class TextLabel extends Component {
     public TextLabel(String text, boolean center) {
         this.text = text;
         this.center = center;
-    }
-
-    @Deprecated
-    public TextLabel(String text, double y, boolean center) {
-        this.text = text;
-        this.center = center;
-    }
-
-    @Deprecated
-    public TextLabel(String text, double x, double y) {
-        this.text = text;
-        this.center = false;
     }
 
     public Color getColor() {

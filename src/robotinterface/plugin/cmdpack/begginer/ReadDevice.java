@@ -47,6 +47,8 @@ import robotinterface.drawable.swing.DrawableCommandBlock;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.LineBreak;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.robot.RobotControlPanel;
@@ -67,7 +69,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     private static Color myColor = Color.decode("#ED4A6A");
     private Device device;
     private Class<? extends Device> type;
-//    private String deviceName = "";
     private Argument arg0;
     private Argument arg1;
 
@@ -84,11 +85,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         }
     }
 
-//    public ReadDevice(Class<? extends Device> type, String var) {
-//        this();
-//        this.type = type;
-//        arg0.set("", Argument.SINGLE_VARIABLE);
-//    }
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Robot robot = rm.getResource(Robot.class);
@@ -158,57 +154,29 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             comboboxDev.addItem(str);
         }
 
-        final int TEXTFIELD_WIDTH = 100;
-        final int TEXTFIELD_HEIGHT = 25;
-        final int BUTTON_WIDTH = 25;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
-
-        //HEADER LINE
-        int headerHeight = 4 * INSET_Y + 2 * TEXTFIELD_HEIGHT + 20;
-        int headerWidth = 4 * INSET_X + TEXTFIELD_WIDTH + 64;
-        final WidgetLine headerLine = new WidgetLine(headerWidth, headerHeight) {
+        final WidgetLine headerLine = new WidgetLine() {
             @Override
-            public void createRow(Collection<Widget> widgets, Collection<TextLabel> labels, final MutableWidgetContainer container, Object data) {
-                labels.add(new TextLabel("Ler Sensor:", 20, true));
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Ler Sensor:", true));
+                components.add(new LineBreak());
+                components.add(new TextLabel("Sensor:"));
 
                 MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
 
-                if (data != null) {
-                    if (data instanceof ReadDevice) {
-                        ReadDevice rd = (ReadDevice) data;
+                Widget wcomboboxdev = new Widget(comboboxDev, 100, 25);
+                Widget wcomboboxvar = new Widget(comboboxVar, 60, 25);
+                components.add(wcomboboxdev);
+                components.add(wcomboboxvar);
 
-                        if (!rd.arg0.getVariableName().isEmpty()) {
-                            comboboxDev.setSelectedItem(rd.arg0.getVariableName());
-                        }
+                container.entangle(rd.arg0, wcomboboxdev);
+                container.entangle(rd.arg1, wcomboboxvar);
 
-                        if (!rd.arg1.getVariableName().isEmpty()) {
-                            comboboxVar.setSelectedItem(rd.arg1.getVariableName());
-                        }
-                    }
-                }
+                components.add(new LineBreak(true));
+            }
 
-                int x = INSET_X;
-                int y = INSET_Y + 40;
-                int strlen = 68;
-                labels.add(new TextLabel("Sensor:", x + 5, y));
-
-                x += strlen;
-                y -= 18;
-
-                final Widget wcombobox1 = new Widget(comboboxDev, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(wcombobox1);
-
-                x -= strlen;
-                y += 50;
-
-                labels.add(new TextLabel("Variavel:", x + 5, y));
-
-                x += strlen;
-                y -= 18;
-
-                final Widget wcombobox2 = new Widget(comboboxVar, x, y, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                widgets.add(wcombobox2);
+            @Override
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                sb.append(rd);
             }
         };
 
@@ -221,42 +189,14 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             @Override
             public void updateLines() {
                 clear();
-                addLine(headerLine, rd);
+                addLine(headerLine);
                 string = getString();
-            }
-
-            @Override
-            public String getString() {
-                String devName = (String) comboboxDev.getSelectedItem();
-                rd.arg0.set(devName, Argument.SINGLE_VARIABLE);
-                rd.type = deviceMap.get(devName);
-
-                String varName = (String) comboboxVar.getSelectedItem();
-                rd.arg1.set(varName, Argument.SINGLE_VARIABLE);
-
-                return rd.toString();
             }
         };
 
         return dcb;
     }
 
-//    private static void updateReadDevice(String args, ReadDevice rd) {
-//        String[] argv = args.split(",");
-//        if (argv.length == 1) {
-//            argv[0] = argv[0].trim();
-//            rd.deviceName = argv[0];
-//            rd.var = null;
-//        } else if (argv.length == 2) {
-//            argv[0] = argv[0].trim();
-//            argv[1] = argv[1].trim();
-//            rd.deviceName = argv[0];
-//            rd.var = argv[1];
-//        } else {
-//            rd.deviceName = null;
-//            rd.var = null;
-//        }
-//    }
     @Override
     public String toString() {
         if (!arg1.getVariableName().isEmpty()) {
@@ -345,7 +285,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     public static void main(String[] args) {
         ReadDevice p = new ReadDevice();
-//        updateReadDevice("Distancia, y", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());
@@ -366,13 +305,4 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     public String getToken() {
         return "read";
     }
-
-//    @Override
-//    public ReadDevice createInstance(String args) {
-//        ReadDevice rd = new ReadDevice();
-//        if (!args.isEmpty()) {
-//            updateReadDevice(args, rd);
-//        }
-//        return rd;
-//    }
 }

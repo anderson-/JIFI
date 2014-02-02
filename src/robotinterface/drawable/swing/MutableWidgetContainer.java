@@ -113,13 +113,14 @@ public class MutableWidgetContainer extends WidgetContainer {
         this.widgetsEnabled = widgetsEnebled;
     }
 
-    public void entangle(Argument arg, Widget... ws) {
+    public Widget entangle(Argument arg, Widget... ws) {
         for (Widget w : ws) {
             w.setDynamic(true);
             eMap.put(w, arg);
         }
         Widget chosen = arg.setValueOf(ws);
         addWidget(chosen);
+        return chosen;
     }
 
     public String getString() {
@@ -155,11 +156,6 @@ public class MutableWidgetContainer extends WidgetContainer {
             str = str.trim();
             splitted.add(str);
         }
-    }
-
-    @Deprecated
-    public void addLine(WidgetLine line, Object data) {
-        
     }
     
     public void addLine(WidgetLine line) {
@@ -389,9 +385,9 @@ public class MutableWidgetContainer extends WidgetContainer {
             tmp.y += y;
             tmp.height += tmp2.y + tmp2.height;
 
-//            g.setStroke(DEFAULT_STROKE);
-//            g.setColor(Color.orange);
-//            g.draw(tmp);
+            g.setStroke(DEFAULT_STROKE);
+            g.setColor(Color.orange);
+            g.draw(tmp);
             x += (int) tmp.getWidth();
             bounds.add(tmp);
         }
@@ -400,8 +396,8 @@ public class MutableWidgetContainer extends WidgetContainer {
         bounds.y = y;
         bounds.height -= y;
 
-//        g.setColor(Color.red);
-//        g.draw(bounds);
+        g.setColor(Color.red);
+        g.draw(bounds);
     }
 
     protected void backDraw(Graphics2D g) {
