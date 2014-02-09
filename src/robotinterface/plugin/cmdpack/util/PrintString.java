@@ -15,14 +15,10 @@ import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import robotinterface.algorithm.procedure.Procedure;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -31,13 +27,13 @@ import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.Variable;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
@@ -45,7 +41,6 @@ import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
-import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
 import robotinterface.util.trafficsimulator.Timer;
 
@@ -55,12 +50,10 @@ import robotinterface.util.trafficsimulator.Timer;
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
     private static Color myColor = Color.decode("#08B9AC");
-    private ArrayList<Argument> myArgs;
     private final Timer timer = new Timer(2);
 
     public PrintString() {
-        myArgs = new ArrayList<>();
-        myArgs.add(new Argument("", Argument.STRING_LITERAL));
+        super(new Argument("", Argument.TEXT));
     }
 
     @Deprecated
@@ -69,59 +62,23 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
     }
 
     private PrintString(Argument[] args) {
-        myArgs = new ArrayList<>();
-        myArgs.addAll(Arrays.asList(args));
+        super(args);
         setProcedure(toString());
     }
 
-//    private void updateVariables(String str) {
-//        int l = str.lastIndexOf("\"");
-//
-//        String w = str.substring(l + 1, str.length());
-//
-//        if (varNames == null) {
-//            varNames = new ArrayList<>();
-//        }
-//
-//        varNames.clear();
-//
-//        for (String var : w.split(",")) {
-//            String vart = var.trim();
-//            if (vart.endsWith(")")) {
-//                vart = vart.replace(")", "");
-//            }
-//            if (!vart.isEmpty()) {
-//                varNames.add(vart);
-//            }
-//        }
-//
-//        int s = str.indexOf("\"") + 1;
-//
-//        this.format = str.substring(s, l);
-//    }
-//    private void setFormat(String format) {
-//        myArgs.get(0).set(format, Argument.STRING_LITERAL);
-//    }
-//    private String getFormat() {
-//        return myArgs.get(0).getStringValue();
-//    }
-//
-//    private ArrayList<Argument> getVariables() {
-//        return myArgs;
-//    }
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Clock clock = rm.getResource(Clock.class);
         JEP parser = rm.getResource(JEP.class);
-        String out = myArgs.get(0).getStringValue();
+        String out = getArg(0).getStringValue();
 
         String padps = "%V"; //printAllDecimalPlacesStr
         String ptdps = "%v"; //printTwoDecimalPlacesStr
         String replace;
         DecimalFormat df = new DecimalFormat("0.00");
         Argument arg;
-        for (int i = 1; i < myArgs.size(); i++) {
-            arg = myArgs.get(i);
+        for (int i = 1; i < getArgSize(); i++) {
+            arg = getArg(i);
             arg.parse(parser);
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
@@ -153,7 +110,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         StringBuilder sb = new StringBuilder();
         sb.append("print(");
         boolean format = true;
-        for (Argument arg : myArgs) {
+        for (Argument arg : getArgs()) {
             if (format) {
                 sb.append("\"");
                 sb.append(arg.getStringValue());
@@ -195,18 +152,19 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
         //LINES
         final WidgetLine varSelectiteonLine = new WidgetLine() {
-            private String var;
 
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
-                createGenericField(p, p.addLineArg(index - 1), "v" + index + ":", 80, 25, components, container, WidgetLine.ARG_COMBOBOX);
+                Argument a = p.addLineArg(index, Argument.SINGLE_VARIABLE);
+                System.out.println(a.getType() + " .. " + index);
+                createGenericField(p, a, "v" + index + ":", 80, 25, components, container, WidgetLine.ARG_COMBOBOX, false);
+                //components.add(new LineBreak(false));
             }
 
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
                 if (arguments.size() > 0) {
                     String varName = arguments.get(0).toString();
-                    p.myArgs.add(new Argument(varName, Argument.SINGLE_VARIABLE));
                     sb.append(", ").append(varName);
                 }
             }
@@ -217,8 +175,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Exibir:", true));
+                components.add(new SubLineBreak());
 
-                Widget wtfName = createGenericField(p, p.addLineArg(index), "Formato:", 130, 25, components, container, WidgetLine.ARG_TEXTFIELD)[0];
+                Widget wtfName = createGenericField(p, p.addLineArg(0, Argument.TEXT), "Formato:", 130, 25, components, container, WidgetLine.ARG_TEXTFIELD)[0];
                 final JTextField tfName = (JTextField) wtfName.getJComponent();
 
                 tfName.getDocument().addDocumentListener(new DocumentListener() {
@@ -258,10 +217,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
                 try {
                     sb.append("\"");
-                    p.myArgs.clear();
                     //JTextField 1
                     String str = arguments.iterator().next().toString();
-                    p.myArgs.add(new Argument(str, Argument.STRING_LITERAL));
+                    p.resetArgs(new Argument(str, Argument.TEXT));
                     if (!str.isEmpty()) {
                         sb.append(str);
                     }
@@ -272,13 +230,10 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(p, myColor) {
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, myColor) {
             private GeneralPath myShape = new GeneralPath();
 
             {
-                string = p.getProcedure();
-                updateLines();
-
                 super.shapeStartX = 16;
             }
 
@@ -286,30 +241,19 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             public void updateLines() {
 
                 if (string.startsWith("print")) {
-//                    p.updateVariables(string);??????????????????????
-
                     clear();
-                } else {
-//                    p.myArgs.clear();
                 }
 
                 if (getSize() == 0) {
-                    clear();
                     addLine(headerLine);
                 }
 
                 String subStr = "%v";
                 int ocorrences = (string.length() - string.toLowerCase().replace(subStr, "").length()) / subStr.length();;
-                if (p.myArgs.size() > 1) {
-                    ocorrences -= (p.myArgs.size() - 1);
-                    for (int i = 1; i < p.myArgs.size(); i++) {
-                        addLine(varSelectiteonLine);
-                    }
-                } else {
-                    ocorrences -= getSize() - 1;
-                    for (int i = 0; i < ocorrences; i++) {
-                        addLine(varSelectiteonLine);
-                    }
+
+                ocorrences -= getSize() - 1;
+                for (int i = 0; i < ocorrences; i++) {
+                    addLine(varSelectiteonLine);
                 }
 
                 for (int i = ocorrences; i < 0; i++) {
@@ -321,15 +265,16 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             public Shape updateShape(Rectangle2D bounds) {
                 double mx = bounds.getWidth();
                 double my = bounds.getHeight();
-                double a = 15;
-                double b = 20;
+                int a = 10;
+                int b = 15;
+                int c = 20;
 
                 myShape.reset();
                 myShape.moveTo(a, 0);
                 myShape.lineTo(mx + a, 0);
-                myShape.curveTo(mx + b + a, 0, mx + b + a, my, mx + a, my);
+                myShape.curveTo(mx + a + c, 0, mx + a + c, my, mx + a, my);
                 myShape.lineTo(a, my);
-                myShape.lineTo(0, my / 2);
+                myShape.lineTo(a - b, my / 2);
                 myShape.closePath();
 
                 return myShape;
@@ -353,16 +298,6 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             resource = createDrawablePrintString(this);
         }
         return resource;
-    }
-
-    @Override
-    public Procedure copy(Procedure copy) {
-        super.copy(copy);
-        if (copy instanceof PrintString) {
-            ((PrintString) copy).myArgs.clear();
-            ((PrintString) copy).myArgs.addAll(myArgs);
-        }
-        return copy;
     }
 
     @Override

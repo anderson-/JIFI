@@ -16,12 +16,12 @@ import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -138,10 +138,10 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Espera:", true));
-                components.add(new LineBreak());
+                components.add(new SubLineBreak());
                 createGenericField(W, W.arg0, "Tempo (ms):", 80, 25, components, container);
 //                spinner.setModel(new SpinnerNumberModel(500, 0, 10000, 50));
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak(true));
             }
 
             @Override
@@ -157,12 +157,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(W, myColor) {
-            {
-                string = W.getProcedure();
-                updateLines();
-            }
-
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(W, myColor) {
             @Override
             public void updateLines() {
                 clear();

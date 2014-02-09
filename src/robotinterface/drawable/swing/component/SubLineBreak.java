@@ -12,14 +12,14 @@ import static robotinterface.drawable.swing.component.Component.DEFAULT_INSETS;
  *
  * @author antunes2
  */
-public class LineBreak extends Component {
+public class SubLineBreak extends Component {
 
     private boolean endLine = false;
 
-    public LineBreak() {
+    public SubLineBreak() {
     }
 
-    public LineBreak(boolean endLine) {
+    public SubLineBreak(boolean endLine) {
         this.endLine = endLine;
     }
 

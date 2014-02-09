@@ -37,12 +37,12 @@ import org.nfunk.jep.JEP;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -139,13 +139,13 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Mover:", true));
-                components.add(new LineBreak());
+                components.add(new SubLineBreak());
                 createGenericField(m, m.arg0, "V1:", 80, 25, components, container);
 //                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
-                components.add(new LineBreak());
+                components.add(new SubLineBreak());
                 createGenericField(m, m.arg1, "V1:", 80, 25, components, container);
 //                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak(true));
             }
 
             @Override
@@ -161,12 +161,7 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(m, myColor) {
-            {
-                string = m.getProcedure();
-                updateLines();
-            }
-
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(m, myColor) {
             @Override
             public void updateLines() {
                 clear();

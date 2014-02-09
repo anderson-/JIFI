@@ -8,25 +8,26 @@ import robotinterface.drawable.swing.MutableWidgetContainer;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import robotinterface.algorithm.Command;
+import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.FlowchartBlock;
 
 /**
  *
  * @author antunes
  */
-public class DrawableCommandBlock extends MutableWidgetContainer {
+public class DrawableProcedureBlock extends MutableWidgetContainer {
 
-    private Command command = null;
+    private Procedure procedure = null;
 
-    public DrawableCommandBlock(Command command, Color color) {
+    public DrawableProcedureBlock(Procedure procedure, Color color) {
         super(color);
-        this.command = command;
+        this.procedure = procedure;
+        string = procedure.getProcedure();
+        updateLines();
     }
 
     @Override
     protected final void backDraw(Graphics2D g) {
-        if (command instanceof FlowchartBlock) {
-            ((FlowchartBlock) command).drawLines(g);
-        }
+        procedure.drawLines(g);
     }
 }

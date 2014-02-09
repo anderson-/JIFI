@@ -16,22 +16,30 @@ import robotinterface.drawable.swing.component.Widget;
  *
  * @author antunes2
  */
-public final class Argument {
+public class Argument {
 
+    public static final int UNDEFINED = -1;
     public static final int NUMBER_LITERAL = 1;
     public static final int STRING_LITERAL = 2;
     public static final int EXPRESSION = 4;
     public static final int SINGLE_VARIABLE = 8;
+    public static final int TEXT = 16;
 
     private String statement;
     private int type;
     private Object value = null;
-
+    private boolean extended = false;
+    
     public Argument(Object statement, int type) {
         set(statement, type);
     }
 
-    public void set(Object statement, int type) {
+    public Argument(Object statement, int type, boolean extended) {
+        this.extended = extended;
+        set(statement, type);
+    }
+
+    public final void set(Object statement, int type) {
         if (statement != null) {
             this.statement = statement.toString();
         } else {
@@ -40,17 +48,17 @@ public final class Argument {
         this.type = type;
     }
 
-    public void set(Argument argument) {
+    public final void set(Argument argument) {
         this.statement = argument.statement;
         this.type = argument.type;
     }
 
-    public void parse(JEP parser) {
+    public final void parse(JEP parser) {
         parser.parseExpression(statement);
         value = parser.getValueAsObject();
     }
 
-    public double getDoubleValue() {
+    public final double getDoubleValue() {
         if (type == NUMBER_LITERAL) {
             return Double.parseDouble(statement);
         }
@@ -60,8 +68,8 @@ public final class Argument {
         return 0.0;
     }
 
-    public String getStringValue() {
-        if (type == STRING_LITERAL) {
+    public final String getStringValue() {
+        if (type == STRING_LITERAL || type == TEXT) {
             return statement;
         }
         if (value instanceof String) {
@@ -70,18 +78,18 @@ public final class Argument {
         return "";
     }
 
-    public Object getValue() {
+    public final Object getValue() {
         return value;
     }
 
-    public String getVariableName() {
+    public final String getVariableName() {
         if (type == SINGLE_VARIABLE) {
             return statement;
         }
         return "";
     }
 
-    public boolean getBooleanValue() {
+    public final boolean getBooleanValue() {
         if (type == NUMBER_LITERAL) {
             return (getDoubleValue() != 0);
         }
@@ -91,29 +99,43 @@ public final class Argument {
         return false;
     }
 
-    public boolean isLiteral() {
+    public final boolean isLiteral() {
         return (type == NUMBER_LITERAL || type == STRING_LITERAL);
     }
 
-    public boolean isNumber() {
+    public final boolean isNumber() {
         return (type == NUMBER_LITERAL);
     }
 
-    public boolean isString() {
+    public final boolean isString() {
         return (type == STRING_LITERAL);
     }
 
-    public boolean isExpression() {
+    public final boolean isExpression() {
         return (type == EXPRESSION);
     }
 
-    public boolean isVariable() {
+    public final boolean isVariable() {
         return (type == SINGLE_VARIABLE);
     }
 
-    public void getValueFrom(Widget w) {
+    public final int getType() {
+        return type;
+    }
+
+    public boolean getValueOfExtended(JComponent jc) {
+        return false;
+    }
+
+    public boolean setValueOfExtended(JComponent jc) {
+        return false;
+    }
+
+    public final void getValueFrom(Widget w) {
         JComponent jc = w.getJComponent();
-        if (jc instanceof JSpinner) {
+
+        if (extended && getValueOfExtended(jc)) {
+        } else if (jc instanceof JSpinner) {
             JSpinner c = (JSpinner) jc;
             set(c.getValue(), NUMBER_LITERAL);
         } else if (jc instanceof JComboBox) {
@@ -122,17 +144,30 @@ public final class Argument {
         } else if (jc instanceof JTextField) {
             JTextField c = (JTextField) jc;
             if (w.isDynamic() && !c.getText().contains("\"")) {
-                set(c.getText(), EXPRESSION);
+                set(c.getText(), ((type == UNDEFINED) ? EXPRESSION : type));
             } else {
                 String str = c.getText();
-                set(str.replaceAll("\"", ""), STRING_LITERAL);
+                if (str.contains(" ")) {
+                    set(str, TEXT);
+                } else {
+                    set(str.replaceAll("\"", ""), STRING_LITERAL);
+                }
             }
         } else {
             throw new Error("Invalid JComponent...");
         }
     }
 
-    public Widget setValueOf(Widget... ws) {
+    public final Widget setValueOf(Widget... ws) {
+
+        if (extended) {
+            for (Widget w : ws) {
+                if (setValueOfExtended(w.getJComponent())) {
+                    return w;
+                }
+            }
+        }
+
         if (type == NUMBER_LITERAL) {
             //JSpinner
             for (Widget w : ws) {
@@ -143,7 +178,7 @@ public final class Argument {
                 }
             }
         }
-        
+
         if (type == SINGLE_VARIABLE) {
             //JComboBox
             for (Widget w : ws) {
@@ -154,7 +189,7 @@ public final class Argument {
                 }
             }
         }
-        
+
         //JTextField
         for (Widget w : ws) {
             if (w.getJComponent() instanceof JTextField) {
@@ -164,12 +199,12 @@ public final class Argument {
             }
         }
 
-        throw new Error("JComponent not found : " + type);
+        throw new Error("JComponent not found : " + type + ", widgets found: " + ws.length + " : " + ((ws.length > 0) ? (ws[0].getJComponent().getClass().getSimpleName()) : "null"));
     }
 
     @Override
-    public String toString() {
-        if (statement.contains("\"") || statement.contains("var")) {
+    public final String toString() {
+        if (statement.contains("\"") || statement.contains("var") || type == TEXT) {
             return statement;
         } else {
             return statement.replace(" ", "");

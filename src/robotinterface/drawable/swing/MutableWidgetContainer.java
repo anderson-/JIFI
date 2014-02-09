@@ -26,15 +26,12 @@ import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.util.QuickFrame;
 
@@ -157,10 +154,10 @@ public class MutableWidgetContainer extends WidgetContainer {
             splitted.add(str);
         }
     }
-    
+
     public void addLine(WidgetLine line) {
         ArrayList<Component> newRowComponents = new ArrayList<>();
-        
+
         int index = rowTypes.size() - 1;
         for (; index >= 0; index--) {
             if (!rowTypes.get(index).isOnPageEnd()) {
@@ -169,7 +166,7 @@ public class MutableWidgetContainer extends WidgetContainer {
             }
         }
         index = (index < 0) ? 0 : index;
-        
+
         line.createRow(newRowComponents, this, index);
         resetY();
 
@@ -298,76 +295,60 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     }
 
-    private double getLineHeight(Graphics2D g, int line, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, Collection<Component> components) {
+    /**
+     * Calcula o tamanho de uma sub-linha de um MutableWidgetContainer.
+     *
+     * @param g
+     * @param tmp
+     * @param tmp2
+     * @param components
+     * @return
+     */
+    private static double getSubLineHeight(Graphics2D g, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, Collection<Component> components) {
         double lineHeight = 0;
-        int i = 0;
-        boolean currentLine = (i == line);
 
         for (Component c : components) {
-            if (c instanceof LineBreak) {
-                i++;
-                if (i > line) {
-                    break;
-                } else {
-                    currentLine = (i == line);
-                }
-                continue;
-            }
-
-            if (currentLine) {
-                tmp.setRect(0, 0, 0, 0);
-                tmp2.setRect(0, 0, 0, 0);
-                c.getBounds(tmp, g);
-                c.getInsets(tmp2);
-                double tmpHeight = tmp.height + tmp2.y + tmp2.height;
-                lineHeight = (tmpHeight > lineHeight) ? tmpHeight : lineHeight;
-            }
+            tmp.setRect(0, 0, 0, 0);
+            tmp2.setRect(0, 0, 0, 0);
+            c.getBounds(tmp, g);
+            c.getInsets(tmp2);
+            double tmpHeight = tmp.height + tmp2.y + tmp2.height;
+            lineHeight = (tmpHeight > lineHeight) ? tmpHeight : lineHeight;
         }
 
         return lineHeight;
     }
 
-    public void draw(Graphics2D g, double y, double width, Rectangle2D.Double bounds, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, WidgetLine type, Collection<Component> components) {
+    public double drawLine(Graphics2D g, double y, double width, Rectangle2D.Double bounds, Rectangle2D.Double tmp, Rectangle2D.Double tmp2, Collection<Component> components) {
 
-        int x = 0;
-
-        int line = 0;
+        int x = 0 + shapeStartX;
+        int subLineHeight = 0;
 
         for (Component c : components) {
 
-            if (c instanceof LineBreak) {
-                if (((LineBreak) c).isEndLine()) {
-                    tmp2.setRect(0, 0, 0, 0);
-                    c.getInsets(tmp2);
-                    tmp2.x += x;
-                    tmp2.y += y;
-                    bounds.add(tmp2);
-                }
-                x = 0;
-                y += getLineHeight(g, line, tmp, tmp2, components);
-                line++;
-            }
-
+            //Pula os JComponents não visiveis (não pertencentes)
             if (c instanceof Widget && !contains((Widget) c)) {
                 continue;
             }
 
-            double lineHeight = getLineHeight(g, line, tmp, tmp2, components);
-
+            //inicializa os retangulos temporarios com o tamanho e 
+            //moldura do objeto atual
             tmp.setRect(0, 0, 0, 0);
             tmp2.setRect(0, 0, 0, 0);
             c.getBounds(tmp, g);
             c.getInsets(tmp2);
 
-            c.setTempLocation((int) (x + tmp2.x), (int) (y + tmp2.y));
+            //define a posição (iterativa) do componente
+            c.setTempLocation((int) (x + tmp2.x), (int) y);
 
+            //se for um texo desenha e centraliza se necessario
             if (c instanceof TextLabel) {
                 TextLabel tl = (TextLabel) c;
                 g.setFont(tl.getFont());
                 g.setColor(tl.getColor());
 
                 double posX;
-                double posY = (y + tmp.height) + (lineHeight - tmp.height) / 2;
+                double posY = y + tmp.height + tmp2.y;
 
                 if (tl.center()) {
                     posX = (width - tmp.width) / 2;
@@ -380,31 +361,53 @@ public class MutableWidgetContainer extends WidgetContainer {
                 g.translate(-posX, -posY);
             }
 
+            //adiciona moldura ao tamanho do objeto
             tmp.x += x;
             tmp.width += tmp2.x + tmp2.width;
             tmp.y += y;
             tmp.height += tmp2.y + tmp2.height;
 
-            g.setStroke(DEFAULT_STROKE);
-            g.setColor(Color.orange);
-            g.draw(tmp);
-            x += (int) tmp.getWidth();
+            //adiciona a area do objeto à area da sub-linha
             bounds.add(tmp);
+
+//            g.setStroke(DEFAULT_STROKE);
+//            g.setColor(Color.orange);
+//            g.draw(tmp);
+            //incrementa a posição em x
+            x += (int) tmp.getWidth();
+
+            //calcula o tamanho desta sub-linha
+            subLineHeight = (int) ((tmp.getHeight() > subLineHeight) ? tmp.getHeight() : subLineHeight);
+
+            //se for uma quebra de sub-linha
+            if (c instanceof SubLineBreak) {
+                //continua colocando componentes a partir da esquerda
+                x = 0 + shapeStartX;
+                //incrementa a posição em y
+                y += subLineHeight;
+                //se for uma linha do final do componente 
+                //adiciona um espaçamento extra
+                if (((SubLineBreak) c).isEndLine()) {
+                    tmp2.setRect(0, 0, 0, 0);
+                    c.getInsets(tmp2);
+                    tmp2.x += x;
+                    tmp2.height = tmp2.y;
+                    tmp2.y = y;
+                    bounds.add(tmp2);
+                }
+            }
         }
-
-        bounds.x = 0;
-        bounds.y = y;
-        bounds.height -= y;
-
-        g.setColor(Color.red);
-        g.draw(bounds);
+        //incrementa a posição em y
+        y += subLineHeight;
+        //retorna o novo valor para y
+        return y;
     }
 
     protected void backDraw(Graphics2D g) {
     }
 
     //usados em drawWJC();
-    Rectangle2D.Double compBounds = new Rectangle2D.Double();
+    Rectangle2D.Double lineBounds = new Rectangle2D.Double();
     Rectangle2D.Double tmp = new Rectangle2D.Double();
     Rectangle2D.Double tmp2 = new Rectangle2D.Double();
 
@@ -415,27 +418,24 @@ public class MutableWidgetContainer extends WidgetContainer {
             updateLines = false;
         }
 
-        double y = 0;
+        double y = 0 + shapeStartY;
 
+        //desenha sub-linhas
         for (int i = 0; i < rowTypes.size(); i++) {
             WidgetLine type = rowTypes.get(i);
             Collection<Component> components = rows.get(i);
-            compBounds.setRect(0, 0, 0, 0);
-            tmp.setRect(0, 0, 0, 0);
-            draw(g, y, shapeBounds.width, compBounds, tmp, tmp2, type, components);
+            lineBounds.setRect(0, 0, 0, 0);
 
-            if (i < rowTypes.size() - 1 && rowTypes.get(i + 1).isOnPageEnd()) {
-                //mantem os componentes sobrepostos
-            } else {
-                g.translate(0, compBounds.height);
-                y += compBounds.height;
+            //mantem os componentes sobrepostos
+            if (type.isOnPageEnd()) {
+                y -= getSubLineHeight(g, tmp, tmp2, components);
             }
 
-            shapeBounds.add(compBounds);
-//            System.out.println(shapeBounds);
+            y = drawLine(g, y, shapeBounds.width, lineBounds, tmp, tmp2, components);
+            shapeBounds.add(lineBounds);
         }
 
-        // finaliza
+        //finaliza
         if (updateShape || updateHeight) {
             shape = updateShape(shapeBounds);
             updateShape = false;

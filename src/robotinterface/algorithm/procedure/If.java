@@ -47,7 +47,7 @@ import robotinterface.algorithm.Command;
 import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.WidgetLine;
@@ -55,7 +55,7 @@ import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -372,11 +372,11 @@ public class If extends Procedure {
                 components.add(wcombobox2);
                 components.add(wtextfield2);
 
-                components.add(new LineBreak());
+                components.add(new SubLineBreak());
 
                 components.add(new Widget(proximo, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
 
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak(true));
 
                 changeButton1.addActionListener(new ActionListener() {
                     @Override
@@ -521,7 +521,7 @@ public class If extends Procedure {
             }
         };
         
-        DrawableCommandBlock dcb = new DrawableCommandBlock(p, Color.gray) {
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, Color.gray) {
             private Polygon myShape = new Polygon();
             public static final int EXTENDED_HEIGHT = 15;
             public static final int SIMPLE_HEIGHT = 18;

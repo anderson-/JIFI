@@ -32,6 +32,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import robotinterface.algorithm.Command;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -40,11 +41,11 @@ import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
@@ -66,21 +67,25 @@ public class Procedure extends Command implements Classifiable {
     private static Color myColor = Color.decode("#ACD630");
     private ArrayList<String> names;
     private ArrayList<Object> values;
-    private ArrayList<Argument> args;
+    private ArrayList<Argument> myArgs;
     private String procedure;
-//    public static final int TEXTFIELD_WIDTH = 110;
-//    public static final int TEXTFIELD_HEIGHT = 23;
-//    public static final int BUTTON_WIDTH = 20;
-//    public static final int INSET_X = 5;
-//    public static final int INSET_Y = 5;
+    private boolean varArgs;
 
-    public Procedure() {
+    public Procedure() { //tornar private 
+        varArgs = true;
         procedure = "0";
         names = new ArrayList<>();
         values = new ArrayList<>();
-        args = new ArrayList<>();
+        myArgs = new ArrayList<>();
     }
 
+    /**
+     * Uso restrito ao parser.
+     *
+     * @param procedure
+     * @deprecated
+     */
+    @Deprecated
     public Procedure(String procedure) {
         this();
         setProcedure(procedure);
@@ -88,6 +93,17 @@ public class Procedure extends Command implements Classifiable {
 
     public Procedure(Procedure p) {
         this(p.procedure);
+    }
+
+    protected Procedure(boolean varArgs) {
+        this();
+        this.varArgs = varArgs;
+    }
+
+    protected Procedure(Argument... args) {
+        this();
+        varArgs = true;
+        this.myArgs.addAll(Arrays.asList(args));
     }
 
     public final String getProcedure() {
@@ -130,7 +146,7 @@ public class Procedure extends Command implements Classifiable {
         }
     }
 
-    //usado pelos descendentes dessa classe para executar expressoes simples
+    //usado pelos descendentes dessa classe para executar expressoes
     protected final Object execute(String procedure, ResourceManager rm) throws ExecutionException {
         Object o = null;
 
@@ -170,6 +186,7 @@ public class Procedure extends Command implements Classifiable {
         return o;
     }
 
+    //usado pelos descendentes dessa classe para executar expressoes simples (true/false)
     protected final boolean evaluate(String procedure, ResourceManager rm) throws ExecutionException {
         Object o = execute(procedure, rm);
         if (o instanceof Number) {
@@ -179,6 +196,7 @@ public class Procedure extends Command implements Classifiable {
         return false;
     }
 
+    //retorna o valor da expressão desse objeto
     protected final boolean evaluate(ResourceManager rm) throws ExecutionException {
         return evaluate(procedure, rm);
     }
@@ -186,6 +204,7 @@ public class Procedure extends Command implements Classifiable {
 //    protected final Variable newVariable(String name, Object value) {
 //        return parser.getSymbolTable().makeVarIfNeeded(name, value);
 //    }
+    @Deprecated //ainda não funciona, falta criar a variavel na tabela de simbolos ^
     protected final void addVariable(String name, Object value) {
         names.add(name);
         values.add(value);
@@ -239,27 +258,53 @@ public class Procedure extends Command implements Classifiable {
         return new Procedure("var x = 1");
     }
 
-    protected Argument addLineArg(int index) {
-        if (args.size() > index) {
-            if (index == -1){
-                System.out.println("opa");
+    protected Argument addLineArg(int index, int type, Object data) {
+        if (myArgs.size() > index) {
+            if (index == -1) {
+                throw new IndexOutOfBoundsException();
             }
-            return args.get(index);
         } else {
-            Argument arg = new Argument("", Argument.EXPRESSION);
-            args.add(arg);
-            return arg;
+            while (myArgs.size() <= index) {
+                myArgs.add(new Argument(data, type));
+            }
         }
+        return myArgs.get(index);
+    }
+    
+    protected Argument addLineArg(int index, int type) {
+        return addLineArg(index, type, "");
+    }
+    
+    @Deprecated
+    protected Argument addLineArg(int index) {
+        return addLineArg(index, Argument.UNDEFINED);
+    }
+
+    protected void resetArgs(Argument... args) {
+        myArgs.clear();
+        myArgs.addAll(Arrays.asList(args));
+    }
+
+    protected Argument getArg(int index) {
+        return addLineArg(index);
+    }
+
+    protected Collection<Argument> getArgs() {
+        return myArgs;
+    }
+
+    protected int getArgSize() {
+        return myArgs.size();
     }
 
     private void removeLineArg() {
-        if (args.size() > 0) {
-            args.remove(args.size() - 1);
+        if (myArgs.size() > 0) {
+            myArgs.remove(myArgs.size() - 1);
         }
     }
-    
-    private int lineArgSize (){
-        return args.size();
+
+    private int lineArgSize() {
+        return myArgs.size();
     }
 
     private GraphicObject resource = null;
@@ -293,7 +338,7 @@ public class Procedure extends Command implements Classifiable {
                 JTextField textField = new JTextField();
 
                 Widget wTextField = new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-
+                
                 container.entangle(p.addLineArg(index - 1), wTextField);
 
                 components.add(new Space(BUTTON_WIDTH));
@@ -384,11 +429,11 @@ public class Procedure extends Command implements Classifiable {
                 components.add(addButton);
                 components.add(new Space(TEXTFIELD_WIDTH));
                 components.add(remButton);
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak(true));
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(p, myColor) {
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, myColor) {
             {
                 string = p.getProcedure();
                 updateLines();
@@ -434,6 +479,8 @@ public class Procedure extends Command implements Classifiable {
             copy.procedure = procedure;
             copy.names.addAll(names);
             copy.values.addAll(values);
+            copy.myArgs.clear();
+            copy.myArgs.addAll(myArgs);
         }
 
         return copy;

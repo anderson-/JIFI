@@ -38,7 +38,7 @@ import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
@@ -46,7 +46,7 @@ import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
@@ -59,15 +59,34 @@ import robotinterface.interpreter.ResourceManager;
 public class Comment extends Procedure {
 
     private static Color myColor = Color.decode("#FFB319");
-    private String comment = "";
+    private Argument arg0;
 
     public Comment() {
-
+        this("//isso é um comentário :D");
     }
 
     public Comment(String comment) {
-        this.comment = comment;
-        setProcedure(comment);
+        arg0 = new Argument(comment, Argument.TEXT, true){
+
+            @Override
+            public boolean setValueOfExtended(JComponent jc) {
+                if (jc instanceof JTextArea){
+                    ((JTextArea)jc).setText(this.getStringValue());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean getValueOfExtended(JComponent jc) {
+                if (jc instanceof JTextArea){
+                    this.set(((JTextArea)jc).getText(), TEXT);
+                    return true;
+                }
+                return false;
+            }
+            
+        };
     }
 
     @Override
@@ -81,31 +100,30 @@ public class Comment extends Procedure {
 
         final int TEXTFIELD_WIDTH = 200;
         final int TEXTFIELD_HEIGHT = 100;
-        final int BUTTON_WIDTH = 25;
-        final int INSET_X = 5;
-        final int INSET_Y = 5;
 
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine() {
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Comentário:", true));
-                components.add(new LineBreak());
-                JTextArea textField = new JTextArea();//(String) data);
-                components.add(new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT));
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak());
+                JTextArea textField = new JTextArea();
+                Widget widget = new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
+                components.add(widget);
+                container.entangle(c.arg0, widget);
+                components.add(new SubLineBreak(true));
             }
 
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
                 if (arguments.size() > 0) {
-                    Argument arg = arguments.get(1);
+                    Argument arg = arguments.get(0);
                     sb.append(arg);
                 }
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(c, myColor) {
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(c, myColor) {
             private GeneralPath myShape = new GeneralPath();
 
             {
@@ -131,15 +149,15 @@ public class Comment extends Procedure {
                 super.stringFont = font;
 //                System.out.println(stringFont);
                 super.stringColor = Color.BLACK;
-                string = c.getProcedure();
-                updateLines();
+//                string = c.getProcedure();
+//                updateLines();
             }
 
             @Override
             public void updateLines() {
                 clear();
-                c.comment = string;
-                c.setProcedure(string);
+//                c.comment = string;
+//                c.setProcedure(string);
                 addLine(headerLine);
             }
 
@@ -236,6 +254,6 @@ public class Comment extends Procedure {
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append(comment);
+        sb.append(ident).append(arg0.getStringValue());
     }
 }

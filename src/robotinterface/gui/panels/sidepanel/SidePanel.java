@@ -88,7 +88,7 @@ public class SidePanel extends WidgetContainer {
             ga.setZoomEnabled(false);
             ga.setDragEnabled(false);
 //            panelItensY -= in.getMouseDrag().y;
-            panelItensY -= in.getMouseWheelRotation() * 20;
+            panelItensY += in.getMouseWheelRotation() * 20;
             panelItensY = (panelItensY < (ga.getHeight() - panelItensHeight)) ? (ga.getHeight() - panelItensHeight) : panelItensY;
             panelItensY = (panelItensY > 0) ? 0 : panelItensY;
         } else {
@@ -138,7 +138,7 @@ public class SidePanel extends WidgetContainer {
             panelWidth = (int) (i.getObjectBouds().width + 2 * 10);
         }
 
-        panelItensHeight = y - panelItensY;
+        panelItensHeight = y - panelItensY + 30;
 
         //scrollbar
         if (ga.getHeight() != 0 && panelItensHeight != 0) {

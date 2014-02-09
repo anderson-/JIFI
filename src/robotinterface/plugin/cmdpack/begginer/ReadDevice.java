@@ -43,12 +43,12 @@ import org.fife.ui.autocomplete.FunctionCompletion;
 import org.fife.ui.autocomplete.ParameterizedCompletion;
 import robotinterface.algorithm.parser.FunctionToken;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.LineBreak;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.gui.panels.robot.RobotControlPanel;
@@ -158,7 +158,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Ler Sensor:", true));
-                components.add(new LineBreak());
+                components.add(new SubLineBreak());
                 components.add(new TextLabel("Sensor:"));
 
                 MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
@@ -171,7 +171,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 container.entangle(rd.arg0, wcomboboxdev);
                 container.entangle(rd.arg1, wcomboboxvar);
 
-                components.add(new LineBreak(true));
+                components.add(new SubLineBreak(true));
             }
 
             @Override
@@ -180,12 +180,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(rd, myColor) {
-            {
-                string = rd.getProcedure();
-                updateLines();
-            }
-
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(rd, myColor) {
             @Override
             public void updateLines() {
                 clear();

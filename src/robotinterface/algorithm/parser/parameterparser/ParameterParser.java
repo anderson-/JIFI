@@ -52,8 +52,13 @@ public class ParameterParser {
                     type = Argument.NUMBER_LITERAL;
                     break;
                 case DecoderConstants.STRING_LITERAL:
-                    type = Argument.STRING_LITERAL;
                     str = str.replace("\"", "");
+                    if (str.contains(" ")){
+                        type = Argument.TEXT;
+                    } else {
+                        System.out.println("asjdaisd");
+                        type = Argument.STRING_LITERAL;
+                    }
                     break;
                 case DecoderConstants.IDENTIFIER:
                     type = Argument.SINGLE_VARIABLE;

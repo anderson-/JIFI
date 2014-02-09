@@ -91,7 +91,7 @@ public class Widget extends Component {
     @Override
     public void setTempLocation(int x, int y) {
         super.setTempLocation(x, y);
-//        System.out.println("x:" + x + " -> " + this.widget);
+//        System.out.println("y:" + y + " -> " + this.widget);
         updateBounds();
     }
 

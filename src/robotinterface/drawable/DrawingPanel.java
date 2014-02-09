@@ -382,15 +382,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-//            int x = (int) ((mouse.x - globalX) / zoom);
-//            int y = (int) ((mouse.y - globalY) / zoom);
-//
-//            if (mouseClick) {
-//                g.setColor(Color.red);
-//            } else {
-//                g.setColor(Color.black);
-//            }
-//            g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+        int x = (int) ((mouse.x - globalX) / zoom);
+        int y = (int) ((mouse.y - globalY) / zoom);
+        g.setColor(Color.black);
+        g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);
             mouseDragX = 0;
@@ -423,16 +419,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (keyMoveEnabled) {
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_UP:
-                            globalY+= keyMoveConst;
+                            globalY += keyMoveConst;
                             break;
                         case KeyEvent.VK_DOWN:
-                            globalY-= keyMoveConst;
+                            globalY -= keyMoveConst;
                             break;
                         case KeyEvent.VK_LEFT:
-                            globalX-= keyMoveConst;
+                            globalX -= keyMoveConst;
                             break;
                         case KeyEvent.VK_RIGHT:
-                            globalX+= keyMoveConst;
+                            globalX += keyMoveConst;
                             break;
                     }
                 }

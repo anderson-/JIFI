@@ -46,7 +46,7 @@ import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
-import robotinterface.drawable.swing.DrawableCommandBlock;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.WidgetLine;
@@ -110,7 +110,7 @@ public class Function extends Block {
         if (args != null) {
             for (String arg : args.split(",")) {
                 arg = arg.replace("var", "").trim();
-                f.getArgs().add(arg);
+//                f.getArgs().add(arg);
             }
         }
     }
@@ -123,9 +123,9 @@ public class Function extends Block {
         this.name = name;
     }
 
-    public Collection<String> getArgs() {
-        return args;
-    }
+//    public Collection<String> getArgs() {
+//        return args;
+//    }
 
     public void addArgs(Collection<String> args) {
         this.args.addAll(args);
@@ -413,7 +413,7 @@ public class Function extends Block {
             }
         };
 
-        DrawableCommandBlock dcb = new DrawableCommandBlock(f, Color.decode("#E6A82E")) {
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(f, Color.decode("#E6A82E")) {
             public static final int EXTENDED_HEIGHT = 15;
             public static final int SIMPLE_HEIGHT = 20;
             public static final int SIMPLE_WIDTH = 20;

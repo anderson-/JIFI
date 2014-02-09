@@ -147,10 +147,18 @@ public abstract class WidgetLine extends Component {
     public static final int DEFAULT = ARG_SPINNER | ARG_COMBOBOX | ARG_TEXTFIELD;
 
     protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container) {
-        return createGenericField(p, arg, fieldName, fieldWidth, fieldHeight, components, container, DEFAULT);
+        return createGenericField(p, arg, fieldName, fieldWidth, fieldHeight, components, container, DEFAULT, true);
+    }
+
+    protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container, boolean autoFocus) {
+        return createGenericField(p, arg, fieldName, fieldWidth, fieldHeight, components, container, DEFAULT, autoFocus);
     }
 
     protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container, int type) {
+        return createGenericField(p, arg, fieldName, fieldWidth, fieldHeight, components, container, type, true);
+    }
+
+    protected Widget[] createGenericField(Procedure p, Argument arg, String fieldName, int fieldWidth, int fieldHeight, Collection<Component> components, final MutableWidgetContainer container, int type, boolean autoFocus) {
 
         final ArrayList<Widget> ws = new ArrayList<>();
         final ArrayList<Object[]> infos = new ArrayList<>();
@@ -194,13 +202,15 @@ public abstract class WidgetLine extends Component {
         aws = ws.toArray(aws);
         final Widget chosen = container.entangle(arg, aws);
 
-        //obtem o foco para o widget selecionado
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                chosen.getJComponent().requestFocus();
-            }
-        });
+        if (autoFocus) {
+            //obtem o foco para o widget selecionado
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    chosen.getJComponent().requestFocus();
+                }
+            });
+        }
 
         if (infos.size() > 1) {
             final JButton changeButton = new JButton();

@@ -81,7 +81,7 @@ public class TextLabel extends Component {
     
     @Override
     public Rectangle2D.Double getInsets (Rectangle2D.Double tmp){
-        tmp.setRect(DEFAULT_INSETS);
+        tmp.setRect(6,5,0,10);
         return tmp;
     }
     

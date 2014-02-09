@@ -631,7 +631,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
     public static void main(String[] args) {
         QuickFrame.applyLookAndFeel();
-        FlowchartPanel p = new FlowchartPanel(Interpreter.bubbleSort(10, true));
+        FlowchartPanel p = new FlowchartPanel(Interpreter.newTestFunction());
         QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
     }
 
