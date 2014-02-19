@@ -156,8 +156,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 Argument a = p.addLineArg(index, Argument.SINGLE_VARIABLE);
-                System.out.println(a.getType() + " .. " + index);
-                createGenericField(p, a, "v" + index + ":", 80, 25, components, container, WidgetLine.ARG_COMBOBOX, false);
+                createGenericField(p, a, "v" + index + ":", 80, 25, components, container,WidgetLine.ARG_COMBOBOX | WidgetLine.ARG_TEXTFIELD, false);
                 //components.add(new LineBreak(false));
             }
 
@@ -219,7 +218,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     sb.append("\"");
                     //JTextField 1
                     String str = arguments.iterator().next().toString();
-                    p.resetArgs(new Argument(str, Argument.TEXT));
+//                    p.resetArgs(new Argument(str, Argument.TEXT));
                     if (!str.isEmpty()) {
                         sb.append(str);
                     }

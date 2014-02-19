@@ -133,8 +133,12 @@ public class Argument {
 
     public final void getValueFrom(Widget w) {
         JComponent jc = w.getJComponent();
+        
+        System.out.println("t:" + type);
 
+        
         if (extended && getValueOfExtended(jc)) {
+            System.out.println("ex");
         } else if (jc instanceof JSpinner) {
             JSpinner c = (JSpinner) jc;
             set(c.getValue(), NUMBER_LITERAL);
@@ -144,7 +148,7 @@ public class Argument {
         } else if (jc instanceof JTextField) {
             JTextField c = (JTextField) jc;
             if (w.isDynamic() && !c.getText().contains("\"")) {
-                set(c.getText(), ((type == UNDEFINED) ? EXPRESSION : type));
+                set(c.getText(), ((type == UNDEFINED || type != TEXT) ? EXPRESSION : type));
             } else {
                 String str = c.getText();
                 if (str.contains(" ")) {
@@ -156,6 +160,7 @@ public class Argument {
         } else {
             throw new Error("Invalid JComponent...");
         }
+        System.out.println("tf:" + type);
     }
 
     public final Widget setValueOf(Widget... ws) {

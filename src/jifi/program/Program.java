@@ -4,14 +4,12 @@
  * and open the template in the editor.
  */
 
-package robotinterface.algorithm.interpretable;
-
-import robotinterface.algorithm.Command;
+package jifi.program;
 
 /**
  *
  * @author antunes2
  */
-public class CmdExample extends Command {
+public class Program {
     
 }

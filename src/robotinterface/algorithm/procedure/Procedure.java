@@ -280,6 +280,7 @@ public class Procedure extends Command implements Classifiable {
         return addLineArg(index, Argument.UNDEFINED);
     }
 
+    @Deprecated
     protected void resetArgs(Argument... args) {
         myArgs.clear();
         myArgs.addAll(Arrays.asList(args));
@@ -301,10 +302,6 @@ public class Procedure extends Command implements Classifiable {
         if (myArgs.size() > 0) {
             myArgs.remove(myArgs.size() - 1);
         }
-    }
-
-    private int lineArgSize() {
-        return myArgs.size();
     }
 
     private GraphicObject resource = null;
