@@ -137,13 +137,12 @@ public class ToolBarButton {
 
                 icon.paintIcon(this, g, (w - icon.getIconWidth()) / 2, (h1 - icon.getIconHeight()) / 2);
 
-                g.setColor((mouseOver || button.isSelected())
-                        ? SystemColor.controlDkShadow
-                        : SystemColor.activeCaptionBorder);
-                if (ToolBarButton.this.actionListener == null) {
+                g.setColor(SystemColor.controlDkShadow);
+//                g.setColor((mouseOver || button.isSelected())
+//                        ? SystemColor.controlDkShadow
+//                        : SystemColor.activeCaptionBorder);
+                if (ToolBarButton.this.actionListener != null) {
                     g.drawLine(7, h1 - 1, this.getWidth() - 7, h1 - 1);
-                } else {
-                    //h1 -= 2;
                 }
 
                 int x = w / 2;
@@ -171,6 +170,8 @@ public class ToolBarButton {
             } else {
                 if (actionListener != null) {
                     actionListener.actionPerformed(new ActionEvent(button, 0, ""));
+                } else {
+                    jPopupMenu.show(button, 0, button.getHeight() + 5);
                 }
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
