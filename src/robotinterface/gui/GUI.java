@@ -59,7 +59,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.BadLocationException;
-import jifi.ui.main.ToolBarButton;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaHighlighter;
 import org.fife.ui.rsyntaxtextarea.SquiggleUnderlineHighlightPainter;
@@ -104,6 +103,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private final boolean allowMainTabbedPaneStateChanged;
     private final JSplitPane simulationSplitPanel;
     private boolean splitView = false;
+    private JTextPane console;
     public boolean LOG = false;
 
     private GUI() {
@@ -113,13 +113,14 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
         initComponents();
         setLocationRelativeTo(null);
-        secondarySplitPane.setDividerLocation(.5);
+//        secondarySplitPane.setDividerLocation(.5);
+        stepButton.setVisible(false);
 
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
 
-        final JTextPane console = new JTextPane();
+        console = new JTextPane();
         consolePanel.setLayout(new GridLayout());
         consolePanel.setName("Console");
         consolePanel.add(new JScrollPane(console));
@@ -174,6 +175,23 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             }
         });
         autoUpdateValue(jSpinner1);
+
+        jSpinner1.setVisible(false);
+        robotComboBox.setVisible(false);
+        timestepTButton.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (interpreter != null) {
+                    if (timestepTButton.getModel().isSelected()) {
+                        interpreter.setTimestep(200);
+                    } else {
+                        interpreter.setTimestep(0);
+                    }
+                } else if (timestepTButton.getModel().isSelected()) {
+                    timestepTButton.getModel().setPressed(false);
+                }
+            }
+        });
 
         //robot manager
         robotManager = new RobotManager(this);
@@ -232,9 +250,8 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         allowMainTabbedPaneStateChanged = true;
         mainTabbedPaneStateChanged(null);
         super.addComponentListener(this);
-        
-        //TESTE:
-        toolBar.add(new ToolBarButton().getJComponent());
+
+        console.setText("");
     }
 
     public SimulationPanel getSimulationPanel() {
@@ -328,12 +345,15 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        dynamicToolBar = new javax.swing.JToolBar();
         toolBar = new javax.swing.JToolBar();
         newFileButton = new javax.swing.JButton();
         openButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
         closeProjectButton = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
+        timestepTButton = new javax.swing.JToggleButton();
         robotComboBox = new javax.swing.JComboBox();
         runButton = new javax.swing.JButton();
         jSpinner1 = new javax.swing.JSpinner();
@@ -342,6 +362,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         stopButton = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         switchCodeButton = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
         deleteButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         splitViewButton = new javax.swing.JButton();
@@ -352,17 +373,17 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         secondarySplitPane = new javax.swing.JSplitPane();
         staticTabbedPane = new javax.swing.JTabbedPane();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTree1 = new javax.swing.JTree();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
-        dynamicToolBar = new javax.swing.JToolBar();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+
+        dynamicToolBar.setFloatable(false);
+        dynamicToolBar.setRollover(true);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JIFI - Java Interactive Flowchart Interpreter");
@@ -407,6 +428,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             }
         });
         toolBar.add(saveButton);
+        toolBar.add(jSeparator4);
 
         closeProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-clear.png"))); // NOI18N
         closeProjectButton.setToolTipText("Fechar Projeto");
@@ -422,6 +444,18 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         });
         toolBar.add(closeProjectButton);
         toolBar.add(jSeparator2);
+
+        timestepTButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/appointment-new.png"))); // NOI18N
+        timestepTButton.setToolTipText("Diminuir Tempo");
+        timestepTButton.setFocusable(false);
+        timestepTButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        timestepTButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        timestepTButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timestepTButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(timestepTButton);
 
         robotComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         robotComboBox.setMaximumSize(new java.awt.Dimension(32767, 28));
@@ -497,6 +531,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             }
         });
         toolBar.add(switchCodeButton);
+        toolBar.add(jSeparator5);
 
         deleteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/tab-remove.png"))); // NOI18N
         deleteButton.setToolTipText("Fechar Aba");
@@ -513,7 +548,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         toolBar.add(jSeparator1);
 
         splitViewButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-system-windows.png"))); // NOI18N
-        splitViewButton.setToolTipText("Fechar Aba");
+        splitViewButton.setToolTipText("Mesclar Abas");
         splitViewButton.setBorder(null);
         splitViewButton.setFocusable(false);
         splitViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -558,16 +593,13 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         mainTabbedPane.getAccessibleContext().setAccessibleDescription("");
 
         secondarySplitPane.setBorder(null);
-        secondarySplitPane.setDividerLocation(250);
+        secondarySplitPane.setDividerLocation(220);
         secondarySplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        secondarySplitPane.setEnabled(false);
 
         staticTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         staticTabbedPane.setEnabled(false);
         staticTabbedPane.addTab("Robôs", jScrollPane3);
-
-        jScrollPane2.setViewportView(jTree1);
-
-        staticTabbedPane.addTab("Projeto", jScrollPane2);
 
         secondarySplitPane.setLeftComponent(staticTabbedPane);
 
@@ -579,7 +611,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 331, Short.MAX_VALUE)
+            .addGap(0, 361, Short.MAX_VALUE)
         );
 
         dynamicTabbedPane.addTab("tab1", consolePanel);
@@ -590,9 +622,6 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
-
-        dynamicToolBar.setFloatable(false);
-        dynamicToolBar.setRollover(true);
 
         menuFile.setText("Arquivo");
 
@@ -631,19 +660,13 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dynamicToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(primarySplitPane)
+            .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dynamicToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(primarySplitPane, javax.swing.GroupLayout.DEFAULT_SIZE, 618, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -773,6 +796,9 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         if (interpreter != null) {
             if (setDefaultRobot(interpreter, true)) {
                 interpreter.setInterpreterState(Interpreter.PLAY);
+                if (console != null){
+                    console.setText("");
+                }
             } else {
                 interpreter.setInterpreterState(Interpreter.STOP);
             }
@@ -1254,6 +1280,10 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
     }//GEN-LAST:event_splitViewButtonActionPerformed
 
+    private void timestepTButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestepTButtonActionPerformed
+
+    }//GEN-LAST:event_timestepTButtonActionPerformed
+
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
@@ -1448,14 +1478,14 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JTree jTree1;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuFile;
@@ -1473,6 +1503,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private javax.swing.JButton stepButton;
     private javax.swing.JButton stopButton;
     private javax.swing.JButton switchCodeButton;
+    private javax.swing.JToggleButton timestepTButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
 

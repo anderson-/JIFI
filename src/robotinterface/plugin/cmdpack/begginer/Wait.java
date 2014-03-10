@@ -9,6 +9,8 @@ import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -22,6 +24,7 @@ import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.SubLineBreak;
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -139,14 +142,15 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Espera:", true));
                 components.add(new SubLineBreak());
-                createGenericField(W, W.arg0, "Tempo (ms):", 80, 25, components, container);
-//                spinner.setModel(new SpinnerNumberModel(500, 0, 10000, 50));
+                Widget[] widgets = createGenericField(W, W.arg0, "Tempo (ms):", 80, 25, components, container);
+                JSpinner spinner = (JSpinner) widgets[0].widget;
+                spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), 0, 10000, 50));
                 components.add(new SubLineBreak(true));
             }
 
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
-                sb.append("rotate(");
+                sb.append("wait(");
                 for (int i = 0; i < arguments.size(); i++) {
                     sb.append(arguments.get(i));
                     if (i < arguments.size() - 1) {
@@ -159,10 +163,10 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
 
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(W, myColor) {
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
                 addLine(headerLine);
-                string = getString();
+                boxLabel = getBoxLabel();
             }
         };
 
@@ -178,35 +182,9 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         return copy;
     }
 
-//    private static void updateWait(String args, Wait w) {
-//        String[] argv = args.split(",");
-//        if (argv.length == 0) {
-//            w.delay = 0;
-//        } else if (argv.length == 1) {
-//            argv[0] = argv[0].trim();
-//            if (Character.isLetter(argv[0].charAt(0))) {
-//                w.var = argv[0];
-//            } else {
-//                int v = Integer.parseInt(argv[0].trim());
-//                w.delay = v;
-//                w.var = null;
-//            }
-//        } else if (argv.length == 2) {
-//            argv[0] = argv[0].trim();
-//            if (Character.isLetter(argv[0].charAt(0))) {
-//                w.var = argv[0];
-//            } else {
-//                int v = Integer.parseInt(argv[0].trim());
-//                w.var = null;
-//            }
-//        }
-////        w.updateProcedure();
-//    }
-
 
     public static void main(String[] args) {
         Wait p = new Wait();
-//        Wait.updateWait("100", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());

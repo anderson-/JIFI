@@ -22,8 +22,8 @@ public class DrawableProcedureBlock extends MutableWidgetContainer {
     public DrawableProcedureBlock(Procedure procedure, Color color) {
         super(color);
         this.procedure = procedure;
-        string = procedure.getProcedure();
-        updateLines();
+        boxLabel = procedure.getProcedure();
+        updateStructure();
     }
 
     @Override

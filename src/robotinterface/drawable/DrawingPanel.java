@@ -382,10 +382,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
 
-        int x = (int) ((mouse.x - globalX) / zoom);
-        int y = (int) ((mouse.y - globalY) / zoom);
-        g.setColor(Color.black);
-        g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
+//        int x = (int) ((mouse.x - globalX) / zoom);
+//        int y = (int) ((mouse.y - globalY) / zoom);
+//        g.setColor(Color.black);
+//        g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
 
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);

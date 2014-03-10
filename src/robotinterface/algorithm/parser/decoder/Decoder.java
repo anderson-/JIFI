@@ -104,7 +104,8 @@ public class Decoder implements DecoderConstants {
     mark = null;
     if (sb.length() > 1)
     {
-      //System.out.println("~ '" + sb.substring(1) + "'");      return sb.substring(1);
+      //System.out.println("~ '" + sb.substring(1) + "'");
+      return sb.substring(1);
     }
     else
     {
@@ -991,7 +992,7 @@ public class Decoder implements DecoderConstants {
       jj_la1[39] = jj_gen;
       ;
     }
-    i.setProcedure(ex);
+    i.addLineArg(0, Argument.EXPRESSION, ex);
     b.add(i);
     localBlock = b;
   }
@@ -1007,7 +1008,7 @@ public class Decoder implements DecoderConstants {
     ex = getString(m);
     jj_consume_token(RPAREN);
     block(w, false);
-    w.setProcedure(ex);
+    w.addLineArg(0, Argument.EXPRESSION, ex);
     b.add(w);
     localBlock = b;
   }

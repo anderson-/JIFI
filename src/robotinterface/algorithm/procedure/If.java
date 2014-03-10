@@ -55,6 +55,7 @@ import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
 import robotinterface.drawable.swing.component.Component;
+import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
@@ -99,7 +100,7 @@ public class If extends Procedure {
         this();
         setProcedure(procedure);
     }
-
+    
     public boolean addTrue(Command c) {
         return blockTrue.add(c);
     }
@@ -288,6 +289,84 @@ public class If extends Procedure {
         return p;
     }
 
+    public static MutableWidgetContainer createSimpleIf(final Procedure p, final String def) {
+        //HEADER LINE
+        final WidgetLine headerLine = new WidgetLine(20) {
+            @Override
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel(container.getName() + ":", true));
+                components.add(new SubLineBreak());
+                createGenericField(p, p.getArg(0), "Condição:", 120, 25, components, container, ARG_TEXTFIELD);
+                components.add(new SubLineBreak(true));
+            }
+
+            @Override
+            public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
+                if (arguments.size() > 0) {
+                    sb.append(arguments.get(0).toString());
+                }
+            }
+        };
+
+        DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, Color.gray) {
+            private Polygon myShape = new Polygon();
+            public static final int EXTENDED_HEIGHT = 15;
+            public static final int SIMPLE_HEIGHT = 18;
+            public static final int SIMPLE_WIDTH = 22;
+
+            @Override
+            public void updateStructure() {
+                clear();
+                addLine(headerLine);
+            }
+
+            @Override
+            public String getBoxLabel() {
+                super.getBoxLabel(); //utilizado para atualizar os argumentos a partir da caixa de texto
+                p.setProcedure(p.getArg(0).toString());
+                boxLabel = p.getProcedure();
+                if (boxLabel.equals(def) || boxLabel.trim().isEmpty()) {
+                    boxLabel = getName();
+                    p.setProcedure(def);
+                }
+                p.getArg(0).set(p.getProcedure(), Argument.EXPRESSION);
+                return boxLabel;
+            }
+
+            @Override
+            public void splitBoxLabel(String original, Collection<String> splitted) {
+                splitted.add(original);
+            }
+
+            @Override
+            public Shape updateShape(Rectangle2D bounds) {
+                myShape.reset();
+
+                if (isWidgetVisible()) {
+                    shapeStartX = 0;
+                    shapeStartY = EXTENDED_HEIGHT;
+                    myShape.addPoint((int) bounds.getCenterX(), 0);
+                    myShape.addPoint((int) bounds.getMaxX(), EXTENDED_HEIGHT);
+                    myShape.addPoint((int) bounds.getMaxX(), (int) bounds.getMaxY() + EXTENDED_HEIGHT);
+                    myShape.addPoint((int) bounds.getCenterX(), (int) bounds.getMaxY() + 2 * EXTENDED_HEIGHT);
+                    myShape.addPoint(0, (int) bounds.getMaxY() + EXTENDED_HEIGHT);
+                    myShape.addPoint(0, EXTENDED_HEIGHT);
+                } else {
+                    shapeStartX = SIMPLE_WIDTH;
+                    shapeStartY = SIMPLE_HEIGHT;
+
+                    myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, 0);
+                    myShape.addPoint((int) bounds.getMaxX() + 2 * SIMPLE_WIDTH, (int) bounds.getCenterY() + SIMPLE_HEIGHT);
+                    myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, (int) bounds.getMaxY() + 2 * SIMPLE_HEIGHT);
+                    myShape.addPoint(0, (int) bounds.getCenterY() + SIMPLE_HEIGHT);
+                }
+                return myShape; //To change body of generated methods, choose Tools | Templates.
+            }
+        };
+
+        return dcb;
+    }
+
     public static MutableWidgetContainer createDrawableIf(final Procedure p, final String def) {
 
         final String[] comparadores = {"==", "!=", "<", "<=", ">", ">="};
@@ -374,10 +453,11 @@ public class If extends Procedure {
 
                 components.add(new SubLineBreak());
 
+                components.add(new Space(111));
+
                 components.add(new Widget(proximo, COMBOBOX_WIDTH, COMBOBOX_HEIGHT));
 
-                components.add(new SubLineBreak(true));
-
+//                components.add(new SubLineBreak(false));
                 changeButton1.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -520,7 +600,7 @@ public class If extends Procedure {
                 sb.append(def);
             }
         };
-        
+
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, Color.gray) {
             private Polygon myShape = new Polygon();
             public static final int EXTENDED_HEIGHT = 15;
@@ -528,13 +608,13 @@ public class If extends Procedure {
             public static final int SIMPLE_WIDTH = 22;
 
             {
-                string = p.getProcedure();
-                updateLines();
+                boxLabel = p.getProcedure();
+                updateStructure();
                 center = true;
             }
 
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 //exclui todas as linhas
                 clear();
 
@@ -553,9 +633,9 @@ public class If extends Procedure {
                     boolean or;
                     boolean orEnd;
 
-                    for (String str0 : string.split("&&")) {
-                        and = (str0.length() == string.length());
-                        andEnd = string.endsWith(str0);
+                    for (String str0 : boxLabel.split("&&")) {
+                        and = (str0.length() == boxLabel.length());
+                        andEnd = boxLabel.endsWith(str0);
                         for (String str : str0.split("\\|\\|")) {
                             or = (str.length() == str0.length());
                             orEnd = str0.endsWith(str);
@@ -621,8 +701,8 @@ public class If extends Procedure {
             }
 
             @Override
-            public String getString() {
-                String str = super.getString();
+            public String getBoxLabel() {
+                String str = super.getBoxLabel();
                 if (str.trim().length() <= 2) {
                     str = getName();
                     p.setProcedure(def);
@@ -633,16 +713,16 @@ public class If extends Procedure {
             }
 
             @Override
-            public void splitString(String original, Collection<String> splitted) {
+            public void splitBoxLabel(String original, Collection<String> splitted) {
 
                 boolean and;
                 boolean andEnd;
                 boolean or;
                 boolean orEnd;
 
-                for (String str0 : string.split("&&")) {
-                    and = (str0.length() == string.length());
-                    andEnd = string.endsWith(str0);
+                for (String str0 : boxLabel.split("&&")) {
+                    and = (str0.length() == boxLabel.length());
+                    andEnd = boxLabel.endsWith(str0);
                     for (String str : str0.split("\\|\\|")) {
                         or = (str.length() == str0.length());
                         orEnd = str0.endsWith(str);
@@ -665,7 +745,7 @@ public class If extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            MutableWidgetContainer mwc = If.createDrawableIf(this, "0");
+            MutableWidgetContainer mwc = If.createSimpleIf(this, "0");
             mwc.setName("If");
             mwc.setColor(myColor);
             resource = mwc;

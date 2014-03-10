@@ -29,7 +29,7 @@ public class Argument {
     private int type;
     private Object value = null;
     private boolean extended = false;
-    
+
     public Argument(Object statement, int type) {
         set(statement, type);
     }
@@ -69,7 +69,7 @@ public class Argument {
     }
 
     public final String getStringValue() {
-        if (type == STRING_LITERAL || type == TEXT) {
+        if (type == STRING_LITERAL || type == TEXT || type == EXPRESSION) {
             return statement;
         }
         if (value instanceof String) {
@@ -133,12 +133,9 @@ public class Argument {
 
     public final void getValueFrom(Widget w) {
         JComponent jc = w.getJComponent();
-        
-        System.out.println("t:" + type);
 
-        
         if (extended && getValueOfExtended(jc)) {
-            System.out.println("ex");
+            //System.out.println("ex");
         } else if (jc instanceof JSpinner) {
             JSpinner c = (JSpinner) jc;
             set(c.getValue(), NUMBER_LITERAL);
@@ -160,7 +157,6 @@ public class Argument {
         } else {
             throw new Error("Invalid JComponent...");
         }
-        System.out.println("tf:" + type);
     }
 
     public final Widget setValueOf(Widget... ws) {
@@ -212,7 +208,8 @@ public class Argument {
         if (statement.contains("\"") || statement.contains("var") || type == TEXT) {
             return statement;
         } else {
-            return statement.replace(" ", "");
+            return statement.replaceAll(" ","");
+            //return statement.replaceAll("\\s+"," ");
         }
     }
 }

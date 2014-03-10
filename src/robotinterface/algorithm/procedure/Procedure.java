@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
@@ -64,6 +63,7 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class Procedure extends Command implements Classifiable {
 
+    private static Object nill = new Object();
     private static Color myColor = Color.decode("#ACD630");
     private ArrayList<String> names;
     private ArrayList<Object> values;
@@ -73,7 +73,7 @@ public class Procedure extends Command implements Classifiable {
 
     public Procedure() { //tornar private 
         varArgs = true;
-        procedure = "0";
+        procedure = "";
         names = new ArrayList<>();
         values = new ArrayList<>();
         myArgs = new ArrayList<>();
@@ -258,23 +258,27 @@ public class Procedure extends Command implements Classifiable {
         return new Procedure("var x = 1");
     }
 
-    protected Argument addLineArg(int index, int type, Object data) {
+    public Argument addLineArg(int index, int type, Object data) {
         if (myArgs.size() > index) {
             if (index == -1) {
                 throw new IndexOutOfBoundsException();
             }
         } else {
             while (myArgs.size() <= index) {
-                myArgs.add(new Argument(data, type));
+                myArgs.add(new Argument("", type));
             }
         }
-        return myArgs.get(index);
+        Argument arg = myArgs.get(index);
+        if (data != nill){
+            arg.set(data, type);
+        }
+        return arg;
     }
-    
+
     protected Argument addLineArg(int index, int type) {
-        return addLineArg(index, type, "");
+        return addLineArg(index, type, nill);
     }
-    
+
     @Deprecated
     protected Argument addLineArg(int index) {
         return addLineArg(index, Argument.UNDEFINED);
@@ -335,7 +339,7 @@ public class Procedure extends Command implements Classifiable {
                 JTextField textField = new JTextField();
 
                 Widget wTextField = new Widget(textField, TEXTFIELD_WIDTH, TEXTFIELD_HEIGHT);
-                
+
                 container.entangle(p.addLineArg(index - 1), wTextField);
 
                 components.add(new Space(BUTTON_WIDTH));
@@ -432,20 +436,20 @@ public class Procedure extends Command implements Classifiable {
 
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(p, myColor) {
             {
-                string = p.getProcedure();
-                updateLines();
-                getString();
+                boxLabel = p.getProcedure();
+                updateStructure();
+                getBoxLabel();
             }
 
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
 
                 addLine(headerLine);
 
                 boolean empty = true;
                 int index = 0;
-                for (String str : string.split(";")) {
+                for (String str : boxLabel.split(";")) {
                     Argument arg = p.addLineArg(index);
                     arg.set(str, Argument.EXPRESSION);
                     index++;
@@ -461,8 +465,8 @@ public class Procedure extends Command implements Classifiable {
             }
 
             @Override
-            public String getString() {
-                String str = super.getString();
+            public String getBoxLabel() {
+                String str = super.getBoxLabel();
                 p.setProcedure(str);
                 return str;
             }

@@ -49,22 +49,22 @@ public class MutableWidgetContainer extends WidgetContainer {
         defaultFont = new Font("Dialog", Font.BOLD, 12);
     }
 
-    protected String string = "";
+    protected String boxLabel = "";
     protected Color color;
     protected int shapeStartX = 0;
     protected int shapeStartY = 0;
     protected boolean center = false;
     protected boolean widgetsEnabled = true;
-    protected Color stringColor = Color.BLACK;
+    protected Color boxLabelColor = Color.BLACK;
     protected Font stringFont = defaultFont;
     protected Rectangle2D.Double shapeBounds;
     private String name = "";
     private double stringWidth = 0;
     private int firstShapeUpdate = 2;
-    private boolean updateLines = false;
+    private boolean updateStructure = false;
     private boolean updateShape = false;
     private boolean updateHeight = false;
-    private final ArrayList<String> splittedString;
+    private final ArrayList<String> splittedBoxLabel;
     private final ArrayList<WidgetLine> rowTypes;
     private final ArrayList<ArrayList<Component>> rows;
     private final ArrayList<Argument> tmpArguments;
@@ -72,7 +72,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     public MutableWidgetContainer(Color color) {
         super(new Rectangle(0, 0, 1, 1));
-        splittedString = new ArrayList<>();
+        splittedBoxLabel = new ArrayList<>();
         rowTypes = new ArrayList<>();
         rows = new ArrayList<>();
         tmpArguments = new ArrayList<>();
@@ -99,7 +99,7 @@ public class MutableWidgetContainer extends WidgetContainer {
     }
 
     public void setString(String string) {
-        this.string = string;
+        this.boxLabel = string;
     }
 
     public boolean isWidgetsEnebled() {
@@ -120,7 +120,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         return chosen;
     }
 
-    public String getString() {
+    public String getBoxLabel() {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < rowTypes.size(); i++) {
@@ -142,11 +142,10 @@ public class MutableWidgetContainer extends WidgetContainer {
 
             type.toString(sb, tmpArguments, this);
         }
-
         return sb.toString();
     }
 
-    public void splitString(String original, Collection<String> splitted) {
+    public void splitBoxLabel(String original, Collection<String> splitted) {
         String[] split = original.split(";");
         for (String str : split) {
             str += ";";
@@ -236,7 +235,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         updateHeight = true;
     }
 
-    public void updateLines() {
+    public void updateStructure() {
     }
 
     public Shape updateShape(Rectangle2D bounds) {
@@ -284,9 +283,9 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         //componente
         if (isWidgetVisible()) {
-            drawWJC(g, ga, in);
+            drawOpenBox(g, ga, in);
         } else {
-            drawWoJC(g, ga, in);
+            drawClosedBox(g, ga, in);
         }
 
         g.setStroke(new BasicStroke(4));
@@ -411,11 +410,11 @@ public class MutableWidgetContainer extends WidgetContainer {
     Rectangle2D.Double tmp = new Rectangle2D.Double();
     Rectangle2D.Double tmp2 = new Rectangle2D.Double();
 
-    protected void drawWJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+    protected void drawOpenBox(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         //escreve coisas quando os jcomponets estão visiveis
-        if (updateLines) {
-            updateLines();
-            updateLines = false;
+        if (updateStructure) {
+            updateStructure();
+            updateStructure = false;
         }
 
         double y = 0 + shapeStartY;
@@ -442,15 +441,15 @@ public class MutableWidgetContainer extends WidgetContainer {
         }
     }
 
-    protected void drawWoJC(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
+    protected void drawClosedBox(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         //escreve coisas quando os jcomponets não estão visiveis
 
-        if (!updateLines) {
-            string = getString();
-            splittedString.clear();
-            splitString(string, splittedString);
+        if (!updateStructure) {
+            boxLabel = getBoxLabel();
+            splittedBoxLabel.clear();
+            splitBoxLabel(boxLabel, splittedBoxLabel);
             stringWidth = 0;
-            updateLines = true;
+            updateStructure = true;
         }
 
         g.setFont(stringFont);
@@ -461,7 +460,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
         double tmpWidth;
 
-        g.setColor(stringColor);
+        g.setColor(boxLabelColor);
 
 //        g.translate(x, 0);
 //        for (String str : string.split(";")) {
@@ -480,7 +479,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 //        }
 //        g.translate(-x, 0);
         g.translate(x, 0);
-        for (String str : splittedString) {
+        for (String str : splittedBoxLabel) {
             tmpWidth = fm.stringWidth(str);
             if (tmpWidth > stringWidth) {
                 stringWidth = tmpWidth;

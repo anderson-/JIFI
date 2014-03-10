@@ -69,6 +69,8 @@ public class While extends Block {
         
         if (evaluate(rm)) {
             return start;
+        } else {
+            System.out.println("fail: " + super.getProcedure());
         }
         return super.step(rm);
     }
@@ -115,7 +117,7 @@ public class While extends Block {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            MutableWidgetContainer mwc = If.createDrawableIf(this, "1");
+            MutableWidgetContainer mwc = If.createSimpleIf(this, "1");
             mwc.setName("While");
             mwc.setColor(myColor);
             resource = mwc;

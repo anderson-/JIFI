@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="robotinterface/robot/simulation/|robotinterface/plugin/cmdpack/util/|robotinterface/algorithm/procedure/" kind="src" path=""/>
+	<classpathentry kind="src" path="robotinterface/algorithm/procedure"/>
+	<classpathentry kind="src" path="robotinterface/plugin/cmdpack/util"/>
+	<classpathentry kind="src" path="robotinterface/robot/simulation"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

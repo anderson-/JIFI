@@ -150,7 +150,6 @@ public class SidePanel extends WidgetContainer {
             g.fillRect(panelWidth - 2, (int) barMidPos, 2, (int) barSize);
         }
 
-
         //animação
 
         double velocity = .2; //em segundos

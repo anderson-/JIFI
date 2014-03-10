@@ -24,16 +24,16 @@ public class DummyBlock extends Procedure {
         MutableWidgetContainer mwc = new MutableWidgetContainer(color) {
 
             {
-                super.stringColor = strColor;
+                super.boxLabelColor = strColor;
             }
 
             @Override
-            public String getString() {
+            public String getBoxLabel() {
                 return str;
             }
 
             @Override
-            public void splitString(String original, Collection<String> splitted) {
+            public void splitBoxLabel(String original, Collection<String> splitted) {
                 splitted.add(original);
             }
 

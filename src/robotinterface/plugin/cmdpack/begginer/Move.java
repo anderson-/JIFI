@@ -30,6 +30,8 @@ import java.awt.Polygon;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -43,6 +45,7 @@ import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.SubLineBreak;
+import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Classifiable;
@@ -71,7 +74,6 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     public Move(int m1, int m2) {
         arg0 = new Argument(m1, Argument.NUMBER_LITERAL);
         arg1 = new Argument(m2, Argument.NUMBER_LITERAL);
-        updateProcedure();
     }
 
     public Move(Argument[] args) {
@@ -80,13 +82,9 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
         arg1.set(args[1]);
     }
 
-    public void updateProcedure() {
-        setProcedure("move(" + arg0 + "," + arg1 + ")");
-    }
-
     @Override
     public void toString(String ident, StringBuilder sb) {
-        updateProcedure();
+        setProcedure("move(" + arg0 + "," + arg1 + ")");
         super.toString(ident, sb);
     }
 
@@ -135,16 +133,18 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     public static MutableWidgetContainer createDrawableMove(final Move m) {
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine() {
-            
+
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Mover:", true));
                 components.add(new SubLineBreak());
-                createGenericField(m, m.arg0, "V1:", 80, 25, components, container);
-//                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
+                Widget[] widgets = createGenericField(m, m.arg0, "V1:", 80, 25, components, container);
+                JSpinner spinner = (JSpinner) widgets[0].widget;
+                spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), -128, 127, 5));
                 components.add(new SubLineBreak());
-                createGenericField(m, m.arg1, "V1:", 80, 25, components, container);
-//                spinner1.setModel(new SpinnerNumberModel(0, -128, 127, 2));
+                widgets = createGenericField(m, m.arg1, "V1:", 80, 25, components, container);
+                spinner = (JSpinner) widgets[0].widget;
+                spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), -128, 127, 5));
                 components.add(new SubLineBreak(true));
             }
 
@@ -163,10 +163,10 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
 
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(m, myColor) {
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
                 addLine(headerLine);
-                string = getString();
+                boxLabel = getBoxLabel();
             }
         };
 
@@ -228,58 +228,8 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
         return copy;
     }
 
-//    private static void updateMove(String str, Move m) {
-//        String[] argv = str.split(",");
-//        if (argv.length == 0) {
-//            m.m1 = (byte) 0;
-//            m.m2 = (byte) 0;
-//        } else if (argv.length == 1) {
-//            argv[0] = argv[0].trim();
-//            if (Character.isLetter(argv[0].charAt(0))) {
-//                m.var1 = argv[0];
-//                m.var2 = argv[0];
-//            } else {
-//                int v = Integer.parseInt(argv[0].trim());
-//                m.m1 = (byte) v;
-//                m.m2 = (byte) v;
-//                m.var1 = null;
-//                m.var2 = null;
-//            }
-//        } else if (argv.length == 2) {
-//            argv[0] = argv[0].trim();
-//            if (Character.isLetter(argv[0].charAt(0))) {
-//                m.var1 = argv[0];
-//            } else {
-//                int v = Integer.parseInt(argv[0].trim());
-//                m.m1 = (byte) v;
-//                m.var1 = null;
-//            }
-//
-//            argv[1] = argv[1].trim();
-//            if (Character.isLetter(argv[1].charAt(0))) {
-//                m.var2 = argv[1];
-//            } else {
-//                int v = Integer.parseInt(argv[1].trim());
-//                m.m2 = (byte) v;
-//                m.var2 = null;
-//            }
-//        }
-//        m.updateProcedure();
-//    }
-
-//    @Override
-//    public Move createInstance(String args) {
-//        Move m = new Move(0, 0);
-//        if (!args.isEmpty()) {
-//            updateMove(args, m);
-//        }
-//
-//        return m;
-//        //return new ParseErrorProcedure(this, args);
-//    }
     public static void main(String[] args) {
         Move p = new Move();
-//        Move.updateMove("x", p);
         p.addBefore(new Procedure("var x, y;"));
         QuickFrame.applyLookAndFeel();
         QuickFrame.drawTest(p.getDrawableResource());

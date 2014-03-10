@@ -35,6 +35,7 @@ import java.util.Collection;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -86,7 +87,6 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     public Rotate(int angle) {
         arg0 = new Argument(angle, Argument.NUMBER_LITERAL);
-        updateProcedure();
     }
 
     private Rotate(Argument[] args) {
@@ -100,16 +100,11 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
     public void setAngle(int angle) {
         arg0.set(angle, Argument.NUMBER_LITERAL);
-        updateProcedure();
-    }
-
-    public void updateProcedure() {
-        setProcedure("rotate(" + arg0 + ")");
     }
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        updateProcedure();
+        setProcedure("rotate(" + arg0 + ")");
         super.toString(ident, sb);
     }
 
@@ -200,7 +195,9 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 components.add(new TextLabel("Girar:", true));
                 components.add(new SubLineBreak());
-                createGenericField(r, r.arg0, "Ângulo (°):", 80, 25, components, container);
+                Widget[] widgets = createGenericField(r, r.arg0, "Ângulo (°):", 80, 25, components, container);
+                JSpinner spinner = (JSpinner) widgets[0].widget;
+                spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), -360, 360, 2));
                 components.add(new SubLineBreak(true));
             }
 
@@ -219,10 +216,10 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
 
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(r, myColor) {
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
                 addLine(headerLine);
-                string = getString();
+                boxLabel = getBoxLabel();
             }
         };
 

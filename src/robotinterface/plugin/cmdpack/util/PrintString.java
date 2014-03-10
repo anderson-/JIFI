@@ -50,7 +50,7 @@ import robotinterface.util.trafficsimulator.Timer;
 public class PrintString extends Procedure implements FunctionToken<PrintString> {
 
     private static Color myColor = Color.decode("#08B9AC");
-    private final Timer timer = new Timer(2);
+    private final Timer timer = new Timer(5);
 
     public PrintString() {
         super(new Argument("", Argument.TEXT));
@@ -183,21 +183,21 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                     @Override
                     public void insertUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-                        container.updateLines();
+                        container.updateStructure();
                         tfName.requestFocusInWindow();
                     }
 
                     @Override
                     public void removeUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-                        container.updateLines();
+                        container.updateStructure();
                         tfName.requestFocusInWindow();
                     }
 
                     @Override
                     public void changedUpdate(DocumentEvent e) {
                         container.setString(tfName.getText());
-                        container.updateLines();
+                        container.updateStructure();
                         tfName.requestFocusInWindow();
                     }
                 });
@@ -237,9 +237,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
 
             @Override
-            public void updateLines() {
+            public void updateStructure() {
 
-                if (string.startsWith("print")) {
+                if (boxLabel.startsWith("print")) {
                     clear();
                 }
 
@@ -248,7 +248,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 }
 
                 String subStr = "%v";
-                int ocorrences = (string.length() - string.toLowerCase().replace(subStr, "").length()) / subStr.length();;
+                int ocorrences = (boxLabel.length() - boxLabel.toLowerCase().replace(subStr, "").length()) / subStr.length();;
 
                 ocorrences -= getSize() - 1;
                 for (int i = 0; i < ocorrences; i++) {
@@ -280,8 +280,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
 
             @Override
-            public String getString() {
-                String str = "print(" + super.getString() + ")";
+            public String getBoxLabel() {
+                String str = "print(" + super.getBoxLabel() + ")";
                 p.setProcedure(str);
                 return str;
             }

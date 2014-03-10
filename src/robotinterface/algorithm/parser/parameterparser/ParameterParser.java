@@ -56,7 +56,6 @@ public class ParameterParser {
                     if (str.contains(" ")){
                         type = Argument.TEXT;
                     } else {
-                        System.out.println("asjdaisd");
                         type = Argument.STRING_LITERAL;
                     }
                     break;

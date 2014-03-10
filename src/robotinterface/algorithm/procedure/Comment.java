@@ -8,43 +8,26 @@ package robotinterface.algorithm.procedure;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Polygon;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
-import robotinterface.drawable.Drawable;
 import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.DrawingPanel;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.swing.component.TextLabel;
-import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.WidgetLine;
@@ -66,12 +49,17 @@ public class Comment extends Procedure {
     }
 
     public Comment(String comment) {
-        arg0 = new Argument(comment, Argument.TEXT, true){
+        if (comment.endsWith("\n")) {
+            comment = comment.substring(0, comment.length() - 1);
+        }
+        comment = comment.replaceAll("[\t\r\f]+", "");
+
+        arg0 = new Argument(comment, Argument.TEXT, true) {
 
             @Override
             public boolean setValueOfExtended(JComponent jc) {
-                if (jc instanceof JTextArea){
-                    ((JTextArea)jc).setText(this.getStringValue());
+                if (jc instanceof JTextArea) {
+                    ((JTextArea) jc).setText(this.getStringValue());
                     return true;
                 }
                 return false;
@@ -79,13 +67,13 @@ public class Comment extends Procedure {
 
             @Override
             public boolean getValueOfExtended(JComponent jc) {
-                if (jc instanceof JTextArea){
-                    this.set(((JTextArea)jc).getText(), TEXT);
+                if (jc instanceof JTextArea) {
+                    this.set(((JTextArea) jc).getText(), TEXT);
                     return true;
                 }
                 return false;
             }
-            
+
         };
     }
 
@@ -117,8 +105,22 @@ public class Comment extends Procedure {
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
                 if (arguments.size() > 0) {
-                    Argument arg = arguments.get(0);
-                    sb.append(arg);
+                    String str = arguments.get(0).toString();
+                    if (!str.contains("\n") && !(str.startsWith("/*") || str.endsWith("*/"))) {
+                        if (!str.startsWith("//")) {
+                            sb.append("//").append(str);
+                        } else {
+                            sb.append(str);
+                        }
+                    } else {
+                        if (!str.startsWith("/*")) {
+                            sb.append("/*");
+                        }
+                        sb.append(str);
+                        if (!str.endsWith("*/")) {
+                            sb.append("*/");
+                        }
+                    }
                 }
             }
         };
@@ -135,7 +137,7 @@ public class Comment extends Procedure {
 //                    System.out.println(fonts[i]);
 //                }
 //                    font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Purisa-Bold.ttf"));
-                    
+
                     InputStream myStream = new BufferedInputStream(this.getClass().getResourceAsStream("/resources/Purisa-Bold.ttf"));
                     Font fontRaw = Font.createFont(Font.TRUETYPE_FONT, myStream);
                     Font fontBase = fontRaw.deriveFont(12f);
@@ -148,13 +150,13 @@ public class Comment extends Procedure {
                 }
                 super.stringFont = font;
 //                System.out.println(stringFont);
-                super.stringColor = Color.BLACK;
+                super.boxLabelColor = Color.BLACK;
 //                string = c.getProcedure();
 //                updateLines();
             }
 
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
 //                c.comment = string;
 //                c.setProcedure(string);
@@ -162,7 +164,7 @@ public class Comment extends Procedure {
             }
 
             @Override
-            public void splitString(String original, Collection<String> splitted) {
+            public void splitBoxLabel(String original, Collection<String> splitted) {
                 String[] split = original.split("\n");
                 for (String str : split) {
                     str += "\n";
@@ -212,9 +214,9 @@ public class Comment extends Procedure {
 
                 //componente
                 if (isWidgetVisible()) {
-                    drawWJC(g, ga, in);
+                    drawOpenBox(g, ga, in);
                 } else {
-                    drawWoJC(g, ga, in);
+                    drawClosedBox(g, ga, in);
                 }
 
                 g.setStroke(new BasicStroke(4));
@@ -254,6 +256,28 @@ public class Comment extends Procedure {
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append(arg0.getStringValue());
+        String str = arg0.toString();
+
+        if (!str.contains("\n")) {
+            sb.append(ident);
+            if (!str.startsWith("//") && !(str.startsWith("/*") || str.endsWith("*/"))) {
+                sb.append("//").append(str);
+            } else {
+                sb.append(str);
+            }
+        } else {
+            if (!str.startsWith("/*")) {
+                sb.append("/*");
+            }
+
+            for (String s : str.split("\n")) {
+                sb.append(ident).append(s).append("\n");
+            }
+
+            if (!str.endsWith("*/")) {
+                sb.append("*/");
+            }
+        }
+        sb.append("\n");
     }
 }

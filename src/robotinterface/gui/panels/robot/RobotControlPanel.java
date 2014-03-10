@@ -169,7 +169,7 @@ public class RobotControlPanel extends JPanel {
         setBorder(border);
         robotManager = rm;
         connectionStatusGraph.setVisible(false);
-        removeButton.setEnabled(false);
+        removeButton.setVisible(false);
 
         statusLabel2.setText("");
         statusLabel3.setText("");

@@ -419,12 +419,12 @@ public class Function extends Block {
             public static final int SIMPLE_WIDTH = 20;
 
             {
-                updateLines();
+                updateStructure();
                 center = true;
             }
 
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 //exclui todas as linhas
                 clear();
 
@@ -439,19 +439,19 @@ public class Function extends Block {
                 }
 
                 addLine(endLine);
-                string = getString();
+                boxLabel = getBoxLabel();
 
                 //CUIDADO
                 GUI.getInstance().updateTabNames();
             }
 
-            public void splitString(String original, Collection<String> splitted) {
+            public void splitBoxLabel(String original, Collection<String> splitted) {
                 splitted.add(original);
             }
 
             @Override
-            public String getString() {
-                String str = super.getString();
+            public String getBoxLabel() {
+                String str = super.getBoxLabel();
                 //CUIDADO
                 GUI.getInstance().updateTabNames();
                 return "func " + str.trim() + ") : ";

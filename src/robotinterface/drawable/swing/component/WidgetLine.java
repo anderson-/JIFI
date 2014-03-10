@@ -167,7 +167,7 @@ public abstract class WidgetLine extends Component {
 
         if ((type & ARG_SPINNER) != 0) {
             JSpinner spinner = new JSpinner();
-            spinner.setModel(new SpinnerNumberModel(0, -360, 360, 2));
+            spinner.setModel(new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
             spinner.setFocusable(true);
             MutableWidgetContainer.autoUpdateValue(spinner);
             Widget wspinner = new Widget(spinner, fieldWidth, fieldHeight);

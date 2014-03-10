@@ -164,8 +164,10 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
 
                 Widget wcomboboxdev = new Widget(comboboxDev, 100, 25);
-                Widget wcomboboxvar = new Widget(comboboxVar, 60, 25);
+                Widget wcomboboxvar = new Widget(comboboxVar, 100, 25);
                 components.add(wcomboboxdev);
+                components.add(new SubLineBreak());
+                components.add(new TextLabel("Variavel:"));
                 components.add(wcomboboxvar);
 
                 container.entangle(rd.arg0, wcomboboxdev);
@@ -176,29 +178,35 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
-                sb.append(rd);
+                if (!rd.arg1.getVariableName().isEmpty()) {
+                    sb.append("read(").append(rd.arg0).append(",").append(rd.arg1).append(")");
+                } else {
+                    sb.append("read(").append(rd.arg0).append(")");
+                }
+                rd.type = deviceMap.get(rd.arg0.toString());
             }
         };
 
         DrawableProcedureBlock dcb = new DrawableProcedureBlock(rd, myColor) {
             @Override
-            public void updateLines() {
+            public void updateStructure() {
                 clear();
                 addLine(headerLine);
-                string = getString();
+                boxLabel = getBoxLabel();
             }
         };
 
         return dcb;
     }
-
     @Override
-    public String toString() {
+    public void toString(String ident, StringBuilder sb) {
+        //reutiliza o metodo da classe pai
         if (!arg1.getVariableName().isEmpty()) {
-            return "read(" + arg0 + "," + arg1 + ")";
+            setProcedure("read(" + arg0 + "," + arg1 + ")");
         } else {
-            return "read(" + arg0 + ")";
+            setProcedure("read(" + arg0 + ")");
         }
+        super.toString(ident, sb);
     }
 
     @Override
