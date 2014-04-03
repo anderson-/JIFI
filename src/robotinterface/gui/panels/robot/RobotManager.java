@@ -28,9 +28,9 @@ public class RobotManager extends JPanel implements Iterable<RobotControlPanel> 
     public RobotManager(final GUI gui) {
         this.gui = gui;
         
-        super.setLayout(new GridBagLayout());
+//        super.setLayout(new GridBagLayout());
         cons = new GridBagConstraints();
-        cons.fill = GridBagConstraints.HORIZONTAL;
+        cons.fill = GridBagConstraints.VERTICAL;
         cons.weightx = 1;
         cons.gridx = 0;
 

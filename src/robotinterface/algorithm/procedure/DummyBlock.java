@@ -47,7 +47,7 @@ public class DummyBlock extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock("   vazio   ", Color.LIGHT_GRAY, Color.LIGHT_GRAY);
+            resource = createSimpleBlock("      -      ", Color.LIGHT_GRAY, Color.LIGHT_GRAY);
         }
         return resource;
     }

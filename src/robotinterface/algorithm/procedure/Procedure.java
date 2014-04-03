@@ -34,6 +34,8 @@ import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JTextField;
@@ -70,6 +72,7 @@ public class Procedure extends Command implements Classifiable {
     private ArrayList<Argument> myArgs;
     private String procedure;
     private boolean varArgs;
+    private Pattern p = Pattern.compile("(\\S+)(\\+\\+)");
 
     public Procedure() { //tornar private 
         varArgs = true;
@@ -176,9 +179,23 @@ public class Procedure extends Command implements Classifiable {
         }
 
         for (String str : procedure.split(";")) {
-            if (!str.startsWith("var")) {
+            str = str.trim();
+            if (!(str.startsWith("var") || str.isEmpty())) {
+
+                Matcher m = p.matcher(str);
+                if (m.find()) {
+                    String valid = m.group(1) + " = " + m.group(1) + " + 1";
+                    if (this.procedure.equals(procedure)) {
+                        this.procedure = procedure.replace(str, valid);
+                    }
+                    str = valid;
+                }
+
                 parser.parseExpression(str);
                 o = parser.getValueAsObject();
+                if (parser.hasError()) {
+                    throw new ExecutionException(parser.getErrorInfo() + " in \"" + str + "\"");
+                }
             }
         }
 
@@ -269,7 +286,7 @@ public class Procedure extends Command implements Classifiable {
             }
         }
         Argument arg = myArgs.get(index);
-        if (data != nill){
+        if (data != nill) {
             arg.set(data, type);
         }
         return arg;

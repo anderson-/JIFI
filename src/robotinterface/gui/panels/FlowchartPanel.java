@@ -17,7 +17,9 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Stack;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.procedure.Block;
@@ -44,6 +46,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
     private final Color selectionColor = new Color(0, .2f, .5f, .5f);
     private final Color executionColor = new Color(0, 1, 0, .5f);
+    private final Color errorColor = new Color(1, 0, 0, .5f);
     public ArrayList<JPanel> tabs = new ArrayList<>();
     private final ArrayList<Command> selection = new ArrayList<>();
     private final ArrayList<Command> copy = new ArrayList<>();
@@ -58,10 +61,23 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     private int clickDrop = 0;
     private GraphicObject executionCommand = null;
 
-    public FlowchartPanel(Function function) {
+    public FlowchartPanel(Function function, final Interpreter interpreter) {
         sidePanel = new SidePanel() {
             @Override
             protected void ItemSelected(Item item, Object ref) {
+                if (interpreter.getInterpreterState() == Interpreter.PLAY) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            JOptionPane.showMessageDialog(null, "Atenção: A edição do fluxograma está suspensa\naté que o código termine ou seja pausado.", "Atenção", JOptionPane.WARNING_MESSAGE);
+                            if (itemSelected != null) {
+                                itemSelected.setSelected(false);
+                                itemSelected = null;
+                            }
+                        }
+                    });
+                }
+
                 try {
                     if (itemSelected != null) {
                         itemSelected.setSelected(false);
@@ -80,9 +96,12 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
         add(sidePanel);
 
-        interpreter = new Interpreter();
-        interpreter.start();
+        this.interpreter = interpreter;
+        if (!interpreter.isAlive()) {
+            this.interpreter.start();
+        }
         setFunction(function);
+        super.setName("Fluxograma");
     }
 
     public void hideSidePanel(boolean b) {
@@ -244,6 +263,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
 
         Command cmd = interpreter.getCurrentCommand();
+
         if (interpreter.getInterpreterState() == Interpreter.STOP) {
             executionCommand = null;
 //        } else if (interpreter.getTimestep() < 20) {
@@ -257,7 +277,22 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             }
         }
 
-        if (executionCommand != null) {
+        Command error = interpreter.getErrorCommand();
+
+        if (error != null) {
+            GraphicObject errorCommand = ((GraphicResource) error).getDrawableResource();
+            AffineTransform o = g.getTransform();
+            AffineTransform n = ga.getT(o);
+            ga.applyGlobalPosition(n);
+            ga.applyZoom(n);
+            g.setTransform(n);
+            g.setColor(errorColor);
+            g.setStroke(new BasicStroke(5));
+            g.fill(errorCommand.getObjectShape());
+            g.draw(errorCommand.getObjectShape());
+            g.setTransform(o);
+            ga.done(n);
+        } else if (executionCommand != null) {
             AffineTransform o = g.getTransform();
             AffineTransform n = ga.getT(o);
             ga.applyGlobalPosition(n);
@@ -631,7 +666,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
     public static void main(String[] args) {
         QuickFrame.applyLookAndFeel();
-        FlowchartPanel p = new FlowchartPanel(Interpreter.newTestFunction());
+        FlowchartPanel p = new FlowchartPanel(Interpreter.newTestFunction(), new Interpreter());
         QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
     }
 

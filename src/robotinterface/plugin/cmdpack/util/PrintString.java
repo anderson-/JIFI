@@ -38,6 +38,7 @@ import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.GUI;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
@@ -80,6 +81,9 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         for (int i = 1; i < getArgSize(); i++) {
             arg = getArg(i);
             arg.parse(parser);
+            if (parser.hasError()) {
+                throw new ExecutionException(parser.getErrorInfo() + " in \"" + arg.getStatement() + "\"");
+            }
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
             boolean printTwoDecimalPlaces = ((padpi == -1) ? true
@@ -95,7 +99,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             }
         }
 
-        System.out.println(out);
+        GUI.print(out);
+        //System.out.println(out);
         timer.reset();
         clock.addTimer(timer);
     }
@@ -156,7 +161,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
                 Argument a = p.addLineArg(index, Argument.SINGLE_VARIABLE);
-                createGenericField(p, a, "v" + index + ":", 80, 25, components, container,WidgetLine.ARG_COMBOBOX | WidgetLine.ARG_TEXTFIELD, false);
+                createGenericField(p, a, "v" + index + ":", 80, 25, components, container, WidgetLine.ARG_COMBOBOX | WidgetLine.ARG_TEXTFIELD, false);
                 //components.add(new LineBreak(false));
             }
 
@@ -203,7 +208,8 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
                 });
 
                 JButton bTmp = new JButton(new ImageIcon(getClass().getResource("/resources/fugue/asterisk.png")));
-                bTmp.setToolTipText("Adicionar");
+                components.add(new Widget(bTmp, 25, 25));
+                bTmp.setToolTipText("Adicionar referencia");
                 bTmp.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {

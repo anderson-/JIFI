@@ -16,6 +16,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -66,6 +67,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public static final Action RESET_SYSTEM = new ResetSystem();
     public static final Action UPDATE_ALL_DEVICES = new UpdateAllDevices();
     public static final AddNewDevice ADD_NEW_DEVICE = new AddNewDevice();
+    private boolean DEBUG;
+    private boolean moveDisabled = false;
+
+    public void disableMove(boolean d) {
+        moveDisabled = d;
+    }
 
     public class InternalClock extends Device {
 
@@ -134,15 +141,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         }
         stop();
     }
+
     @Deprecated//hbridge para o robo na função stopAll()
     public void stop() {
         rightWheelSpeed = 0;
         leftWheelSpeed = 0;
         for (Action a : actions) {
-            if (a.isWaiting()){
+            if (a.isWaiting()) {
                 a.markUnread();
                 a.setDone();
-            } else if (a.isRunning()){
+            } else if (a.isRunning()) {
                 //System.out.println("reset");
                 //resetSystem();
                 a.markUnread();
@@ -338,6 +346,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
             loop:
             while (message.remaining() > 0) {
                 buffer.clear();
+                if (DEBUG) {
+                    System.out.println("C " + buffer);
+                }
                 byte cmd = message.get();
                 switch (cmd) {
                     case CMD_STOP: {
@@ -386,9 +397,21 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
                             Device d = getDevice(id);
                             if (d != null && d instanceof VirtualDevice) {
+                                if (DEBUG) {
+                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                }
                                 buffer.put(CMD_SET);
+                                if (DEBUG) {
+                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                }
                                 buffer.put(id);
+                                if (DEBUG) {
+                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                }
                                 ((VirtualDevice) d).getState(buffer, this);
+                                if (DEBUG) {
+                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                }
                             }
                         } else if (LOG) {
                             System.err.println("1mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
@@ -503,13 +526,24 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
                             System.err.println("Erro: Comando invalido: " + cmd);
                         }
                 }
+                if (DEBUG) {
+                    System.out.println("flip");
+                }
                 buffer.flip();
+                if (DEBUG) {
+                    System.out.println("update");
+                }
                 update(buffer, connection);
             }
         } catch (BufferUnderflowException e) {
             if (LOG) {
                 System.err.println("mensagem pela metade");
             }
+            e.printStackTrace();
+        } catch (BufferOverflowException e) {
+            e.printStackTrace();
+            System.err.println("r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+            //System.out.println("??");
         }
     }
 
@@ -850,7 +884,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
         g.setTransform(o);
         ga.done(t);
-        move(ga.getClock().getDt());
+        if (!moveDisabled) {
+            move(ga.getClock().getDt());
+        }
     }
 
     @Override

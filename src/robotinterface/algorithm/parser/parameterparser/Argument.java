@@ -202,6 +202,11 @@ public class Argument {
 
         throw new Error("JComponent not found : " + type + ", widgets found: " + ws.length + " : " + ((ws.length > 0) ? (ws[0].getJComponent().getClass().getSimpleName()) : "null"));
     }
+    
+    @Deprecated
+    public String getStatement(){
+        return statement;
+    }
 
     @Override
     public final String toString() {

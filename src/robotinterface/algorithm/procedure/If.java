@@ -819,7 +819,7 @@ public class If extends Procedure {
                     GraphicFlowchart.GF_K);
 
             //true
-            g.drawString("V", (int) bTrueStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
+            g.drawString("T", (int) bTrueStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
 
             path.moveTo(bThis.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());

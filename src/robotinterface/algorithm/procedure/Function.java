@@ -74,7 +74,7 @@ public class Function extends Block {
         @Override
         public GraphicObject getDrawableResource() {
             if (resource == null) {
-                resource = createSimpleBlock("   fim   ", Color.black, Color.black);
+                resource = createSimpleBlock("   END   ", Color.black, Color.decode("#631864"));
             }
             return resource;
         }
@@ -89,7 +89,7 @@ public class Function extends Block {
         }
     }
 
-    private String name = "meuPrograma";
+    private String name = "prog";
     private ArrayList<String> args;
 
     public Function() {
@@ -465,7 +465,8 @@ public class Function extends Block {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createDrawableFunction(this);
+            //resource = createDrawableFunction(this);
+            resource = createSimpleBlock(" BEGIN ", Color.black, Color.decode("#631864"));
         }
         return resource;
     }

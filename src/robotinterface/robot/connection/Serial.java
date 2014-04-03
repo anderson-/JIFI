@@ -9,6 +9,7 @@ import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.util.observable.Observer;
@@ -100,12 +102,12 @@ public class Serial implements Connection, SerialPortEventListener {
     @Override
     public void send(final byte[] data) {
         /*byte length = (byte) data.length;
-        byte[] newdata = new byte[length + 1];
-        System.arraycopy(data, 0, newdata, 1, length);
-        newdata[0] = length;*/
+         byte[] newdata = new byte[length + 1];
+         System.arraycopy(data, 0, newdata, 1, length);
+         newdata[0] = length;*/
         try {
             sendedPackages++;
-			output.write(data.length);
+            output.write(data.length);
             output.write(data);
 //            output.flush(); //trava a thread main! pq???
         } catch (IOException ex) {
@@ -229,7 +231,12 @@ public class Serial implements Connection, SerialPortEventListener {
                             closeConnection();
                         }
                     } catch (Throwable t) {
-                        JOptionPane.showMessageDialog(null, "Falha ao carregar a biblioteca da porta serial.\nApenas simulação virtual disponivel.", "Erro", JOptionPane.ERROR_MESSAGE);
+                        EventQueue.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                JOptionPane.showMessageDialog(null, "Falha ao carregar a biblioteca da porta serial.\nApenas simulação virtual disponivel.", "Erro", JOptionPane.ERROR_MESSAGE);
+                            }
+                        });
                         FAIL_LOAD_LIBRARY = true;
                         return avaliableDevices;
                     }
@@ -439,17 +446,16 @@ public class Serial implements Connection, SerialPortEventListener {
 //        s = new VirtualConnection();
 
         /*Robot r = new Robot();
-        r.add(new HBridge());
-        r.add(new Compass());
-        r.add(new IRProximitySensor());
-        r.add(new ReflectanceSensorArray());
-        s.attach(r);
+         r.add(new HBridge());
+         r.add(new Compass());
+         r.add(new IRProximitySensor());
+         r.add(new ReflectanceSensorArray());
+         s.attach(r);
 
-        if (s instanceof VirtualConnection) {
-            VirtualConnection v = (VirtualConnection) s;
-            v.setRobot(r);
-        }*/
-
+         if (s instanceof VirtualConnection) {
+         VirtualConnection v = (VirtualConnection) s;
+         v.setRobot(r);
+         }*/
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
         /* PRIMEIROS TESTES */
@@ -516,19 +522,19 @@ public class Serial implements Connection, SerialPortEventListener {
 
         /* MAPA DE PONTOS PELO SENSOR DE DISTÂNCIA - bug threads */
         /*testMessages.add(new byte[]{7, (byte) 224});//reset system
-        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
-//        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
-        testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
-        for (int i = 0; i < 5000; i++) {
-//            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
-            testMessages.add(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});//get all
-        }
+         testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+         //        testMessages.add(new byte[]{6, 4, 6, 0, 3, 4, 16, (byte) 200, 0});//add reflet
+         testMessages.add(new byte[]{5, 1, 2, 0, 30, 5, 1, 2, 1, -30}); //rotaciona
+         for (int i = 0; i < 5000; i++) {
+         //            testMessages.add(new byte[]{4, 2, 0, 4, 3, 0, 4, 4, 1, 0});//get compass & get dist & get reflet
+         testMessages.add(new byte[]{Robot.CMD_GET, Robot.XTRA_ALL, 0});//get all
+         }
 
-        SimulationPanel p = new SimulationPanel();
-        p.addRobot(r);
-        r.setEnvironment(p.getEnv());
-        QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
-*/
+         SimulationPanel p = new SimulationPanel();
+         p.addRobot(r);
+         r.setEnvironment(p.getEnv());
+         QuickFrame.create(p, "Teste Simulação").addComponentListener(p);
+         */
 
         /* TESTE DO RÁDIO */
         //quando uma mensagem chega é exibido "S:10 x R:10"
@@ -536,9 +542,9 @@ public class Serial implements Connection, SerialPortEventListener {
         //ATENÇÃO: trocar intervalo de tempo na linha ~389
         //coloca 100 mensagens na lista de espera
         int test = 100;
-        for (int i = 0; i < test; i++) 
-            testMessages.add(new byte[]{1,2,3,4,5});//get clock
-//            
+        for (int i = 0; i < test; i++) {
+            testMessages.add(new byte[]{1, 2, 3, 4, 5});//get clock
+        }//            
 //            testMessages.add(new byte[]{2, });//get clock
 ////            testMessages.add(new byte[]{3, 4, (byte) 223, 0});//get freeRam
 //        }
@@ -546,18 +552,18 @@ public class Serial implements Connection, SerialPortEventListener {
             System.out.println("connected");
             long timeSum = 0;
             byte[] buffer = new byte[20];
-            
+
             for (int i = 0; i < 1; i++) { //repetição
                 int send = 0;
                 for (byte[] message : testMessages) {
                     send++;
                     boolean timeout = false;
                     long mtimestamp = System.currentTimeMillis();
-                    int w = ((Serial)s).getReceivedPackages();
+                    int w = ((Serial) s).getReceivedPackages();
                     s.send(message);
                     try {
                         loop:
-                        while ( !((Serial)s).available() ){//w == ((Serial)s).getReceivedPackages()/*((Serial) s).receivedPackages*/) {
+                        while (!((Serial) s).available()) {//w == ((Serial)s).getReceivedPackages()/*((Serial) s).receivedPackages*/) {
                             //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             Thread.sleep(1); //tempo maximo para enviar: ~20ms da RXTXcomm + 8ms do radio
                             //w++;
@@ -575,13 +581,13 @@ public class Serial implements Connection, SerialPortEventListener {
                         }
                     } catch (InterruptedException ex) {
                     }
-                    
+
                     if (!timeout) {
-                      s.receive(buffer, buffer.length);
-                      
-                      long rtt = System.currentTimeMillis() - mtimestamp;
-                      timeSum += rtt;
-                      System.out.println(" @Time: " + rtt + "ms");
+                        s.receive(buffer, buffer.length);
+
+                        long rtt = System.currentTimeMillis() - mtimestamp;
+                        timeSum += rtt;
+                        System.out.println(" @Time: " + rtt + "ms");
                     }
 
                     try {

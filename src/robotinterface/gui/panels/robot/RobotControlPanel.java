@@ -166,7 +166,7 @@ public class RobotControlPanel extends JPanel {
 
         initComponents();
         border = javax.swing.BorderFactory.createTitledBorder("Robô " + INSTANCE);
-        setBorder(border);
+//        setBorder(border);
         robotManager = rm;
         connectionStatusGraph.setVisible(false);
         removeButton.setVisible(false);

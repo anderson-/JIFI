@@ -6,3 +6,4 @@ robotinterface.plugin.cmdpack.begginer.Rotate
 robotinterface.plugin.cmdpack.begginer.Wait
 robotinterface.plugin.cmdpack.util.PrintString
 robotinterface.algorithm.procedure.Comment
+#robotinterface.plugin.cmdpack.util.StepMode

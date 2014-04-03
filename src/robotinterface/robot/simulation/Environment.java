@@ -26,6 +26,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.util.LineIterator;
 
@@ -45,6 +46,40 @@ public class Environment {
 
     public static Color getObstacleColor() {
         return obstacleColor;
+    }
+
+    public Environment() {
+
+    }
+
+    @Deprecated
+    private void alienCode() {
+        HashMap<Character, Integer> map = new HashMap<>();
+        map.put(' ', 0);
+        map.put('t', 1);
+        map.put('e', 2);
+        map.put('r', 4);
+        map.put('s', 8);
+        map.put('o', 16);
+
+        String str = "terrestres terrosos";
+        int i = 0;
+        for (char c : str.toCharArray()) {
+            addCodedLetter(i, map.get(c));
+            i++;
+        }
+    }
+
+    @Deprecated
+    private void addCodedLetter(int index, int code) {
+        double w = 50;
+        double x = index * 80 + 60;
+        for (int i = 0; i < 5; i++) {
+            if ((code & (1 << i)) != 0) {
+                double h = i * 7 - 14;
+                addFollowLine(new double[]{x, h, x + w, h});
+            }
+        }
     }
 
     public void addWall(double[] line) {
@@ -149,7 +184,6 @@ public class Environment {
         double y2 = y + IRProximitySensor.MAX_DISTANCE * sin(theta);
         Line2D.Double line = new Line2D.Double(x, y, x2, y2);
         Point2D p;
-
         wallsTmp.clear();
         wallsTmp.addAll(walls);
         for (Line2D.Double wall : wallsTmp) {
@@ -159,13 +193,12 @@ public class Environment {
                 tmpLine.setLine(x, y, p.getX(), p.getY());
                 if (tmpLine.intersectsLine(wall)) {
                     dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
-                    if (df > dt) {
+                    if (df > dt && dt > 0) {
                         df = dt;
                     }
                 }
             }
         }
-
         return df / 2;
     }
 

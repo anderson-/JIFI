@@ -119,7 +119,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
         try {
             if (device != null && device.isValidRead()) {
                 String deviceState = device.stateToString();
-                if (!deviceState.isEmpty()) {
+                if (!(deviceState.isEmpty() || arg1.getVariableName().isEmpty())) {
                     execute(arg1.getVariableName() + " = " + deviceState, rm);
                 }
                 return true;
@@ -198,6 +198,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
         return dcb;
     }
+
     @Override
     public void toString(String ident, StringBuilder sb) {
         //reutiliza o metodo da classe pai

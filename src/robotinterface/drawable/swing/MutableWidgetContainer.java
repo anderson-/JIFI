@@ -262,6 +262,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         if (widgetsEnabled & in.mouseClicked() && in.getMouseClickCount() == 2) {
             setWidgetVisible(!isWidgetVisible());
             shapeBounds.setRect(0, 0, 0, 0);
+            in.getMouseClickConsume();
         }
 
         //sombra

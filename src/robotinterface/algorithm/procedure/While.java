@@ -69,8 +69,6 @@ public class While extends Block {
         
         if (evaluate(rm)) {
             return start;
-        } else {
-            System.out.println("fail: " + super.getProcedure());
         }
         return super.step(rm);
     }

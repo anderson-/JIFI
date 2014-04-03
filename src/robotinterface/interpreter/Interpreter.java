@@ -28,6 +28,7 @@ package robotinterface.interpreter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.procedure.Function;
 import robotinterface.algorithm.procedure.If;
@@ -64,6 +65,7 @@ public class Interpreter extends Thread {
     private ResourceManager resourceManager;
     private Function mainFunction;
     private Command currentCmd = null;
+    private Command errorCmd = null;
     private int state;
     private int timestep = 0;
     private boolean running = false;
@@ -72,11 +74,12 @@ public class Interpreter extends Thread {
         super("Interpreter");
         parser = new JEP();
         clock = new Clock();
-        
+
         resourceManager = new ResourceManager();
         resourceManager.setResource(clock);
         resourceManager.setResource(parser);
-        
+        resourceManager.setResource(this);
+
         state = STOP;
     }
 
@@ -169,6 +172,10 @@ public class Interpreter extends Thread {
         return currentCmd;
     }
 
+    public Command getErrorCommand() {
+        return errorCmd;
+    }
+
     public void setTimestep(int timestep) {
         this.timestep = timestep;
     }
@@ -179,6 +186,7 @@ public class Interpreter extends Thread {
 
     public boolean step() {
         if (currentCmd == null) {
+            GUI.print(" > FIM < ");
             return false;
         }
 
@@ -198,9 +206,17 @@ public class Interpreter extends Thread {
                 }
             }
             currentCmd = currentCmd.step(resourceManager);
+
         } catch (ExecutionException e) {
-            System.out.println("Erro");
-            e.printStackTrace();
+            //GUI.print("Erro: " + e.getMessage());
+            errorCmd = currentCmd;
+            String msg = "Houve um problema ao executar o código atual.\nO bloco que originou o erro foi destacado.\nFavor corrigir e tentar novamente.";
+            String ObjButtons[] = {"Continuar", "Mais detalhes"};
+            int PromptResult = JOptionPane.showOptionDialog(null, msg, "Erro", JOptionPane.NO_OPTION, JOptionPane.ERROR_MESSAGE, null, ObjButtons, ObjButtons[1]);
+            if (PromptResult == JOptionPane.NO_OPTION) {
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+            System.err.println(e.getMessage());
             return false;
         }
         return true;
@@ -211,12 +227,15 @@ public class Interpreter extends Thread {
         try {
             while (true) {
                 if (state == PLAY) {
+                    errorCmd = null;
                     if (!step()) {
                         state = STOP;
                         reset();
                         GUI.getInstance().updateControlBar(this);
                     }
+
                     if (currentCmd != null && currentCmd.getDrawableResource() != null) {
+                        robot.disableMove(true);
                         if (timestep > 50 && Robot.UPDATE_ALL_DEVICES.getTimeout() <= 50) {
                             for (int i = 0; i < timestep; i += 50) {
                                 robot.updatePerception();
@@ -225,6 +244,7 @@ public class Interpreter extends Thread {
                         } else {
                             Thread.sleep(timestep);
                         }
+                        robot.disableMove(false);
                     }
                     running = true;
                 } else {

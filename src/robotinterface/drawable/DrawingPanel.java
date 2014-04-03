@@ -163,6 +163,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public DrawingPanel() {
         this(new Clock());
     }
+    
+    public Clock getClock(){
+        return clock;
+    }
 
     private void addListeners() {
         this.addMouseListener(this);
@@ -935,6 +939,11 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
         public int getMouseWheelRotation() {
             return mouseWheelRotation;
+        }
+
+        public void getMouseClickConsume() {
+            mouseClickCount = 0;
+            mouseClick = false;
         }
     }
 

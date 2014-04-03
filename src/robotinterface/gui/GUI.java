@@ -22,6 +22,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -35,6 +37,7 @@ import java.util.Date;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -45,12 +48,14 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
@@ -89,7 +94,7 @@ import robotinterface.util.SplashScreen;
  *
  * @author antunes
  */
-public class GUI extends javax.swing.JFrame implements ComponentListener {
+public class GUI extends JFrame implements ComponentListener {
 
     private static Logger logger = null;
     private static GUI INSTANCE = null;
@@ -103,8 +108,51 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private final boolean allowMainTabbedPaneStateChanged;
     private final JSplitPane simulationSplitPanel;
     private boolean splitView = false;
-    private JTextPane console;
+    private static JTextArea console;
     public boolean LOG = false;
+    private static ConsoleManagerThread cmt = null;
+    private Interpreter mainInterpreter = new Interpreter();
+    private Interpreter interpreter;
+
+    private static class ConsoleManagerThread extends Thread {
+
+        public ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
+
+        @Override
+        public void run() {
+            int size;
+            while (true) {
+                size = queue.size();
+                if (size != 0) {
+                    console.setText(console.getText() + "\n" + queue.poll());
+                    console.selectAll();
+                    if (size > 20) {
+                        System.err.println("Console Queue Overflow :/");
+                        console.setText("Console Queue Overflow :/\n" + queue.poll());
+                        queue.clear();
+                    }
+                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                }
+            }
+        }
+
+        public void enqueue(String str) {
+            queue.offer(str);
+        }
+
+    }
+
+    public static void print(String str) {
+        if (cmt == null || !cmt.isAlive()) {
+            cmt = new ConsoleManagerThread();
+            cmt.start();
+        }
+
+        cmt.enqueue(str);
+    }
 
     private GUI() {
 
@@ -113,22 +161,25 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
         initComponents();
         setLocationRelativeTo(null);
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
 //        secondarySplitPane.setDividerLocation(.5);
         stepButton.setVisible(false);
+        deleteButton.setVisible(false);
+        jSeparator5.setVisible(false);
 
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
 
-        console = new JTextPane();
+        console = new JTextArea();
         consolePanel.setLayout(new GridLayout());
         consolePanel.setName("Console");
         consolePanel.add(new JScrollPane(console));
-        dynamicTabbedPane.add(consolePanel);
-        MessageConsole mc = new MessageConsole(console);
-        mc.redirectOut(Color.BLACK, System.out);
-        mc.redirectErr(Color.RED, System.err);
-        mc.setMessageLines(100);
+//        dynamicTabbedPane.add(consolePanel);
+//        MessageConsole mc = new MessageConsole(console);
+//        mc.redirectOut(Color.BLACK, System.out);
+//        mc.redirectErr(Color.RED, System.err);
+//        mc.setMessageLines(100);
         final JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem menuItem = new JMenuItem("Limpar");
         menuItem.addActionListener(new ActionListener() {
@@ -164,18 +215,17 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             }
         });
 
-        jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 10));
-        jSpinner1.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int i = (int) jSpinner1.getValue();
-                if (interpreter != null) {
-                    interpreter.setTimestep(i);
-                }
-            }
-        });
-        autoUpdateValue(jSpinner1);
-
+//        jSpinner1.setModel(new SpinnerNumberModel(0, 0, 9999, 10));
+//        jSpinner1.addChangeListener(new ChangeListener() {
+//            @Override
+//            public void stateChanged(ChangeEvent e) {
+//                int i = (int) jSpinner1.getValue();
+//                if (interpreter != null) {
+//                    interpreter.setTimestep(i);
+//                }
+//            }
+//        });
+//        autoUpdateValue(jSpinner1);
         jSpinner1.setVisible(false);
         robotComboBox.setVisible(false);
         timestepTButton.addChangeListener(new ChangeListener() {
@@ -252,6 +302,56 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         super.addComponentListener(this);
 
         console.setText("");
+        addDebugMenu();
+        super.setIconImage(new ImageIcon(getClass().getResource("/resources/jifi_icon.png")).getImage());
+
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we) {
+                String ObjButtons[] = {"Fechar", "Cancelar"};
+                int PromptResult = JOptionPane.showOptionDialog(null, "Tem certeza que deseja fechar o programa?\nTodas as alterações não salvas serão perdidas.", "JIFI", JOptionPane.NO_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+                if (PromptResult == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
+
+        //simplificando....
+        addNewCodePanel.setVisible(false);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                {
+                    //adicionando um novo fluxograma
+                    FlowchartPanel fp = new FlowchartPanel(new Function(), mainInterpreter);
+                    mainProject.getFunctions().add(fp.getFunction());
+                    mapFC.add(fp);
+                    add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+                    mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
+                }
+            }
+        });
+
+    }
+
+    @Deprecated
+    public final void addDebugMenu() {
+        menuDev.add(newItem("Print lib dir", new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String str = "natives/" + JniNamer.os() + "/" + JniNamer.arch();
+                JOptionPane.showMessageDialog(null, str, "Print lib dir", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }));
+    }
+
+    @Deprecated
+    public final JMenuItem newItem(String name, ActionListener action) {
+        JMenuItem item = new JMenuItem();
+        item.setText(name);
+        item.addActionListener(action);
+        return item;
     }
 
     public SimulationPanel getSimulationPanel() {
@@ -331,7 +431,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             Component c = mainTabbedPane.getComponentAt(i);
             if (c instanceof FlowchartPanel) {
                 Function f = ((FlowchartPanel) c).getFunction();
-                mainTabbedPane.setTitleAt(i, "fx : " + f.getName());
+                mainTabbedPane.setTitleAt(i, "Fluxograma");
             }
         }
     }
@@ -346,6 +446,8 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private void initComponents() {
 
         dynamicToolBar = new javax.swing.JToolBar();
+        secondarySplitPane = new javax.swing.JSplitPane();
+        staticTabbedPane = new javax.swing.JTabbedPane();
         toolBar = new javax.swing.JToolBar();
         newFileButton = new javax.swing.JButton();
         openButton = new javax.swing.JButton();
@@ -370,20 +472,28 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
         addNewCodePanel = new javax.swing.JPanel();
-        secondarySplitPane = new javax.swing.JSplitPane();
-        staticTabbedPane = new javax.swing.JTabbedPane();
-        jScrollPane3 = new javax.swing.JScrollPane();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
         jToolBar1 = new javax.swing.JToolBar();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        menuDev = new javax.swing.JMenu();
 
         dynamicToolBar.setFloatable(false);
         dynamicToolBar.setRollover(true);
+
+        secondarySplitPane.setBorder(null);
+        secondarySplitPane.setDividerLocation(220);
+        secondarySplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        secondarySplitPane.setEnabled(false);
+
+        staticTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
+        staticTabbedPane.setEnabled(false);
+        secondarySplitPane.setLeftComponent(staticTabbedPane);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JIFI - Java Interactive Flowchart Interpreter");
@@ -443,6 +553,8 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             }
         });
         toolBar.add(closeProjectButton);
+        closeProjectButton.getAccessibleContext().setAccessibleDescription("Limpar Simulação");
+
         toolBar.add(jSeparator2);
 
         timestepTButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/appointment-new.png"))); // NOI18N
@@ -562,10 +674,9 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         splitViewButton.getAccessibleContext().setAccessibleDescription("Dividir Janela");
 
         primarySplitPane.setBorder(null);
-        primarySplitPane.setDividerLocation(180);
+        primarySplitPane.setDividerLocation(200);
         primarySplitPane.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         primarySplitPane.setDoubleBuffered(true);
-        primarySplitPane.setEnabled(false);
 
         mainTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         mainTabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -579,7 +690,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         addNewCodePanel.setLayout(addNewCodePanelLayout);
         addNewCodePanelLayout.setHorizontalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 758, Short.MAX_VALUE)
+            .addGap(0, 726, Short.MAX_VALUE)
         );
         addNewCodePanelLayout.setVerticalGroup(
             addNewCodePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -592,33 +703,21 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         mainTabbedPane.getAccessibleContext().setAccessibleName("");
         mainTabbedPane.getAccessibleContext().setAccessibleDescription("");
 
-        secondarySplitPane.setBorder(null);
-        secondarySplitPane.setDividerLocation(220);
-        secondarySplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        secondarySplitPane.setEnabled(false);
-
-        staticTabbedPane.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
-        staticTabbedPane.setEnabled(false);
-        staticTabbedPane.addTab("Robôs", jScrollPane3);
-
-        secondarySplitPane.setLeftComponent(staticTabbedPane);
-
         javax.swing.GroupLayout consolePanelLayout = new javax.swing.GroupLayout(consolePanel);
         consolePanel.setLayout(consolePanelLayout);
         consolePanelLayout.setHorizontalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 160, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         consolePanelLayout.setVerticalGroup(
             consolePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 361, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
-        dynamicTabbedPane.addTab("tab1", consolePanel);
+        dynamicTabbedPane.addTab("Console", consolePanel);
+        dynamicTabbedPane.addTab("Conexões", jScrollPane3);
 
-        secondarySplitPane.setRightComponent(dynamicTabbedPane);
-
-        primarySplitPane.setLeftComponent(secondarySplitPane);
+        primarySplitPane.setLeftComponent(dynamicTabbedPane);
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
@@ -653,6 +752,10 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
         menuBar.add(menuFile);
 
+        menuDev.setText("    ");
+        menuBar.add(menuDev);
+        menuDev.getAccessibleContext().setAccessibleName(".");
+
         setJMenuBar(menuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -681,7 +784,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         System.out.println("set");
     }
 
-    Interpreter interpreter = null;
+//    Interpreter interpreter = null;
 
     private void mainTabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_mainTabbedPaneStateChanged
         if (!allowMainTabbedPaneStateChanged) {
@@ -700,19 +803,18 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
 
         dynamicToolBar.removeAll();
 
-        for (Component cc : dynamicTabbedPane.getComponents()) {
-            if (cc != consolePanel) {//jPanel5
-                dynamicTabbedPane.remove(cc);
-            }
-        }
-
+//        for (Component cc : dynamicTabbedPane.getComponents()) {
+//            if (cc != consolePanel) {//jPanel5
+//                dynamicTabbedPane.remove(cc);
+//            }
+//        }
         if (cmp == addNewCodePanel) {
             //adicionando uma nova aba
-            FlowchartPanel fp = new FlowchartPanel(new Function());
+            FlowchartPanel fp = new FlowchartPanel(new Function(), mainInterpreter);
             mainProject.getFunctions().add(fp.getFunction());
             mapFC.add(fp);
             add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
             return;
         } else {
             if (cmp instanceof TabController) {
@@ -796,7 +898,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         if (interpreter != null) {
             if (setDefaultRobot(interpreter, true)) {
                 interpreter.setInterpreterState(Interpreter.PLAY);
-                if (console != null){
+                if (console != null) {
                     console.setText("");
                 }
             } else {
@@ -868,10 +970,10 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                     }
                 }
             }
-            FlowchartPanel fcp = new FlowchartPanel(f);
+            FlowchartPanel fcp = new FlowchartPanel(f, mainInterpreter);
             add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mapFC.add(fcp);
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
         }
 
     }//GEN-LAST:event_openButtonActionPerformed
@@ -942,7 +1044,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
             cep.getTextArea().setCaretPosition(0);
 
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);// - 2
             mainTabbedPane.remove(fcp);
 
             fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
@@ -1036,14 +1138,14 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                     mainProject.getFunctions().remove(fcp.getFunction());
                     fcp.setFunction(f);
                 } else {
-                    fcp = new FlowchartPanel(f);
+                    fcp = new FlowchartPanel(f, mainInterpreter);
                     mapFC.add(fcp);
                 }
 
                 mainProject.getFunctions().add(f);
 
                 add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-                mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+                mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() -1);//-2
                 mainTabbedPane.remove(cep);
 //                switchCodeButton.setIcon(flowchartIcon);
                 fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
@@ -1248,9 +1350,10 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                 }
             };
             simulationSplitPanel.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeListener);
-            mainTabbedPane.add(simulationSplitPanel, new ImageIcon(getClass().getResource("/resources/tango/16x16/apps/preferences-system-windows.png")));
-            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+            //mainTabbedPane.add(simulationSplitPanel, new ImageIcon(getClass().getResource("/resources/tango/16x16/apps/preferences-system-windows.png")));
+            mainTabbedPane.addTab("Simulação + Fluxograma", new ImageIcon(getClass().getResource("/resources/tango/16x16/apps/preferences-system-windows.png")), simulationSplitPanel);
+//            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
 
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
@@ -1269,8 +1372,8 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
                 ((FlowchartPanel) bottomComponent).hideSidePanel(false);
             }
             mainTabbedPane.add(bottomComponent, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
-            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
+//            mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
             splitView = false;
             if (evt != null && cmp != simulationSplitPanel && simulationSplitPanel.getBottomComponent() != cmp) {
                 mainTabbedPane.setSelectedComponent(cmp);
@@ -1290,7 +1393,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
         if (panel instanceof ComponentListener) {
             mainTabbedPane.addComponentListener((ComponentListener) panel);
         }
-        mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
+//        mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
     }
 
     public void updateControlBar(Interpreter interpreter) {
@@ -1488,6 +1591,7 @@ public class GUI extends javax.swing.JFrame implements ComponentListener {
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu menuDev;
     private javax.swing.JMenu menuFile;
     private javax.swing.JButton newFileButton;
     private javax.swing.JButton openButton;
