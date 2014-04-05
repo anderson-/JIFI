@@ -786,6 +786,11 @@ public class GUI extends JFrame implements ComponentListener {
                 mainTabbedPaneStateChanged(evt);
             }
         });
+        mainTabbedPane.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseMoved(java.awt.event.MouseEvent evt) {
+                mainTabbedPaneMouseMoved(evt);
+            }
+        });
         mainTabbedPane.addTab("Simulação", new javax.swing.ImageIcon(getClass().getResource("/resources/tango/16x16/devices/input-gaming.png")), simulationPanel); // NOI18N
 
         javax.swing.GroupLayout addNewCodePanelLayout = new javax.swing.GroupLayout(addNewCodePanel);
@@ -1604,6 +1609,19 @@ public class GUI extends JFrame implements ComponentListener {
         helpTip = "";
         helpPanel.repaint();
     }//GEN-LAST:event_helpCheckBoxActionPerformed
+
+    private void mainTabbedPaneMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainTabbedPaneMouseMoved
+        JTabbedPane tp = (JTabbedPane) evt.getSource();
+        int idx = tp.indexAtLocation(evt.getX(), evt.getY());
+        if (idx != lastIdx) {
+            lastIdx = idx;
+            if (idx == 0) {
+                printHelp("Área de simulação, permite visualizar o robô se movendo e interagindo com obstáculos conforme o programado");
+            } else if (idx == 1) {
+                printHelp("O editor de código permite definir o comportamento do robô em sua interação com o ambiente");
+            }
+        }
+    }//GEN-LAST:event_mainTabbedPaneMouseMoved
 
     public void printHelp(String str) {
         if (helpCheckBox.isSelected()) {
