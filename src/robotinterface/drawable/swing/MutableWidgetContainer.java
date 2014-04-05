@@ -25,7 +25,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
+import javax.swing.SwingUtilities;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.DrawingPanel;
@@ -34,6 +36,8 @@ import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.GUI;
+import robotinterface.interpreter.Interpreter;
 
 /**
  *
@@ -246,7 +250,6 @@ public class MutableWidgetContainer extends WidgetContainer {
 
     @Override
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-
         //linhas
         g.setColor(color.darker());
         g.setStroke(BOLD_STROKE);
@@ -260,24 +263,41 @@ public class MutableWidgetContainer extends WidgetContainer {
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
 
         if (widgetsEnabled & in.mouseClicked() && in.getMouseClickCount() == 2) {
-            setWidgetVisible(!isWidgetVisible());
-            shapeBounds.setRect(0, 0, 0, 0);
+            if (GUI.getInstance().getInterpreter().getInterpreterState() == Interpreter.PLAY) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        JOptionPane.showMessageDialog(null, "Atenção: A edição do fluxograma está suspensa\naté que o código termine ou seja pausado.", "Atenção", JOptionPane.WARNING_MESSAGE);
+
+                    }
+                });
+            } else {
+                setWidgetVisible(!isWidgetVisible());
+                shapeBounds.setRect(0, 0, 0, 0);
+            }
             in.getMouseClickConsume();
         }
 
         //sombra
         AffineTransform t = ga.getT();
-        t.translate(3, 2);
+
+        t.translate(
+                3, 2);
         g.setColor(color.darker());
-        g.setStroke(new BasicStroke(5));
+        g.setStroke(
+                new BasicStroke(5));
         g.draw(t.createTransformedShape(shape));
         ga.done(t);
 
         //fundo branco
         g.setColor(Color.white);
+
         g.fill(shape);
-        g.setStroke(new BasicStroke(5));
+
+        g.setStroke(
+                new BasicStroke(5));
         g.setColor(color);
+
         g.draw(shape);
 
         AffineTransform o = g.getTransform();
@@ -289,7 +309,8 @@ public class MutableWidgetContainer extends WidgetContainer {
             drawClosedBox(g, ga, in);
         }
 
-        g.setStroke(new BasicStroke(4));
+        g.setStroke(
+                new BasicStroke(4));
 
         g.setTransform(o);
 

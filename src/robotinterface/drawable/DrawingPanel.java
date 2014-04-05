@@ -117,6 +117,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private InputState currentInputState;
     private int mouseButton;
     private int mouseClickCount;
+    protected int gridSize = 60;
+    protected Color gridColor= Color.LIGHT_GRAY;
 
     public DrawingPanel(Clock c) {
         super(true);
@@ -232,7 +234,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         if (d != null) {
             synchronized (objects) {
                 if (!objects.contains(d)) {
-                    objects.add(0, d);
+                    objects.add(0,d);
                 }
             }
             if (d instanceof WidgetContainer) {
@@ -423,10 +425,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (keyMoveEnabled) {
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_UP:
-                            globalY += keyMoveConst;
+                            globalY -= keyMoveConst;
                             break;
                         case KeyEvent.VK_DOWN:
-                            globalY -= keyMoveConst;
+                            globalY += keyMoveConst;
                             break;
                         case KeyEvent.VK_LEFT:
                             globalX -= keyMoveConst;
@@ -642,6 +644,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public static void drawGrid(Graphics2D g, int s, double x, double y, double w, double h, boolean dots) {
+        if (s < 0){
+            return;
+        }
+        
         Line2D.Double l = new Line2D.Double();
 
         if (dots) {
@@ -675,9 +681,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
     @Override
     public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(gridColor);
         g.setStroke(DEFAULT_STROKE);
-        drawGrid(g, 60, globalX / zoom, globalY / zoom, width / zoom, height / zoom, false);
+        drawGrid(g, gridSize, globalX / zoom, globalY / zoom, width / zoom, height / zoom, false);
     }
 
     @Override

@@ -259,15 +259,15 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 //        tmpShape.addPoint(20, 15);
 //        tmpShape.addPoint(0, 15);
 //        myShape.subtract(new Area(tmpShape));
-        return new Item("Ler Sensor", myShape, myColor);
+        return new Item("Ler Sensor", myShape, myColor, "Obtém o valor de um sensor e o armazena em uma variável");
     }
 
     @Override
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof ReadDevice) {
-            ((ReadDevice) copy).arg0 = arg0;
-            ((ReadDevice) copy).arg1 = arg1;
+            ((ReadDevice) copy).arg0.set(arg0);
+            ((ReadDevice) copy).arg1.set(arg1);
         }
         return copy;
     }

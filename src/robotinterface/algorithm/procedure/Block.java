@@ -319,8 +319,8 @@ public class Block extends Procedure {
     public void setDone(boolean b) {
         returnNext = b;
     }
-    
-    public void breakLoop(boolean b){
+
+    public void breakLoop(boolean b) {
         breakLoop = b;
     }
 
@@ -366,19 +366,17 @@ public class Block extends Procedure {
             tmp.y = (p.y < tmp.y) ? p.y : tmp.y;
 
             tmp.width = (p.width > tmp.width) ? p.width : tmp.width;
-            
+
             tmp.height += p.height;
 
 //            if (it instanceof If) {
 //                ident = false;
 //            }
-
             it = it.getNext();
         }
 
 //            tmp.x -= j;
 //            tmp.width += 2 * j;
-
         return tmp;
     }
 

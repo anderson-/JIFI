@@ -31,7 +31,9 @@ import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -100,7 +102,7 @@ public class If extends Procedure {
         this();
         setProcedure(procedure);
     }
-    
+
     public boolean addTrue(Command c) {
         return blockTrue.add(c);
     }
@@ -200,9 +202,10 @@ public class If extends Procedure {
 
         Rectangle2D.Double btb = blockTrue.getBounds(null, j, k);
         Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k);
-        double w = btb.width + 2 * k + bfb.width;
-        double pbtx = -btb.width - k;
-        double pbfx = bfb.width / 2 + k;
+        
+//        double w = btb.width + 2 * k + bfb.width;
+//        double pbtx = -btb.width - k;
+//        double pbfx = bfb.width / 2 + k;
 
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
@@ -266,7 +269,7 @@ public class If extends Procedure {
         tmpPoli.addPoint(10, 14);
         tmpPoli.addPoint(6, 10);
         myShape.add(new Area(tmpPoli));
-        return new Item("Condicional", myShape, myColor);
+        return new Item("Condicional", myShape, myColor, "Divide o fluxo em dois caminhos, um deles é escolhido pelo valor da condição fornecida");
     }
 
     @Override
@@ -753,6 +756,23 @@ public class If extends Procedure {
         return resource;
     }
 
+//    private static final AffineTransform tx = new AffineTransform();
+//    private static final Polygon arrowHead = new Polygon();
+//
+//    static {
+//        arrowHead.addPoint(0, 2);
+//        arrowHead.addPoint(-3, -2);
+//        arrowHead.addPoint(3, -2);
+//    }
+//
+//    public static void drawArrowHead(Graphics2D g, double x, double y, int sqrAngRotateFromDown) {
+//        double angle = sqrAngRotateFromDown * Math.PI / 2; 
+//        tx.setToIdentity();
+//        tx.translate(x, y);
+//        tx.rotate(angle);
+//        g.fill(tx.createTransformedShape(arrowHead));
+//    }
+
     @Override
     public void drawLines(Graphics2D g) {
         if (resource != null) {
@@ -819,7 +839,7 @@ public class If extends Procedure {
                     GraphicFlowchart.GF_K);
 
             //true
-            g.drawString("T", (int) bTrueStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
+            g.drawString("T", (int) bThis.getMinX() - 12, (int) bThis.getCenterY() - 5);
 
             path.moveTo(bThis.getCenterX(), bThis.getCenterY());
             path.lineTo(bTrueStart.getCenterX(), bThis.getCenterY());
@@ -829,7 +849,7 @@ public class If extends Procedure {
             path.lineTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
 
             //false
-            g.drawString("F", (int) bFalseStart.getCenterX() - 3, (int) bThis.getCenterY() - 4);
+            g.drawString("F", (int) bThis.getMaxX() + 5, (int) bThis.getCenterY() - 5);
 
             path.moveTo(bThis.getCenterX(), bThis.getCenterY());
             path.lineTo(bFalseStart.getCenterX(), bThis.getCenterY());
@@ -841,7 +861,7 @@ public class If extends Procedure {
             //linha final
             path.moveTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
             path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
-
+            
             Command c = getNext();
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
@@ -851,6 +871,13 @@ public class If extends Procedure {
                 }
             }
             g.draw(path);
+
+            g.setColor(Color.red);
+            
+//            drawArrowHead(g, bThis.getCenterX(), bBlock.getMaxY() - 7,0);
+//            drawArrowHead(g, bTrueEnd.getCenterX(), bTrueStart.getMinY()- 7,0);
+//            drawArrowHead(g, bFalseEnd.getCenterX(), bFalseStart.getMinY()- 7,0);
+
         }
     }
 

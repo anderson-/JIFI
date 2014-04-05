@@ -44,6 +44,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
+import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.swing.DrawableProcedureBlock;
@@ -74,7 +75,7 @@ public class Function extends Block {
         @Override
         public GraphicObject getDrawableResource() {
             if (resource == null) {
-                resource = createSimpleBlock("   END   ", Color.black, Color.decode("#631864"));
+                resource = createSimpleBlock(this, "   END   ", Color.black, Color.decode("#631864"));
             }
             return resource;
         }
@@ -126,7 +127,6 @@ public class Function extends Block {
 //    public Collection<String> getArgs() {
 //        return args;
 //    }
-
     public void addArgs(Collection<String> args) {
         this.args.addAll(args);
     }
@@ -188,6 +188,13 @@ public class Function extends Block {
         g.setTransform(o);
     }
 
+    private static Command boundaryTest(Point2D p, Command it) {
+        if (it.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K).contains(p)) {
+            return it;
+        }
+        return null;
+    }
+
     public static Command find(Point2D p, Block b) {
         Command it = b.start;
         while (it != null) {
@@ -203,15 +210,27 @@ public class Function extends Block {
 
             if (it instanceof Block) {
                 Command c = find(p, (Block) it);
+
                 if (c != null) {
                     return c;
                 }
+                //TESTE
+                //c = boundaryTest(p, it);
+                if (c != null) {
+                    return c;
+                }
+
             } else if (it instanceof If) {
                 Command c = find(p, ((If) it).getBlockTrue());
                 if (c != null) {
                     return c;
                 }
                 c = find(p, ((If) it).getBlockFalse());
+                if (c != null) {
+                    return c;
+                }
+                //TESTE
+                //c = boundaryTest(p, it);
                 if (c != null) {
                     return c;
                 }
@@ -466,7 +485,7 @@ public class Function extends Block {
     public GraphicObject getDrawableResource() {
         if (resource == null) {
             //resource = createDrawableFunction(this);
-            resource = createSimpleBlock(" BEGIN ", Color.black, Color.decode("#631864"));
+            resource = createSimpleBlock(this, " BEGIN ", Color.black, Color.decode("#631864"));
         }
         return resource;
     }

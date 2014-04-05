@@ -186,7 +186,7 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
         tmpPoli.addPoint(20, 10);
         tmpPoli.addPoint(6, 20);
         myShape.exclusiveOr(new Area(tmpPoli));
-        return new Item("Mover", myShape, myColor);
+        return new Item("Mover", myShape, myColor, "Envia uma mensagem para o robô mover as rodas, esquerda e direita, com velocidade v1 e v2, respectivamente. Valores diferentes fazem o robô girar ou andar para trás");
     }
 
     @Override
@@ -222,8 +222,8 @@ public class Move extends Procedure implements Classifiable, FunctionToken<Move>
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Move) {
-            ((Move) copy).arg0 = arg0;
-            ((Move) copy).arg1 = arg1;
+            ((Move) copy).arg0.set(arg0);
+            ((Move) copy).arg1.set(arg1);
         }
         return copy;
     }

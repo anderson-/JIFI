@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import javax.swing.UIManager;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -55,8 +58,10 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.JToolBar;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -103,6 +108,8 @@ public class GUI extends JFrame implements ComponentListener {
     private ArrayList<FlowchartPanel> mapFC = new ArrayList<>();
     private ImageIcon codeIcon;
     private ImageIcon flowchartIcon;
+    private final ImageIcon splitIcon;
+    private final ImageIcon unsplitIcon;
     private final RobotManager robotManager;
     private final JFileChooser fileChooser;
     private final boolean allowMainTabbedPaneStateChanged;
@@ -113,6 +120,14 @@ public class GUI extends JFrame implements ComponentListener {
     private static ConsoleManagerThread cmt = null;
     private Interpreter mainInterpreter = new Interpreter();
     private Interpreter interpreter;
+    private ShortcutsWindow shortcutsWindow;
+    private int lastIdx;
+    private final JToolBar helpPanel;
+    private String helpTip = "";
+
+    private JToolBar aushd() {
+        return helpPanel;
+    }
 
     private static class ConsoleManagerThread extends Thread {
 
@@ -158,6 +173,17 @@ public class GUI extends JFrame implements ComponentListener {
 
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
         flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
+        splitIcon = new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/window-split-vertical.png"));
+        unsplitIcon = new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/window-unsplit.png"));
+
+        helpPanel = new JToolBar() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.drawString(helpTip, 25, g.getFontMetrics().getAscent() + 2);
+            }
+        };
 
         initComponents();
         setLocationRelativeTo(null);
@@ -453,7 +479,7 @@ public class GUI extends JFrame implements ComponentListener {
         openButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
-        closeProjectButton = new javax.swing.JButton();
+        clearSimulationButton = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         timestepTButton = new javax.swing.JToggleButton();
         robotComboBox = new javax.swing.JComboBox();
@@ -468,6 +494,8 @@ public class GUI extends JFrame implements ComponentListener {
         deleteButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         splitViewButton = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        keyboardShortcutsButton = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -475,7 +503,8 @@ public class GUI extends JFrame implements ComponentListener {
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jToolBar1 = new javax.swing.JToolBar();
+        jToolBar1 = aushd();
+        helpCheckBox = new javax.swing.JCheckBox();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
@@ -506,6 +535,11 @@ public class GUI extends JFrame implements ComponentListener {
         newFileButton.setFocusable(false);
         newFileButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         newFileButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        newFileButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                newFileButtonMouseEntered(evt);
+            }
+        });
         newFileButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFileButtonActionPerformed(evt);
@@ -519,6 +553,11 @@ public class GUI extends JFrame implements ComponentListener {
         openButton.setFocusable(false);
         openButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         openButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        openButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                openButtonMouseEntered(evt);
+            }
+        });
         openButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openButtonActionPerformed(evt);
@@ -532,6 +571,11 @@ public class GUI extends JFrame implements ComponentListener {
         saveButton.setFocusable(false);
         saveButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         saveButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        saveButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                saveButtonMouseEntered(evt);
+            }
+        });
         saveButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveButtonActionPerformed(evt);
@@ -540,21 +584,24 @@ public class GUI extends JFrame implements ComponentListener {
         toolBar.add(saveButton);
         toolBar.add(jSeparator4);
 
-        closeProjectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-clear.png"))); // NOI18N
-        closeProjectButton.setToolTipText("Fechar Projeto");
-        closeProjectButton.setBorder(null);
-        closeProjectButton.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        closeProjectButton.setFocusable(false);
-        closeProjectButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        closeProjectButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        closeProjectButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                closeProjectButtonActionPerformed(evt);
+        clearSimulationButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/edit-clear.png"))); // NOI18N
+        clearSimulationButton.setToolTipText("Limpar Simulação");
+        clearSimulationButton.setBorder(null);
+        clearSimulationButton.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        clearSimulationButton.setFocusable(false);
+        clearSimulationButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        clearSimulationButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        clearSimulationButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                clearSimulationButtonMouseEntered(evt);
             }
         });
-        toolBar.add(closeProjectButton);
-        closeProjectButton.getAccessibleContext().setAccessibleDescription("Limpar Simulação");
-
+        clearSimulationButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearSimulationButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(clearSimulationButton);
         toolBar.add(jSeparator2);
 
         timestepTButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/appointment-new.png"))); // NOI18N
@@ -562,6 +609,11 @@ public class GUI extends JFrame implements ComponentListener {
         timestepTButton.setFocusable(false);
         timestepTButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         timestepTButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        timestepTButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                timestepTButtonMouseEntered(evt);
+            }
+        });
         timestepTButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 timestepTButtonActionPerformed(evt);
@@ -580,6 +632,11 @@ public class GUI extends JFrame implements ComponentListener {
         runButton.setFocusable(false);
         runButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         runButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        runButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                runButtonMouseEntered(evt);
+            }
+        });
         runButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runButtonActionPerformed(evt);
@@ -610,6 +667,11 @@ public class GUI extends JFrame implements ComponentListener {
         pauseButton.setFocusable(false);
         pauseButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         pauseButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        pauseButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                pauseButtonMouseEntered(evt);
+            }
+        });
         pauseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 pauseButtonActionPerformed(evt);
@@ -623,6 +685,11 @@ public class GUI extends JFrame implements ComponentListener {
         stopButton.setFocusable(false);
         stopButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         stopButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        stopButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                stopButtonMouseEntered(evt);
+            }
+        });
         stopButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 stopButtonActionPerformed(evt);
@@ -632,11 +699,16 @@ public class GUI extends JFrame implements ComponentListener {
         toolBar.add(jSeparator3);
 
         switchCodeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"))); // NOI18N
-        switchCodeButton.setToolTipText("Converter Código");
+        switchCodeButton.setToolTipText("Converter");
         switchCodeButton.setBorder(null);
         switchCodeButton.setFocusable(false);
         switchCodeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         switchCodeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        switchCodeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                switchCodeButtonMouseEntered(evt);
+            }
+        });
         switchCodeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 switchCodeButtonActionPerformed(evt);
@@ -651,6 +723,11 @@ public class GUI extends JFrame implements ComponentListener {
         deleteButton.setFocusable(false);
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         deleteButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        deleteButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                deleteButtonMouseEntered(evt);
+            }
+        });
         deleteButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteButtonActionPerformed(evt);
@@ -659,12 +736,17 @@ public class GUI extends JFrame implements ComponentListener {
         toolBar.add(deleteButton);
         toolBar.add(jSeparator1);
 
-        splitViewButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-system-windows.png"))); // NOI18N
-        splitViewButton.setToolTipText("Mesclar Abas");
+        splitViewButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/window-split-vertical.png"))); // NOI18N
+        splitViewButton.setToolTipText("Visão Lado a Lado");
         splitViewButton.setBorder(null);
         splitViewButton.setFocusable(false);
         splitViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         splitViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        splitViewButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                splitViewButtonMouseEntered(evt);
+            }
+        });
         splitViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 splitViewButtonActionPerformed(evt);
@@ -672,6 +754,26 @@ public class GUI extends JFrame implements ComponentListener {
         });
         toolBar.add(splitViewButton);
         splitViewButton.getAccessibleContext().setAccessibleDescription("Dividir Janela");
+
+        toolBar.add(jSeparator6);
+
+        keyboardShortcutsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-desktop-keyboard-shortcuts.png"))); // NOI18N
+        keyboardShortcutsButton.setToolTipText("Atalhos do Programa");
+        keyboardShortcutsButton.setBorder(null);
+        keyboardShortcutsButton.setFocusable(false);
+        keyboardShortcutsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        keyboardShortcutsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        keyboardShortcutsButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                keyboardShortcutsButtonMouseEntered(evt);
+            }
+        });
+        keyboardShortcutsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                keyboardShortcutsButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(keyboardShortcutsButton);
 
         primarySplitPane.setBorder(null);
         primarySplitPane.setDividerLocation(200);
@@ -703,6 +805,12 @@ public class GUI extends JFrame implements ComponentListener {
         mainTabbedPane.getAccessibleContext().setAccessibleName("");
         mainTabbedPane.getAccessibleContext().setAccessibleDescription("");
 
+        dynamicTabbedPane.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseMoved(java.awt.event.MouseEvent evt) {
+                dynamicTabbedPaneMouseMoved(evt);
+            }
+        });
+
         javax.swing.GroupLayout consolePanelLayout = new javax.swing.GroupLayout(consolePanel);
         consolePanel.setLayout(consolePanelLayout);
         consolePanelLayout.setHorizontalGroup(
@@ -714,13 +822,25 @@ public class GUI extends JFrame implements ComponentListener {
             .addGap(0, 0, Short.MAX_VALUE)
         );
 
-        dynamicTabbedPane.addTab("Console", consolePanel);
+        dynamicTabbedPane.addTab("Terminal", consolePanel);
         dynamicTabbedPane.addTab("Conexões", jScrollPane3);
 
         primarySplitPane.setLeftComponent(dynamicTabbedPane);
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
+
+        helpCheckBox.setSelected(true);
+        helpCheckBox.setToolTipText("Selecione para dicas");
+        helpCheckBox.setFocusable(false);
+        helpCheckBox.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        helpCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        helpCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                helpCheckBoxActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(helpCheckBox);
 
         menuFile.setText("Arquivo");
 
@@ -1145,7 +1265,7 @@ public class GUI extends JFrame implements ComponentListener {
                 mainProject.getFunctions().add(f);
 
                 add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
-                mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() -1);//-2
+                mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
                 mainTabbedPane.remove(cep);
 //                switchCodeButton.setIcon(flowchartIcon);
                 fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
@@ -1198,14 +1318,14 @@ public class GUI extends JFrame implements ComponentListener {
         openButtonActionPerformed(null);
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
-  private void closeProjectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeProjectButtonActionPerformed
+  private void clearSimulationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSimulationButtonActionPerformed
       int returnVal = JOptionPane.showConfirmDialog(this, "Deseja limpar a simulação?", "Limpar", JOptionPane.YES_NO_OPTION);
 
       if (returnVal == JOptionPane.YES_OPTION) {
           simulationPanel.resetSimulation();
           simulationPanel.repaint();
       }
-  }//GEN-LAST:event_closeProjectButtonActionPerformed
+  }//GEN-LAST:event_clearSimulationButtonActionPerformed
 
     private static <T> void compare(List<T> a, List<T> b, Logger lg) {
         Level level = Level.OFF;
@@ -1311,6 +1431,22 @@ public class GUI extends JFrame implements ComponentListener {
             }
             mapFC.clear();
             mapCE.clear();
+
+            if (evt != null) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        {
+                            //adicionando um novo fluxograma
+                            FlowchartPanel fp = new FlowchartPanel(new Function(), mainInterpreter);
+                            mainProject.getFunctions().add(fp.getFunction());
+                            mapFC.add(fp);
+                            add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
+                            mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
+                        }
+                    }
+                });
+            }
         }
     }//GEN-LAST:event_newFileButtonActionPerformed
 
@@ -1362,6 +1498,8 @@ public class GUI extends JFrame implements ComponentListener {
                 }
             });
             splitView = true;
+            splitViewButton.setIcon(unsplitIcon);
+            splitViewButton.setToolTipText("Visão em Abas");
         } else if (splitView) {
             mainTabbedPane.remove(addNewCodePanel);
             mainTabbedPane.remove(simulationSplitPanel);
@@ -1379,6 +1517,8 @@ public class GUI extends JFrame implements ComponentListener {
                 mainTabbedPane.setSelectedComponent(cmp);
                 splitViewButtonActionPerformed(null);
             }
+            splitViewButton.setIcon(splitIcon);
+            splitViewButton.setToolTipText("Visão Lado a Lado");
         }
 
     }//GEN-LAST:event_splitViewButtonActionPerformed
@@ -1386,6 +1526,91 @@ public class GUI extends JFrame implements ComponentListener {
     private void timestepTButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestepTButtonActionPerformed
 
     }//GEN-LAST:event_timestepTButtonActionPerformed
+
+    private void keyboardShortcutsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyboardShortcutsButtonActionPerformed
+        if (shortcutsWindow == null) {
+            shortcutsWindow = new ShortcutsWindow();
+        }
+
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                shortcutsWindow.setVisible(true);
+            }
+        });
+    }//GEN-LAST:event_keyboardShortcutsButtonActionPerformed
+
+    private void newFileButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_newFileButtonMouseEntered
+        printHelp("Fecha o projeto atual, limpa a simulação e cria um programa vazio");
+    }//GEN-LAST:event_newFileButtonMouseEntered
+
+    private void openButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_openButtonMouseEntered
+        printHelp("Abre um projeto salvo");
+    }//GEN-LAST:event_openButtonMouseEntered
+
+    private void saveButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_saveButtonMouseEntered
+        printHelp("Salva o projeto atual (Ambiente e Código)");
+    }//GEN-LAST:event_saveButtonMouseEntered
+
+    private void clearSimulationButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_clearSimulationButtonMouseEntered
+        printHelp("Remove todas as linhas colocadas na simulação (esta operação não pode ser desfeita)");
+    }//GEN-LAST:event_clearSimulationButtonMouseEntered
+
+    private void timestepTButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_timestepTButtonMouseEntered
+        printHelp("Coloca uma espera a cada comando executado, permitindo visualizar a execução do programa lentamente");
+    }//GEN-LAST:event_timestepTButtonMouseEntered
+
+    private void runButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_runButtonMouseEntered
+        printHelp("Executa o programa criado");
+    }//GEN-LAST:event_runButtonMouseEntered
+
+    private void pauseButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pauseButtonMouseEntered
+        printHelp("Pausa a execução do programa");
+    }//GEN-LAST:event_pauseButtonMouseEntered
+
+    private void stopButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_stopButtonMouseEntered
+        printHelp("Interrompe a execução do programa e retorna para o primeiro comando");
+    }//GEN-LAST:event_stopButtonMouseEntered
+
+    private void switchCodeButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_switchCodeButtonMouseEntered
+        printHelp("Transforma o fluxograma em código fonte e vice-versa");
+    }//GEN-LAST:event_switchCodeButtonMouseEntered
+
+    private void deleteButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_deleteButtonMouseEntered
+        printHelp("????");
+    }//GEN-LAST:event_deleteButtonMouseEntered
+
+    private void splitViewButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_splitViewButtonMouseEntered
+        printHelp("Permite visualizar a simulação e o programa lado a lado, clique outra vez para separa-los");
+    }//GEN-LAST:event_splitViewButtonMouseEntered
+
+    private void keyboardShortcutsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_keyboardShortcutsButtonMouseEntered
+        printHelp("Exibe uma lista dos principais atalhos do programa");
+    }//GEN-LAST:event_keyboardShortcutsButtonMouseEntered
+
+    private void dynamicTabbedPaneMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_dynamicTabbedPaneMouseMoved
+        JTabbedPane tp = (JTabbedPane) evt.getSource();
+        int idx = tp.indexAtLocation(evt.getX(), evt.getY());
+        if (idx != lastIdx) {
+            lastIdx = idx;
+            if (idx == 0) {
+                printHelp("O Terminal permite visualizar as mensagens enviadas pelo robô (comando 'Exibir')");
+            } else if (idx == 1) {
+                printHelp("A aba Conexões permite se comunicar com o robô real e acompanhar os pacotes enviados, perdidos e recebidos");
+            }
+        }
+    }//GEN-LAST:event_dynamicTabbedPaneMouseMoved
+
+    private void helpCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpCheckBoxActionPerformed
+        helpTip = "";
+        helpPanel.repaint();
+    }//GEN-LAST:event_helpCheckBoxActionPerformed
+
+    public void printHelp(String str) {
+        if (helpCheckBox.isSelected()) {
+            helpTip = str;
+            helpPanel.repaint();
+        }
+    }
 
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
@@ -1573,11 +1798,12 @@ public class GUI extends JFrame implements ComponentListener {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel addNewCodePanel;
-    private javax.swing.JButton closeProjectButton;
+    private javax.swing.JButton clearSimulationButton;
     private javax.swing.JPanel consolePanel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
+    private javax.swing.JCheckBox helpCheckBox;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
@@ -1587,8 +1813,10 @@ public class GUI extends JFrame implements ComponentListener {
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JButton keyboardShortcutsButton;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuDev;
@@ -1616,13 +1844,18 @@ public class GUI extends JFrame implements ComponentListener {
     }
 
     @Override
-    public void componentResized(ComponentEvent e) {
+    public void componentResized(final ComponentEvent e) {
         if (splitView) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     //simulationSplitPanel.setDividerLocation(simulationSplitPanel.getDividerLocation() + 1);
                     simulationSplitPanel.setDividerLocation(mainTabbedPane.getWidth() / 2);
+
+                    int width = e.getComponent().getWidth() - 50;
+                    helpPanel.setPreferredSize(new Dimension(width, 25));
+
+                    helpPanel.repaint();
                 }
             });
         }

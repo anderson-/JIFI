@@ -5,14 +5,11 @@
 package robotinterface.algorithm.procedure;
 
 import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import java.util.Collection;
+import robotinterface.algorithm.Command;
 import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.swing.MutableWidgetContainer;
-import robotinterface.gui.panels.sidepanel.Item;
-import robotinterface.interpreter.ExecutionException;
-import robotinterface.robot.Robot;
-import robotinterface.util.trafficsimulator.Clock;
 
 /**
  *
@@ -20,8 +17,8 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class DummyBlock extends Procedure {
 
-    public static GraphicObject createSimpleBlock(final String str, final Color strColor, final Color color) {
-        MutableWidgetContainer mwc = new MutableWidgetContainer(color) {
+    public static GraphicObject createSimpleBlock(Command c, final String str, final Color strColor, final Color color) {
+        MutableWidgetContainer mwc = new DrawableProcedureBlock(c, color) {
 
             {
                 super.boxLabelColor = strColor;
@@ -47,7 +44,7 @@ public class DummyBlock extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock("      -      ", Color.LIGHT_GRAY, Color.LIGHT_GRAY);
+            resource = createSimpleBlock(this, "       -       ", Color.LIGHT_GRAY, Color.LIGHT_GRAY);
         }
         return resource;
     }

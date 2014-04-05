@@ -267,7 +267,7 @@ public class Procedure extends Command implements Classifiable {
         Area myShape = new Area();
         myShape.add(new Area(new Rectangle2D.Double(0, 0, 20, 12)));
         myShape.subtract(new Area(new Rectangle2D.Double(4, 4, 12, 4)));
-        return new Item("Procedimento", myShape, myColor);
+        return new Item("Procedimento", myShape, myColor, "Usado para declarar e atualizar o valor de variáveis, criando formulas e expreções algébricas");
     }
 
     @Override
@@ -498,7 +498,9 @@ public class Procedure extends Command implements Classifiable {
             copy.names.addAll(names);
             copy.values.addAll(values);
             copy.myArgs.clear();
-            copy.myArgs.addAll(myArgs);
+            for (int i = 0; i < myArgs.size(); i++) {
+                copy.myArgs.add(new Argument(myArgs.get(i)));
+            }
         }
 
         return copy;

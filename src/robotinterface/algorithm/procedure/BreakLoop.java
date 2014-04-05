@@ -23,7 +23,7 @@ import robotinterface.interpreter.ResourceManager;
  */
 public class BreakLoop extends Procedure {
 
-   private static Color myColor = Color.decode("#01939A");
+    private static Color myColor = Color.decode("#01939A");
 
     public BreakLoop() {
 
@@ -34,7 +34,7 @@ public class BreakLoop extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock(" break; ", Color.black, myColor);
+            resource = createSimpleBlock(this, " break; ", Color.black, myColor);
         }
         return resource;
     }
@@ -45,21 +45,21 @@ public class BreakLoop extends Procedure {
         while (!(loop instanceof While || loop instanceof Function)) {
             loop = loop.getParent();
         }
-        
+
 //        if (loop instanceof While){
 //            ((Block)loop).breakLoop(true);
 //            return ((Block)loop).getNext();
 //        } else 
-            if (loop instanceof Block){
-            ((Block)loop).breakLoop(true);
-            return ((Block)loop).getEnd();
+        if (loop instanceof Block) {
+            ((Block) loop).breakLoop(true);
+            return ((Block) loop).getEnd();
         }
         return loop.getNext();
     }
 
     @Override
     public Item getItem() {
-        
+
         Area myShape = new Area();
         Polygon tmpPoly = new Polygon();
         tmpPoly.addPoint(10, 0);
@@ -68,21 +68,21 @@ public class BreakLoop extends Procedure {
         tmpPoly.addPoint(0, 10);
         myShape.add(new Area(tmpPoly));
         myShape.subtract(new Area(new Ellipse2D.Double(5, 5, 10, 10)));
-        
+
         tmpPoly.reset();
         tmpPoly.addPoint(18, 0);
         tmpPoly.addPoint(20, 2);
         tmpPoly.addPoint(2, 20);
         tmpPoly.addPoint(0, 18);
         myShape.add(new Area(tmpPoly));
-        
+
         myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
-        return new Item("Parar Repetição", myShape, myColor);
+        return new Item("Parar Repetição", myShape, myColor, "Interrompe o laço de repetição quando é executado");
     }
-    
+
     @Override
     public void drawLines(Graphics2D g) {
-        
+
     }
 
     @Override

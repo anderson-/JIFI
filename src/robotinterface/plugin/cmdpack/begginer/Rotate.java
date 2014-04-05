@@ -242,7 +242,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
         tmpPoli.addPoint(25, 14);
         myShape.subtract(new Area(tmpPoli));
 
-        return new Item("Girar", myShape, myColor);
+        return new Item("Girar", myShape, myColor, "Permite rotacionar o robô em ângulos bem definidos");
     }
 
     @Override
@@ -279,7 +279,7 @@ public class Rotate extends Procedure implements GraphicResource, Classifiable, 
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Rotate) {
-            ((Rotate) copy).arg0 = arg0;
+            ((Rotate) copy).arg0.set(arg0);
         }
         return copy;
     }

@@ -150,7 +150,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
         myShape.subtract(new Area(new Ellipse2D.Double(5, 3, 11, 6)));
         //myShape.exclusiveOr(new Area( new Ellipse2D.Double(8, 3, 6, 6))); //oh hell no!
 
-        return new Item("Exibir", myShape, myColor);
+        return new Item("Exibir", myShape, myColor, "Quando executado exibe uma mensagem no Terminal, útil para saber o valor de variáveis em alguns pontos do programa");
     }
 
     public static MutableWidgetContainer createDrawablePrintString(final PrintString p) {

@@ -425,6 +425,7 @@ public class EditorPanel extends JPanel {
         ac.install(textArea);
         textArea.setText(Parser.encode(function));
         updateFunctionTokens();
+        super.setName("Código Fonte");
     }
 
     public RSyntaxTextArea getTextArea() {

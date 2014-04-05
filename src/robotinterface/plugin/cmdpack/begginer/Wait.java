@@ -90,7 +90,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
         tmpShape.addPoint(18, 18);
         tmpShape.addPoint(11, 18);
         myShape.add(new Area(tmpShape));
-        return new Item("Esperar", myShape, myColor);
+        return new Item("Esperar", myShape, myColor, "Mantém o robô se movendo ou faz o programa esperar por alguns milissegundos");
     }
 
     @Override
@@ -177,7 +177,7 @@ public class Wait extends Procedure implements Classifiable, FunctionToken<Wait>
     public Procedure copy(Procedure copy) {
         super.copy(copy);
         if (copy instanceof Wait){
-            ((Wait)copy).arg0 = arg0;
+            ((Wait)copy).arg0.set(arg0);
         }
         return copy;
     }

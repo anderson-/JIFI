@@ -33,6 +33,9 @@ public class Argument {
     public Argument(Object statement, int type) {
         set(statement, type);
     }
+    public Argument(Argument arg) {
+        set(arg);
+    }
 
     public Argument(Object statement, int type, boolean extended) {
         this.extended = extended;

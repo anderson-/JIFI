@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.gui.GUI;
 
 public class Item implements GraphicObject {
 
@@ -37,6 +38,8 @@ public class Item implements GraphicObject {
     private Color color;
     private Object ref;
     private boolean selected;
+    private boolean tipNotDisplayed;
+    private String itemTip;
 
     public Item(String name, BufferedImage image) {
         this.name = name;
@@ -45,6 +48,11 @@ public class Item implements GraphicObject {
         this.color = null;
     }
 
+    public Item(String name, Shape icon, Color color, String tip) {
+        this(name, icon,color);
+        itemTip = tip;
+    }
+    
     public Item(String name, Shape icon, Color color) {
         this.name = name;
         this.image = null;
@@ -179,9 +187,14 @@ public class Item implements GraphicObject {
 
         g.setColor(Color.white);
 
+        tipNotDisplayed = true;
         if (shape.contains(in.getRelativeMouse())) {
             if (in.isMouseOver()) {
                 g.setColor(color.brighter());
+                if (tipNotDisplayed){
+                    GUI.getInstance().printHelp(itemTip);
+                    tipNotDisplayed = false;
+                }
                 if (in.mouseClicked()) {
                     //notify
                     panel.ItemSelected(this, ref);

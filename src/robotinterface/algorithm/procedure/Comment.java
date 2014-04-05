@@ -246,7 +246,7 @@ public class Comment extends Procedure {
         tmpPoly.addPoint(20, 13);
         tmpPoly.addPoint(0, 13);
         tmpPoly.addPoint(0, 6);
-        return new Item("Comentário", tmpPoly, myColor);
+        return new Item("Comentário", tmpPoly, myColor, "Usado para deixar notas e dicas sobre o funcionamento do seu programa, não interfere na execução do mesmo");
     }
 
     @Override

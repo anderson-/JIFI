@@ -102,6 +102,8 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         }
         setFunction(function);
         super.setName("Fluxograma");
+        gridSize = -10;
+        gridColor = new Color(0.95f, 0.95f, 0.95f);
     }
 
     public void hideSidePanel(boolean b) {
@@ -363,12 +365,13 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
     @Override
     public int getDrawableLayer() {
-        return Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
+        return Drawable.BACKGROUND_LAYER | Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
     }
-
+    
     private void printBounds(Graphics2D g, Command c) {
         Rectangle2D.Double bounds = c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K);
         g.draw(bounds);
+        g.drawString(c.getCommandName(), (int) bounds.getMaxX(), (int) bounds.y);
         if (c instanceof Block) {
             Block b = (Block) c;
             Command it = b.getStart();

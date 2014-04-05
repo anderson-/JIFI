@@ -62,11 +62,11 @@ public class While extends Block {
 
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
-        if (breakLoop){
+        if (breakLoop) {
             breakLoop = false;
             return super.step(rm);
         }
-        
+
         if (evaluate(rm)) {
             return start;
         }
@@ -104,7 +104,7 @@ public class While extends Block {
         myShape.add(new Area(tmpPoli));
         myShape.subtract(new Area(new Ellipse2D.Double(5, 5, 10, 10)));
         myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
-        return new Item("Repetição", myShape, myColor);
+        return new Item("Repetição", myShape, myColor, "Repete os comandos internos enquando a condição fornecida for verdadeira");
     }
 
     @Override
@@ -128,9 +128,7 @@ public class While extends Block {
         if (resource != null) {
             Path2D.Double path = new Path2D.Double();
             Rectangle2D.Double bThis = resource.getObjectBouds();
-            Rectangle2D.Double bBlock = getBounds(null,
-                    GraphicFlowchart.GF_J,
-                    GraphicFlowchart.GF_K);
+            Rectangle2D.Double bBlock = start.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K);
             path.moveTo(bThis.getCenterX(), bThis.getMaxY());
             path.lineTo(bThis.getCenterX(), bThis.getMaxY() + GF_J);
 
@@ -140,9 +138,19 @@ public class While extends Block {
                     GraphicFlowchart.GF_J,
                     GraphicFlowchart.GF_K);
 
+            
+            //obtem o ultimo comando e calcula a largura real do bloco
             while (c.getNext() != null && !(c.getNext() instanceof BlockEnd)) {
                 c = c.getNext();
+                //calcula o tamanho real (não estimado) do bloco
+                bBlock.add(c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K));
             }
+            bBlock.add(c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K));
+
+            //adicionando bordas
+            bBlock.x -= GF_J;
+            bBlock.width += 2 * GF_J;
+            bBlock.height += 2 * GF_J;
 
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
@@ -175,8 +183,8 @@ public class While extends Block {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
 
-                    g.drawString("F", (int) bBlock.getMaxX() - 3, (int) bThis.getCenterY() - 4);
-                    g.drawString("V", (int) bBlock.getMinX() - 3, (int) bThis.getCenterY() - 4);
+                    g.drawString("F", (int) bThis.getMaxX() + 5, (int) bThis.getCenterY() - 5);
+                    g.drawString("T", (int) bThis.getCenterX() - 20, (int) bThis.getMaxY() + 10);
 
                     path.moveTo(bThis.getCenterX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bThis.getCenterY());

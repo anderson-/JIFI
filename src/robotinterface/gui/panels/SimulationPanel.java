@@ -80,7 +80,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         tmpShape.addPoint(0, 18);
         myShape.add(new Area(tmpShape));
 
-        ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red);
+        ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red, "Remove elementos na interseção com esta linha");
 
         myShape = new Area();
         tmpShape = new Polygon();
@@ -95,10 +95,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         tmpShape.addPoint(15, 17);
         myShape.exclusiveOr(new Area(tmpShape));
 
-        ITEM_OBSTACLE_POLI = new Item("Parede Fechada", myShape, Environment.getObstacleColor());
-        ITEM_LINE = new Item("Linha", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY);
-        ITEM_LINE_POLI = new Item("Linha Fechada", myShape, Color.DARK_GRAY);
-        ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor());
+        ITEM_OBSTACLE_POLI = new Item("Parede Fechada", myShape, Environment.getObstacleColor(), "Cria paredes em forma de um polígono");
+        ITEM_LINE = new Item("Linha", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY, "Linha preta colocada no chão, detectada pelo sensor de refletância");
+        ITEM_LINE_POLI = new Item("Linha Fechada", myShape, Color.DARK_GRAY, "Cria linhas no chão em forma de um polígono");
+        ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor(), "Parede ou obstáculo, detectado pelo sensor de distância");
     }
     private final ArrayList<Robot> robots = new ArrayList<>();
     private Environment env = new Environment();

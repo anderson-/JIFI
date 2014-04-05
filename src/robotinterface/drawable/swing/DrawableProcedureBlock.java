@@ -17,17 +17,19 @@ import robotinterface.drawable.FlowchartBlock;
  */
 public class DrawableProcedureBlock extends MutableWidgetContainer {
 
-    private Procedure procedure = null;
+    private Command command = null;
 
-    public DrawableProcedureBlock(Procedure procedure, Color color) {
+    public DrawableProcedureBlock(Command c, Color color) {
         super(color);
-        this.procedure = procedure;
-        boxLabel = procedure.getProcedure();
+        this.command = c;
+        if (c instanceof Procedure) {
+            boxLabel = ((Procedure) c).getProcedure();
+        }
         updateStructure();
     }
 
     @Override
     protected final void backDraw(Graphics2D g) {
-        procedure.drawLines(g);
+        command.drawLines(g);
     }
 }
