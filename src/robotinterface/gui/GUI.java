@@ -124,6 +124,7 @@ public class GUI extends JFrame implements ComponentListener {
     private int lastIdx;
     private final JToolBar helpPanel;
     private String helpTip = "";
+    private AboutWindow aboutWindow;
 
     private JToolBar aushd() {
         return helpPanel;
@@ -494,8 +495,10 @@ public class GUI extends JFrame implements ComponentListener {
         deleteButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         splitViewButton = new javax.swing.JButton();
-        jSeparator6 = new javax.swing.JToolBar.Separator();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         keyboardShortcutsButton = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        keyboardShortcutsButton1 = new javax.swing.JButton();
         primarySplitPane = new javax.swing.JSplitPane();
         mainTabbedPane = new javax.swing.JTabbedPane();
         simulationPanel = new robotinterface.gui.panels.SimulationPanel();
@@ -510,6 +513,10 @@ public class GUI extends JFrame implements ComponentListener {
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        jSeparator7 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem5 = new javax.swing.JMenuItem();
         menuDev = new javax.swing.JMenu();
 
         dynamicToolBar.setFloatable(false);
@@ -755,7 +762,7 @@ public class GUI extends JFrame implements ComponentListener {
         toolBar.add(splitViewButton);
         splitViewButton.getAccessibleContext().setAccessibleDescription("Dividir Janela");
 
-        toolBar.add(jSeparator6);
+        toolBar.add(filler1);
 
         keyboardShortcutsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-desktop-keyboard-shortcuts.png"))); // NOI18N
         keyboardShortcutsButton.setToolTipText("Atalhos do Programa");
@@ -774,6 +781,25 @@ public class GUI extends JFrame implements ComponentListener {
             }
         });
         toolBar.add(keyboardShortcutsButton);
+        toolBar.add(jSeparator6);
+
+        keyboardShortcutsButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/help-browser.png"))); // NOI18N
+        keyboardShortcutsButton1.setToolTipText("Sobre o JIFI");
+        keyboardShortcutsButton1.setBorder(null);
+        keyboardShortcutsButton1.setFocusable(false);
+        keyboardShortcutsButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        keyboardShortcutsButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        keyboardShortcutsButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                keyboardShortcutsButton1MouseEntered(evt);
+            }
+        });
+        keyboardShortcutsButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                keyboardShortcutsButton1ActionPerformed(evt);
+            }
+        });
+        toolBar.add(keyboardShortcutsButton1);
 
         primarySplitPane.setBorder(null);
         primarySplitPane.setDividerLocation(200);
@@ -877,6 +903,28 @@ public class GUI extends JFrame implements ComponentListener {
 
         menuBar.add(menuFile);
 
+        jMenu1.setText("Ajuda");
+
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_H, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem4.setText("Atalhos do Programa");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem4);
+        jMenu1.add(jSeparator7);
+
+        jMenuItem5.setText("Sobre");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem5);
+
+        menuBar.add(jMenu1);
+
         menuDev.setText("    ");
         menuBar.add(menuDev);
         menuDev.getAccessibleContext().setAccessibleName(".");
@@ -889,7 +937,7 @@ public class GUI extends JFrame implements ComponentListener {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(primarySplitPane)
-            .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1623,6 +1671,30 @@ public class GUI extends JFrame implements ComponentListener {
         }
     }//GEN-LAST:event_mainTabbedPaneMouseMoved
 
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+       keyboardShortcutsButtonActionPerformed(null);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        if (aboutWindow == null) {
+            aboutWindow = new AboutWindow();
+        }
+
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                aboutWindow.setVisible(true);
+            }
+        });
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void keyboardShortcutsButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_keyboardShortcutsButton1MouseEntered
+        printHelp("Exibe informações sobre o progama e o projeto");
+    }//GEN-LAST:event_keyboardShortcutsButton1MouseEntered
+
+    private void keyboardShortcutsButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyboardShortcutsButton1ActionPerformed
+        jMenuItem5ActionPerformed(null);
+    }//GEN-LAST:event_keyboardShortcutsButton1ActionPerformed
+
     public void printHelp(String str) {
         if (helpCheckBox.isSelected()) {
             helpTip = str;
@@ -1821,10 +1893,14 @@ public class GUI extends JFrame implements ComponentListener {
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
     private javax.swing.JToolBar dynamicToolBar;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JCheckBox helpCheckBox;
+    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
@@ -1832,9 +1908,11 @@ public class GUI extends JFrame implements ComponentListener {
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JPopupMenu.Separator jSeparator7;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton keyboardShortcutsButton;
+    private javax.swing.JButton keyboardShortcutsButton1;
     private javax.swing.JTabbedPane mainTabbedPane;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuDev;
