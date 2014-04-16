@@ -3,20 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/panels/FlowchartPanel.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/procedure/Block.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/plugin/cmdpack/begginer/Move.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/procedure/If.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/GUI.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/parser/parameterparser/Argument.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/panels/sidepanel/Item.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/plugin/cmdpack/begginer/Rotate.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/ShortcutsWindow.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/procedure/Function.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/procedure/Procedure.java</file>
             <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/AboutWindow.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/plugin/cmdpack/begginer/ReadDevice.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/plugin/cmdpack/begginer/Wait.java</file>
+            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/GUI.java</file>
         </group>
     </open-files>
 </project-private>

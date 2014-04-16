@@ -26,7 +26,9 @@ import static java.lang.Math.sin;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import robotinterface.robot.device.IRProximitySensor;
 import robotinterface.util.LineIterator;
 
@@ -111,14 +113,19 @@ public class Environment {
         FileWriter fw = new FileWriter(file.getAbsoluteFile());
 
         StringBuilder sb = new StringBuilder();
-        DecimalFormat df = new DecimalFormat("#.00");
+        NumberFormat format = NumberFormat.getInstance(Locale.US);
+        format.setGroupingUsed(false);
+        if (format instanceof DecimalFormat) {
+            ((DecimalFormat) format).applyPattern("#.00");
+        }
+        
         sb.append("# Environment ").append(System.currentTimeMillis()).append(" #\n");
 
         if (!wallsData.isEmpty()) {
             sb.append("# Obstacles #\n");
             sb.append("\n");
             for (double[] data : wallsData) {
-                sb.append("wall(").append(df.format(data[0])).append(", ").append(df.format(data[1])).append(", ").append(df.format(data[2])).append(", ").append(df.format(data[3])).append(")\n");
+                sb.append("wall(").append(format.format(data[0])).append(", ").append(format.format(data[1])).append(", ").append(format.format(data[2])).append(", ").append(format.format(data[3])).append(")\n");
             }
             sb.append("\n");
         }
@@ -127,7 +134,7 @@ public class Environment {
             sb.append("# Followable Lines #\n");
             sb.append("\n");
             for (double[] data : followLinesData) {
-                sb.append("line(").append(df.format(data[0])).append(", ").append(df.format(data[1])).append(", ").append(df.format(data[2])).append(", ").append(df.format(data[3])).append(")\n");
+                sb.append("line(").append(format.format(data[0])).append(", ").append(format.format(data[1])).append(", ").append(format.format(data[2])).append(", ").append(format.format(data[3])).append(")\n");
             }
         }
 
