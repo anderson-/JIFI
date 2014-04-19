@@ -262,6 +262,28 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                 if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
                     poliSegments += wr;
                 }
+            } else {
+                Robot r = null;
+                int d = Integer.MAX_VALUE;
+                synchronized (robots) {
+                    for (Robot robot : robots) {
+                        int x = (int) (robot.getPosX() - in.getTransformedMouse().x);
+                        int y = (int) (robot.getPosY() - in.getTransformedMouse().y);
+                        int tmpD = (int) (Math.sqrt(x * x + y * y));
+                        if (tmpD < d) {
+                            d = tmpD;
+                            r = robot;
+                        }
+                    }
+                }
+                r.setSelected(true);
+                if (in.isKeyPressed(KeyEvent.VK_R)) {
+                    zoomEnabled = false;
+                    int wr = -in.getMouseWheelRotation();
+                    r.setTheta(r.getTheta() + wr / 3.0);
+                } else if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON1) {
+                    r.setLocation(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                }
             }
         } else {
             zoomEnabled = true;
@@ -380,9 +402,9 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     //desenha o circulo
                     g.setColor(Color.gray);
                     circle.setFrame(x - r, y - r, r * 2, r * 2);
-                    try{
+                    try {
                         g.draw(circle);
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println(circle);
                         System.exit(0);

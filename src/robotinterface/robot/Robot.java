@@ -69,9 +69,14 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public static final AddNewDevice ADD_NEW_DEVICE = new AddNewDevice();
     private boolean DEBUG;
     private boolean moveDisabled = false;
+    private boolean selected;
 
     public void disableMove(boolean d) {
         moveDisabled = d;
+    }
+    
+    public void setSelected(boolean selected){
+        this.selected = selected;
     }
 
     public class InternalClock extends Device {
@@ -858,7 +863,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         int iSize = (int) size;
         g.setColor(Color.white);
         g.fillOval(-iSize / 2, -iSize / 2, iSize, iSize);
-        g.setColor(Color.gray);
+        if (!selected){
+            g.setColor(Color.gray);
+        } else {
+            g.setColor(Color.blue.darker());
+            selected = false;
+        }
         //body
         g.drawOval(-5, -5, 10, 10);
         g.drawOval(-iSize / 2, -iSize / 2, iSize, iSize);

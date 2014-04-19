@@ -951,6 +951,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             mouseClickCount = 0;
             mouseClick = false;
         }
+
+        public void consumeMouseDrag() {
+            mouseDragX = mouseDragY = 0;
+        }
     }
 
     public static void main(String[] args) {
