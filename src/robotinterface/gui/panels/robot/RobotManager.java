@@ -48,13 +48,14 @@ public class RobotManager extends JPanel implements Iterable<RobotControlPanel> 
         super.add(btnAddRobot, cons);
     }
 
-    public void createRobot() {
+    public RobotControlPanel createRobot() {
         RobotControlPanel p = new RobotControlPanel(RobotManager.this);
         panels.add(p);
         RobotManager.this.add(p, cons);
         RobotManager.this.remove(btnAddRobot);
         RobotManager.this.add(btnAddRobot, cons);
         gui.updateRobotList();
+        return p;
     }
 
     public void remove(RobotControlPanel robotControlPanel) {

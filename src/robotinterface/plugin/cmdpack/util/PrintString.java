@@ -64,7 +64,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
 
     private PrintString(Argument[] args) {
         super(args);
-        setProcedure(toString());
+        setProcedure(toString()); //TODO: não usar procedimento, implementar void toString(String ident, StringBuilder sb)
     }
 
     @Override

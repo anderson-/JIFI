@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import robotinterface.drawable.Drawable;
+import robotinterface.drawable.Rotable;
+import robotinterface.gui.panels.RobotEditorPanel;
 import robotinterface.robot.action.Action;
 import robotinterface.robot.action.system.AddNewDevice;
 import robotinterface.robot.action.system.ResetSystem;
@@ -41,7 +43,7 @@ import robotinterface.robot.simulation.VirtualDevice;
  *
  * @author antunes
  */
-public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
+public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, Rotable {
 
     public static final double SIZE_CM = 20;
     public static final double size = 60;
@@ -74,8 +76,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
     public void disableMove(boolean d) {
         moveDisabled = d;
     }
-    
-    public void setSelected(boolean selected){
+
+    public void setSelected(boolean selected) {
         this.selected = selected;
     }
 
@@ -315,7 +317,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
     public void updatePerception() {
         Message.setConnection(getMainConnection());
-        UPDATE_ALL_DEVICES.setAutoSend(false);
+        UPDATE_ALL_DEVICES.setInfiniteSend(false);
         UPDATE_ALL_DEVICES.begin(this);
         Action.run(UPDATE_ALL_DEVICES, this);
     }
@@ -328,6 +330,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
 
     public void stopAll() {
         Message.setConnection(getMainConnection());
+        STOP_ALL.setNumberOfTrials(10);
         STOP_ALL.begin(this);
         Action.run(STOP_ALL, this);
     }
@@ -747,10 +750,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         }
     }
 
+    @Override
     public double getTheta() {
         return theta;
     }
 
+    @Override
     public void setTheta(double theta) {
         this.theta = theta;
     }
@@ -863,10 +868,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         int iSize = (int) size;
         g.setColor(Color.white);
         g.fillOval(-iSize / 2, -iSize / 2, iSize, iSize);
-        if (!selected){
+        if (!selected) {
             g.setColor(Color.gray);
         } else {
-            g.setColor(Color.blue.darker());
+            g.setColor(RobotEditorPanel.SELECTED_COLOR);
             selected = false;
         }
         //body
@@ -885,8 +890,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject {
         g.fillRoundRect(-ww / 2, -iSize / 2 - 1, ww, wh, (int) (size * .1), (int) (size * .1));
         g.fillRoundRect(-ww / 2, wp, ww, wh, (int) (size * .1), (int) (size * .1));
 
+//        AffineTransform td = ga.getT();
         for (Device d : devices) {
-//            g.setTransform(w);
+//            td.setTransform(t);
+            g.setTransform(t);
             if (d instanceof Drawable) {
                 ((Drawable) d).draw(g, ga, in);
             }

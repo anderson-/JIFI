@@ -81,6 +81,7 @@ import robotinterface.drawable.DrawingPanel;
 import static robotinterface.drawable.swing.MutableWidgetContainer.autoUpdateValue;
 import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.Interpertable;
+import robotinterface.gui.panels.RobotEditorPanel;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.gui.panels.TabController;
 import robotinterface.gui.panels.editor.EditorPanel;
@@ -125,9 +126,15 @@ public class GUI extends JFrame implements ComponentListener {
     private final JToolBar helpPanel;
     private String helpTip = "";
     private AboutWindow aboutWindow;
+    private RobotControlPanel createRobot ;
 
     private JToolBar aushd() {
         return helpPanel;
+    }
+
+    @Deprecated
+    public FlowchartPanel getFlowcharPanel() {
+        return mapFC.get(0);
     }
 
     private static class ConsoleManagerThread extends Thread {
@@ -272,9 +279,13 @@ public class GUI extends JFrame implements ComponentListener {
 
         //robot manager
         robotManager = new RobotManager(this);
-        robotManager.createRobot();
-        jScrollPane3.setViewportView(robotManager);
-        jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
+        createRobot = robotManager.createRobot();
+        createRobot.setConnectButton(conectButton);
+        
+        dynamicTabbedPane.add(new JScrollPane(createRobot),"Conexões");
+        
+//        jScrollPane3.setViewportView(robotManager);
+//        jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
 
         FileFilter ff = new FileFilter() {
             @Override
@@ -357,6 +368,13 @@ public class GUI extends JFrame implements ComponentListener {
                     mapFC.add(fp);
                     add(fp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
                     mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
+
+                    //adicionando editor do robo
+                    for (RobotControlPanel rp : robotManager) {
+                        RobotEditorPanel ep = new RobotEditorPanel(rp.getRobot());
+                        add(ep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
+                        mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
+                    }
                 }
             }
         });
@@ -496,6 +514,8 @@ public class GUI extends JFrame implements ComponentListener {
         jSeparator1 = new javax.swing.JToolBar.Separator();
         splitViewButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        conectButton = new javax.swing.JButton();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
         keyboardShortcutsButton = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         keyboardShortcutsButton1 = new javax.swing.JButton();
@@ -505,7 +525,6 @@ public class GUI extends JFrame implements ComponentListener {
         addNewCodePanel = new javax.swing.JPanel();
         dynamicTabbedPane = new javax.swing.JTabbedPane();
         consolePanel = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
         jToolBar1 = aushd();
         helpCheckBox = new javax.swing.JCheckBox();
         menuBar = new javax.swing.JMenuBar();
@@ -764,6 +783,25 @@ public class GUI extends JFrame implements ComponentListener {
 
         toolBar.add(filler1);
 
+        conectButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/status/network-offline.png"))); // NOI18N
+        conectButton.setToolTipText("Conectar");
+        conectButton.setBorder(null);
+        conectButton.setFocusable(false);
+        conectButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        conectButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        conectButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                conectButtonMouseEntered(evt);
+            }
+        });
+        conectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                conectButtonActionPerformed(evt);
+            }
+        });
+        toolBar.add(conectButton);
+        toolBar.add(jSeparator8);
+
         keyboardShortcutsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/apps/preferences-desktop-keyboard-shortcuts.png"))); // NOI18N
         keyboardShortcutsButton.setToolTipText("Atalhos do Programa");
         keyboardShortcutsButton.setBorder(null);
@@ -854,7 +892,6 @@ public class GUI extends JFrame implements ComponentListener {
         );
 
         dynamicTabbedPane.addTab("Terminal", consolePanel);
-        dynamicTabbedPane.addTab("Conexões", jScrollPane3);
 
         primarySplitPane.setLeftComponent(dynamicTabbedPane);
 
@@ -1640,19 +1677,6 @@ public class GUI extends JFrame implements ComponentListener {
         printHelp("Exibe uma lista dos principais atalhos do programa");
     }//GEN-LAST:event_keyboardShortcutsButtonMouseEntered
 
-    private void dynamicTabbedPaneMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_dynamicTabbedPaneMouseMoved
-        JTabbedPane tp = (JTabbedPane) evt.getSource();
-        int idx = tp.indexAtLocation(evt.getX(), evt.getY());
-        if (idx != lastIdx) {
-            lastIdx = idx;
-            if (idx == 0) {
-                printHelp("O Terminal permite visualizar as mensagens enviadas pelo robô (comando 'Exibir')");
-            } else if (idx == 1) {
-                printHelp("A aba Conexões permite se comunicar com o robô real e acompanhar os pacotes enviados, perdidos e recebidos");
-            }
-        }
-    }//GEN-LAST:event_dynamicTabbedPaneMouseMoved
-
     private void helpCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpCheckBoxActionPerformed
         helpTip = "";
         helpPanel.repaint();
@@ -1672,7 +1696,7 @@ public class GUI extends JFrame implements ComponentListener {
     }//GEN-LAST:event_mainTabbedPaneMouseMoved
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-       keyboardShortcutsButtonActionPerformed(null);
+        keyboardShortcutsButtonActionPerformed(null);
     }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
@@ -1694,6 +1718,27 @@ public class GUI extends JFrame implements ComponentListener {
     private void keyboardShortcutsButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyboardShortcutsButton1ActionPerformed
         jMenuItem5ActionPerformed(null);
     }//GEN-LAST:event_keyboardShortcutsButton1ActionPerformed
+
+    private void conectButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_conectButtonMouseEntered
+        printHelp("Conecta ao robô");
+    }//GEN-LAST:event_conectButtonMouseEntered
+
+    private void conectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conectButtonActionPerformed
+        createRobot.simpleConectButtonActionPerformed();
+    }//GEN-LAST:event_conectButtonActionPerformed
+
+    private void dynamicTabbedPaneMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_dynamicTabbedPaneMouseMoved
+        JTabbedPane tp = (JTabbedPane) evt.getSource();
+        int idx = tp.indexAtLocation(evt.getX(), evt.getY());
+        if (idx != lastIdx) {
+            lastIdx = idx;
+            if (idx == 0) {
+                printHelp("O Terminal permite visualizar as mensagens enviadas pelo robô (comando 'Exibir')");
+            } else if (idx == 1) {
+                printHelp("A aba Conexões permite se comunicar com o robô real e acompanhar os pacotes enviados, perdidos e recebidos");
+            }
+        }
+    }//GEN-LAST:event_dynamicTabbedPaneMouseMoved
 
     public void printHelp(String str) {
         if (helpCheckBox.isSelected()) {
@@ -1889,6 +1934,7 @@ public class GUI extends JFrame implements ComponentListener {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel addNewCodePanel;
     private javax.swing.JButton clearSimulationButton;
+    private javax.swing.JButton conectButton;
     private javax.swing.JPanel consolePanel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JTabbedPane dynamicTabbedPane;
@@ -1901,7 +1947,6 @@ public class GUI extends JFrame implements ComponentListener {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
@@ -1909,6 +1954,7 @@ public class GUI extends JFrame implements ComponentListener {
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JPopupMenu.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JButton keyboardShortcutsButton;

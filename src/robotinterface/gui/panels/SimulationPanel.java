@@ -26,9 +26,8 @@
 package robotinterface.gui.panels;
 
 import java.awt.BasicStroke;
-import robotinterface.drawable.util.QuickFrame;
-import robotinterface.drawable.DrawingPanel;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -36,22 +35,29 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-import java.util.ArrayList;
-import robotinterface.util.trafficsimulator.Timer;
-import robotinterface.robot.Robot;
 import static java.lang.Math.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.Rotable;
+import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.gui.panels.sidepanel.SidePanel;
+import robotinterface.robot.Robot;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.robot.device.ReflectanceSensorArray;
 import robotinterface.robot.simulation.Environment;
 import robotinterface.util.LineIterator;
+import robotinterface.util.trafficsimulator.Timer;
 
 /**
  * Painel da simulação do robô. <### EM DESENVOLVIMENTO ###>
@@ -63,6 +69,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
     public static final Item ITEM_OBSTACLE_LINE;
     public static final Item ITEM_OBSTACLE_POLI;
     public static final Item ITEM_REMOVE_LINE;
+    public static final Item ITEM_REMOVE_AREA;
 
     static {
         Area myShape = new Area();
@@ -80,24 +87,31 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         tmpShape.addPoint(0, 18);
         myShape.add(new Area(tmpShape));
 
-        ITEM_REMOVE_LINE = new Item("Remover", myShape, Color.red, "Remove elementos na interseção com esta linha");
+        ITEM_REMOVE_LINE = new Item("Remover", new Area(myShape), Color.red, "Remove elementos na interseção com esta linha");
 
-        myShape = new Area();
+        Area myShape2 = new Area();
+        myShape2.exclusiveOr(new Area(new Rectangle(3, 3, 14, 14)));
+        myShape2.exclusiveOr(new Area(new Rectangle(0, 0, 20, 20)));
+        myShape2.add(new Area(myShape));
+
+        ITEM_REMOVE_AREA = new Item("Remover Área", myShape2, Color.red, "Remove elementos na interseção com esta linha");
+
+        myShape2 = new Area();
         tmpShape = new Polygon();
         tmpShape.reset();
         tmpShape.addPoint(0, 20);
         tmpShape.addPoint(10, 0);
         tmpShape.addPoint(20, 20);
-        myShape.add(new Area(tmpShape));
+        myShape2.add(new Area(tmpShape));
         tmpShape.reset();
         tmpShape.addPoint(5, 17);
         tmpShape.addPoint(10, 6);
         tmpShape.addPoint(15, 17);
-        myShape.exclusiveOr(new Area(tmpShape));
+        myShape2.exclusiveOr(new Area(tmpShape));
 
-        ITEM_OBSTACLE_POLI = new Item("Parede Fechada", myShape, Environment.getObstacleColor(), "Cria paredes em forma de um polígono");
+        ITEM_OBSTACLE_POLI = new Item("Parede Fechada", myShape2, Environment.getObstacleColor(), "Cria paredes em forma de um polígono");
         ITEM_LINE = new Item("Linha", new Rectangle(0, 0, 20, 4), Color.DARK_GRAY, "Linha preta colocada no chão, detectada pelo sensor de refletância");
-        ITEM_LINE_POLI = new Item("Linha Fechada", myShape, Color.DARK_GRAY, "Cria linhas no chão em forma de um polígono");
+        ITEM_LINE_POLI = new Item("Linha Fechada", myShape2, Color.DARK_GRAY, "Cria linhas no chão em forma de um polígono");
         ITEM_OBSTACLE_LINE = new Item("Parede", new Rectangle(0, 0, 20, 4), Environment.getObstacleColor(), "Parede ou obstáculo, detectado pelo sensor de distância");
     }
     private final ArrayList<Robot> robots = new ArrayList<>();
@@ -139,9 +153,9 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
         super.midMouseButtonResetView = false;
 
-        sidePanel = new SidePanel() {
+        sidePanel = new SidePanel(this) {
             @Override
-            protected void ItemSelected(Item item, Object ref) {
+            public void itemSelected(Item item, Object ref) {
                 try {
                     if (itemSelected == item) {
                         itemSelected.setSelected(false);
@@ -168,6 +182,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         sidePanel.add(ITEM_OBSTACLE_POLI);
 //        sp.add(ITEM_CILINDER);
         sidePanel.add(ITEM_REMOVE_LINE);
+        sidePanel.add(ITEM_REMOVE_AREA);
         add(sidePanel);
 
         //mapeia a posição a cada x ms
@@ -198,10 +213,6 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
         timer.setDisposable(false);
         clock.addTimer(timer);
         clock.setPaused(false);
-    }
-
-    private SimulationPanel(Environment e) {
-        env = e;
     }
 
     public void hideSidePanel(boolean b) {
@@ -251,38 +262,85 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             return;
         }
 
+        if (in.isKeyPressed(KeyEvent.VK_R) || in.isKeyPressed(KeyEvent.VK_M)) {
+            Robot r = null;
+            int d = Integer.MAX_VALUE;
+            synchronized (robots) {
+                for (Robot robot : robots) {
+                    int x = (int) (robot.getPosX() - in.getTransformedMouse().x);
+                    int y = (int) (robot.getPosY() - in.getTransformedMouse().y);
+                    int tmpD = (int) (Math.sqrt(x * x + y * y));
+                    if (tmpD < d) {
+                        d = tmpD;
+                        r = robot;
+                    }
+                }
+            }
+            if (r != null) {
+                r.setSelected(true);
+                double theta = Math.atan2((in.getTransformedMouse().y - r.getPosY()), (in.getTransformedMouse().x - r.getPosX()));
+                if (in.mousePressed() && in.getMouseButton() == MouseEvent.BUTTON1) {
+                    this.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                    if (in.isKeyPressed(KeyEvent.VK_R)) {
+                        zoomEnabled = false;
+
+                        theta -= r.getTheta();
+                        r.setTheta(r.getTheta() + theta);
+
+                    } else if (in.isKeyPressed(KeyEvent.VK_M)) {
+                        r.setLocation(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    }
+                }
+
+                AffineTransform o = ga.getT(g.getTransform());
+                AffineTransform t = ga.getT();
+                ga.applyZoom(ga.applyGlobalPosition(t));
+                g.setTransform(t);
+                g.setColor(Color.MAGENTA);
+                g.drawLine((int) r.getPosX(), (int) r.getPosY(), in.getTransformedMouse().x, in.getTransformedMouse().y);
+
+                g.setColor(Color.BLUE);
+                double w = Math.sqrt(Math.pow(r.getPosX() - in.getTransformedMouse().x, 2) + Math.pow(r.getPosY() - in.getTransformedMouse().y, 2));
+                g.fill(new Arc2D.Double(r.getPosX() - w / 2, r.getPosY() - w / 2, w, w, -Math.toDegrees(r.getTheta()), (r.getTheta() - theta)*(180/Math.PI), Arc2D.Double.PIE));
+                
+//                g.rotate(r.getTheta());
+//                g.fill(new Arc2D.Double(r.getPosX() - w / 2, r.getPosY() - w / 2, w, w, 0, -Math.toDegrees(theta - r.getTheta()), Arc2D.Double.PIE));
+
+                g.setTransform(o);
+                ga.done(t);
+                ga.done(o);
+
+//                AffineTransform o = ga.getT(g.getTransform());
+//                AffineTransform t = ga.getT();
+//                ga.applyZoom(ga.applyGlobalPosition(t));
+//                g.setTransform(t);
+//                g.setColor(Color.MAGENTA);
+//                g.drawLine((int) r.getPosX(), (int) r.getPosY(), in.getTransformedMouse().x, in.getTransformedMouse().y);
+//
+//                t.setTransform(o);
+//                ga.applyZoom(ga.applyGlobalPosition(t));
+//
+//                g.setTransform(t);
+////                g.rotate(r.getTheta());
+//
+//                
+//
+//                g.setTransform(o);
+//                ga.done(t);
+//                ga.done(o);
+            }
+        } else {
+            this.setCursor(Cursor.getDefaultCursor());
+        }
+
         if (in.isKeyPressed(KeyEvent.VK_CONTROL)) {
             if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
                 resetView();
-            }
-
-            if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
+            } else if (itemSelected == ITEM_LINE_POLI || itemSelected == ITEM_OBSTACLE_POLI) {
                 zoomEnabled = false;
                 int wr = -in.getMouseWheelRotation();
                 if (poliSegments + wr >= 3 && poliSegments + wr < 16) {
                     poliSegments += wr;
-                }
-            } else {
-                Robot r = null;
-                int d = Integer.MAX_VALUE;
-                synchronized (robots) {
-                    for (Robot robot : robots) {
-                        int x = (int) (robot.getPosX() - in.getTransformedMouse().x);
-                        int y = (int) (robot.getPosY() - in.getTransformedMouse().y);
-                        int tmpD = (int) (Math.sqrt(x * x + y * y));
-                        if (tmpD < d) {
-                            d = tmpD;
-                            r = robot;
-                        }
-                    }
-                }
-                r.setSelected(true);
-                if (in.isKeyPressed(KeyEvent.VK_R)) {
-                    zoomEnabled = false;
-                    int wr = -in.getMouseWheelRotation();
-                    r.setTheta(r.getTheta() + wr / 3.0);
-                } else if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON1) {
-                    r.setLocation(in.getTransformedMouse().x, in.getTransformedMouse().y);
                 }
             }
         } else {
@@ -353,6 +411,35 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                             }
                             point = null;
                             return;
+                        }
+                        point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
+                    } else {
+                        point = null;
+                    }
+                }
+            } else if (itemSelected == ITEM_REMOVE_AREA) {
+                if (in.mouseClicked()) {
+                    if (in.getMouseButton() == MouseEvent.BUTTON1) {
+                        if (point != null) {
+                            double x = (in.getTransformedMouse().x < point.x) ? in.getTransformedMouse().x : point.x;
+                            double y = (in.getTransformedMouse().y < point.y) ? in.getTransformedMouse().y : point.y;
+                            double w = Math.abs(in.getTransformedMouse().x - point.x);
+                            double h = Math.abs(in.getTransformedMouse().y - point.y);
+                            Rectangle2D.Double box = new Rectangle2D.Double(x, y, w, h);
+                            for (Iterator<Line2D.Double> it = env.linesIterator(); it.hasNext();) {
+                                Line2D.Double s = it.next();
+                                if (box.intersectsLine(s)) {
+                                    env.removeFollowLine(s);
+                                    it.remove();
+                                }
+                            }
+                            for (Iterator<Line2D.Double> it = env.obstaclesIterator(); it.hasNext();) {
+                                Line2D.Double s = it.next();
+                                if (box.intersectsLine(s)) {
+                                    env.removeWall(s);
+                                    it.remove();
+                                }
+                            }
                         }
                         point = new Point2D.Double(in.getTransformedMouse().x, in.getTransformedMouse().y);
                     } else {
@@ -431,7 +518,12 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 //        }
 //        per.draw(g);
         g.setStroke(new BasicStroke(5));
-        g.setColor(Color.green);
+
+        if (itemSelected == ITEM_REMOVE_LINE || itemSelected == ITEM_REMOVE_AREA) {
+            g.setColor(Color.red);
+        } else {
+            g.setColor(Color.green);
+        }
         if (point != null) {
             if (itemSelected == ITEM_LINE || itemSelected == ITEM_OBSTACLE_LINE || itemSelected == ITEM_REMOVE_LINE) {
                 g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
@@ -456,6 +548,14 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
                     oy = ty;
                 }
 //                g.drawLine((int) ix, (int) iy, (int) ox, (int) oy);
+            } else if (itemSelected == ITEM_REMOVE_AREA) {
+                double x = (in.getTransformedMouse().x < point.x) ? in.getTransformedMouse().x : point.x;
+                double y = (in.getTransformedMouse().y < point.y) ? in.getTransformedMouse().y : point.y;
+                double w = in.getTransformedMouse().x - point.x;
+                double h = in.getTransformedMouse().y - point.y;
+                g.drawRect((int) x - 2, (int) y - 2, (int) Math.abs(w) + 4, (int) Math.abs(h) + 4);
+                g.drawLine((int) point.x, (int) point.y, (int) in.getTransformedMouse().x, (int) in.getTransformedMouse().y);
+                g.drawLine((int) (point.x + w), (int) point.y, (int) (in.getTransformedMouse().x - w), (int) in.getTransformedMouse().y);
             }
         }
 
@@ -482,11 +582,13 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
         Robot r = new Robot();
         r.add(new IRProximitySensor());
+        r.add(new ReflectanceSensorArray());
         r.setEnvironment(p.getEnv());
         p.addRobot(r);
 
         r = new Robot();
         r.add(new IRProximitySensor());
+        r.add(new ReflectanceSensorArray());
         r.setEnvironment(p.getEnv());
         p.addRobot(r);
     }

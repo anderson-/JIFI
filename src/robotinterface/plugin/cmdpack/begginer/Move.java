@@ -52,6 +52,7 @@ import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
+import robotinterface.plugin.Pluggable;
 import robotinterface.robot.Robot;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
@@ -59,7 +60,7 @@ import robotinterface.robot.device.HBridge;
 /**
  * Procedimento de mover o robô.
  */
-public class Move extends Procedure implements Classifiable, FunctionToken<Move> {
+public class Move extends Procedure implements FunctionToken<Move> {
 
     private static Color myColor = Color.decode("#47B56C");
     private Argument arg0;

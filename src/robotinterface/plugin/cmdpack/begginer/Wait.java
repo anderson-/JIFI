@@ -38,7 +38,7 @@ import robotinterface.util.trafficsimulator.Timer;
  *
  * @author antunes
  */
-public class Wait extends Procedure implements Classifiable, FunctionToken<Wait> {
+public class Wait extends Procedure implements FunctionToken<Wait> {
 
     private static Color myColor = Color.decode("#9966FF");
     private Timer timer;

@@ -39,8 +39,11 @@ import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import robotinterface.algorithm.procedure.Function.FunctionEnd;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.MutableWidgetContainer;
+import robotinterface.gui.GUI;
+import robotinterface.gui.panels.FlowchartPanel;
+import robotinterface.gui.panels.FlowchartPanel.TmpVar;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
@@ -59,17 +62,27 @@ public class While extends Block {
     public While(String procedure) {
         setProcedure(procedure);
     }
+    
+    TmpVar whileValue = new TmpVar();
 
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
+        if (whileValue.countObservers() == 0) {
+            FlowchartPanel flowcharPanel = GUI.getInstance().getFlowcharPanel();//rm.getResource TODO
+            flowcharPanel.pushVar(whileValue);
+        }
         if (breakLoop) {
             breakLoop = false;
+            whileValue.setValue("false");
             return super.step(rm);
         }
 
         if (evaluate(rm)) {
+            whileValue.setValue("true");
             return start;
         }
+
+        whileValue.setValue("false");
         return super.step(rm);
     }
 
@@ -138,7 +151,6 @@ public class While extends Block {
                     GraphicFlowchart.GF_J,
                     GraphicFlowchart.GF_K);
 
-            
             //obtem o ultimo comando e calcula a largura real do bloco
             while (c.getNext() != null && !(c.getNext() instanceof BlockEnd)) {
                 c = c.getNext();

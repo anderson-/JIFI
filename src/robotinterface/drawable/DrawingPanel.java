@@ -99,7 +99,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private int globalX = 0, globalY = 0;
     protected boolean zoomEnabled = true;
     protected boolean midMouseButtonResetView = true;
-    private double zoom = 1.0;
+    protected double zoom = 1.0;
     protected boolean autoFullSize = true;
     private Rectangle2D.Double bounds;
     //********** componente atual
@@ -108,6 +108,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private Shape currentBounds;
     private boolean beginDrawing = false;
     private boolean mouseClick = false;
+    private boolean mousePressed = false;
     private boolean mouseClickAndRelease = false;
     private int mouseWheelRotation = 0;
     private Drawable currentObject;
@@ -118,7 +119,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private int mouseButton;
     private int mouseClickCount;
     protected int gridSize = 60;
-    protected Color gridColor= Color.LIGHT_GRAY;
+    protected Color gridColor = Color.LIGHT_GRAY;
 
     public DrawingPanel(Clock c) {
         super(true);
@@ -165,8 +166,8 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public DrawingPanel() {
         this(new Clock());
     }
-    
-    public Clock getClock(){
+
+    public Clock getClock() {
         return clock;
     }
 
@@ -234,11 +235,24 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         if (d != null) {
             synchronized (objects) {
                 if (!objects.contains(d)) {
-                    objects.add(0,d);
+                    objects.add(0, d);
+                    if (d instanceof WidgetContainer) {
+                        ((WidgetContainer) d).appendTo(this);
+                    }
                 }
             }
-            if (d instanceof WidgetContainer) {
-                ((WidgetContainer) d).appendTo(this);
+        }
+    }
+    
+    public final void add2(Drawable d) {
+        if (d != null) {
+            synchronized (objects) {
+                if (!objects.contains(d)) {
+                    objects.add(d);
+                    if (d instanceof WidgetContainer) {
+                        ((WidgetContainer) d).appendTo(this);
+                    }
+                }
             }
         }
     }
@@ -260,6 +274,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         if (d instanceof WidgetContainer) {
             for (Widget w : ((WidgetContainer) d)) {
                 super.remove(w.getJComponent());
+//                System.out.println(this.countComponents());
             }
         }
         synchronized (objects) {
@@ -328,8 +343,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             if ((d.getDrawableLayer() & DEFAULT_LAYER) != 0) {
                 currentTransform.setTransform(originalTransform);
                 g2.setTransform(currentTransform);
-                currentTransform.translate(globalX, globalY);
-                currentTransform.scale(zoom, zoom);
+                if ((d.getDrawableLayer() & ABSOLUTE) == 0) {
+                    currentTransform.translate(globalX, globalY);
+                    currentTransform.scale(zoom, zoom);
+                }
                 if (d instanceof GraphicObject) {
                     currentBounds = currentTransform.createTransformedShape(((GraphicObject) d).getObjectShape());
                 }
@@ -380,8 +397,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 
                     //tamanho do componente swing
                     currentTransform.setToIdentity();
-                    currentTransform.translate(globalX, globalY);
-                    currentTransform.scale(zoom, zoom);
+                    if ((d.getDrawableLayer() & ABSOLUTE) == 0) {
+                        currentTransform.translate(globalX, globalY);
+                        currentTransform.scale(zoom, zoom);
+                    }
                     currentTransform.translate(d.getPosX(), d.getPosY());
                     c.getJComponent().setBounds(currentTransform.createTransformedShape(c.getBounds()).getBounds());
                 }
@@ -392,7 +411,6 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
 //        int y = (int) ((mouse.y - globalY) / zoom);
 //        g.setColor(Color.black);
 //        g.drawString("[" + x + "," + y + "]", mouse.x, mouse.y);
-
         if (dragEnabled && dragging && mouseButton == MouseEvent.BUTTON3) {
             setPosition(mouseDragX, mouseDragY);
             mouseDragX = 0;
@@ -425,16 +443,16 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                 if (keyMoveEnabled) {
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_UP:
-                            globalY -= keyMoveConst;
-                            break;
-                        case KeyEvent.VK_DOWN:
                             globalY += keyMoveConst;
                             break;
+                        case KeyEvent.VK_DOWN:
+                            globalY -= keyMoveConst;
+                            break;
                         case KeyEvent.VK_LEFT:
-                            globalX -= keyMoveConst;
+                            globalX += keyMoveConst;
                             break;
                         case KeyEvent.VK_RIGHT:
-                            globalX += keyMoveConst;
+                            globalX -= keyMoveConst;
                             break;
                     }
                 }
@@ -481,6 +499,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public void mousePressed(MouseEvent e) {
         mouseButton = e.getButton();
         mouseClickAndRelease = true;
+        mousePressed = true;
         if (!super.hasFocus()) {
             super.requestFocusInWindow();
         }
@@ -490,6 +509,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     public void mouseReleased(MouseEvent e) {
         dragging = false;
         mouseClickCount = e.getClickCount();
+        mousePressed = false;
         if (mouseClickAndRelease) {
             mouseClick = true;
             mouseClickAndRelease = false;
@@ -644,10 +664,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public static void drawGrid(Graphics2D g, int s, double x, double y, double w, double h, boolean dots) {
-        if (s < 0){
+        if (s < 0) {
             return;
         }
-        
+
         Line2D.Double l = new Line2D.Double();
 
         if (dots) {
@@ -786,20 +806,24 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             DrawingPanel.this.dragEnabled = dragEnabled;
         }
 
-        public void applyZoom(AffineTransform t) {
+        public AffineTransform applyZoom(AffineTransform t) {
             t.scale(zoom, zoom);
+            return t;
         }
 
-        public void removeZoom(AffineTransform t) {
+        public AffineTransform removeZoom(AffineTransform t) {
             t.scale(1 / zoom, 1 / zoom);
+            return t;
         }
 
-        public void applyGlobalPosition(AffineTransform t) {
+        public AffineTransform applyGlobalPosition(AffineTransform t) {
             t.translate(globalX, globalY);
+            return t;
         }
 
-        public void removeGlobalPosition(AffineTransform t) {
+        public AffineTransform removeGlobalPosition(AffineTransform t) {
             t.translate(-globalX, -globalY);
+            return t;
         }
 
         public void reset(AffineTransform t) {
@@ -847,6 +871,10 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
                     tempTransformsInUse[i] = false;
                 }
             }
+        }
+
+        public double getZoom() {
+            return zoom;
         }
     }
 
@@ -911,6 +939,13 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return false;
         }
 
+        public boolean mousePressed() {
+            if (mousePressed && beginDrawing && currentBounds.contains(mouse)) {
+                return true;
+            }
+            return false;
+        }
+
         public int getMouseButton() {
             return mouseButton;
         }
@@ -947,7 +982,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             return mouseWheelRotation;
         }
 
-        public void getMouseClickConsume() {
+        public void consumeMouseClick() {
             mouseClickCount = 0;
             mouseClick = false;
         }

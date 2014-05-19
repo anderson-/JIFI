@@ -4,9 +4,10 @@
  */
 package robotinterface.gui.panels;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import robotinterface.gui.panels.sidepanel.SidePanel;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
@@ -16,10 +17,16 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Queue;
+import java.util.Random;
 import java.util.Stack;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import org.nfunk.jep.Variable;
 import robotinterface.algorithm.Command;
 import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.procedure.Block;
@@ -29,12 +36,13 @@ import robotinterface.algorithm.procedure.Function.FunctionEnd;
 import robotinterface.algorithm.procedure.If;
 import robotinterface.algorithm.procedure.Procedure;
 import robotinterface.drawable.Drawable;
-import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
-import robotinterface.drawable.swing.WidgetContainer;
+import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.panels.sidepanel.Item;
+import robotinterface.gui.panels.sidepanel.SidePanel;
 import robotinterface.interpreter.Interpreter;
 import robotinterface.plugin.PluginManager;
 
@@ -42,7 +50,13 @@ import robotinterface.plugin.PluginManager;
  *
  * @author antunes
  */
-public class FlowchartPanel extends DrawingPanel implements Interpertable {
+public class FlowchartPanel extends DrawingPanel implements Interpertable, Observer {
+
+    private static final Font defaultFont;
+
+    static {
+        defaultFont = new Font("Dialog", Font.BOLD, 10);
+    }
 
     private final Color selectionColor = new Color(0, .2f, .5f, .5f);
     private final Color executionColor = new Color(0, 1, 0, .5f);
@@ -60,16 +74,21 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     private Item itemSelected = null;
     private int clickDrop = 0;
     private GraphicObject executionCommand = null;
+    private ArrayList<Variable> v = new ArrayList<>();
+    private ArrayList<Color> c = new ArrayList<>();
+    private ArrayList<Queue<UpdateVar>> q = new ArrayList<>();
 
     public FlowchartPanel(Function function, final Interpreter interpreter) {
-        sidePanel = new SidePanel() {
+        sidePanel = new SidePanel(this) {
             @Override
-            protected void ItemSelected(Item item, Object ref) {
-                if (interpreter.getInterpreterState() == Interpreter.PLAY) {
+            public void itemSelected(Item item, Object ref) {
+                Command currentCommand = interpreter.getCurrentCommand();
+                Function function = interpreter.getMainFunction();
+                if (interpreter.getInterpreterState() == Interpreter.PLAY || currentCommand != function) {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
-                            JOptionPane.showMessageDialog(null, "Atenção: A edição do fluxograma está suspensa\naté que o código termine ou seja pausado.", "Atenção", JOptionPane.WARNING_MESSAGE);
+                            JOptionPane.showMessageDialog(null, "Atenção: A edição do fluxograma está suspensa\naté que o código termine ou seja parado.", "Atenção", JOptionPane.WARNING_MESSAGE);
                             if (itemSelected != null) {
                                 itemSelected.setSelected(false);
                                 itemSelected = null;
@@ -104,6 +123,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
         super.setName("Fluxograma");
         gridSize = -10;
         gridColor = new Color(0.95f, 0.95f, 0.95f);
+
     }
 
     public void hideSidePanel(boolean b) {
@@ -230,6 +250,13 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             }
             Command n = newCommand;
 
+//            interpreter.setInterpreterState(Interpreter.STOP);
+            if (addNext) {
+                c.addAfter(newCommand);
+            } else {
+                c.addBefore(newCommand);
+            }
+
             if (n instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) n).getDrawableResource();
                 if (d != null) {
@@ -239,14 +266,6 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
 
             pushUndo();
             redo.clear();
-
-            interpreter.setInterpreterState(Interpreter.STOP);
-
-            if (addNext) {
-                c.addAfter(newCommand);
-            } else {
-                c.addBefore(newCommand);
-            }
 
             if (c instanceof DummyBlock) {
                 removeGraphicResources(c);
@@ -367,7 +386,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
     public int getDrawableLayer() {
         return Drawable.BACKGROUND_LAYER | Drawable.DEFAULT_LAYER | Drawable.TOP_LAYER;
     }
-    
+
     private void printBounds(Graphics2D g, Command c) {
         Rectangle2D.Double bounds = c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K);
         g.draw(bounds);
@@ -701,5 +720,157 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable {
             setFunction(redo.pop());
             selection.clear();
         }
+    }
+
+    public void popVar(Variable varOld) {
+        int i = v.indexOf(varOld);
+        v.remove(i);
+        c.remove(i);
+    }
+
+    public void pushVar(Variable var) {
+        var.addObserver(this);
+        v.add(var);
+        c.add(generateRandomColor());
+        q.add(new LinkedList<UpdateVar>());
+        update(var, null);
+    }
+
+    //:(
+    public static class TmpVar extends Variable {
+
+        public TmpVar() {
+            super("");
+        }
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        Command cmd = interpreter.getCurrentCommand();
+        GraphicObject tmpGO = null;
+        if (interpreter.getInterpreterState() != Interpreter.STOP) {
+            if (cmd instanceof GraphicResource) {
+                GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
+                if (d != null && cmd != function) {
+                    tmpGO = d;
+                }
+            }
+        }
+
+        if (o instanceof Variable && tmpGO != null) {
+            Variable variable = (Variable) o;
+            int i = v.indexOf(variable);
+            Object value = variable.getValue();
+            if (value == null) {
+                value = "0";
+            }
+            UpdateVar updateVar = new UpdateVar(tmpGO.getPosX(), tmpGO.getPosY(), ((variable.getName().isEmpty()) ? "" : variable.getName() + " = ") + value, c.get(i));
+            this.add2(updateVar);
+            Queue<UpdateVar> queue = q.get(i);
+            queue.add(updateVar);
+            while (queue.size() > 5) {
+                this.remove(queue.poll());
+            }
+        }
+
+    }
+
+    float golden_ratio_conjugate = 0.618033988749895f;
+    float h = (float) Math.random();
+
+    public Color generateRandomColor() {
+        h += golden_ratio_conjugate;
+        h %= 1f;
+        return Color.getHSBColor(h, 0.35f, 0.95f);
+    }
+
+    private class UpdateVar implements Drawable {
+
+        private double x, y, a = 1;
+        private String value;
+        private Color color;
+
+        public UpdateVar(double x, double y, String value) {
+            this.x = x;
+            this.y = y;
+            this.value = value;
+            this.color = Color.white;
+        }
+
+        private UpdateVar(double x, double y, String value, Color color) {
+            this(x, y, value);
+            this.color = color;
+        }
+
+        @Override
+        public int getDrawableLayer() {
+            return GraphicObject.TOP_LAYER;
+        }
+
+        @Override
+        public void drawBackground(Graphics2D g, GraphicAttributes ga, InputState in) {
+
+        }
+
+        @Override
+        public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
+
+        }
+
+        @Override
+        public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
+
+            g.setColor(Color.BLACK);
+
+            if (a < .5) {
+                a *= 0.85;
+            } else {
+                a *= 0.95;
+            }
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) a));
+
+            AffineTransform o = g.getTransform();
+            AffineTransform n = ga.getT(o);
+            ga.applyGlobalPosition(n);
+            ga.applyZoom(n);
+            g.setTransform(n);
+            g.translate(x, y);
+
+            g.setFont(defaultFont);
+            g.setColor(color);
+            g.drawString(value, .8f, .8f);
+            g.drawString(value, .8f, -.8f);
+            g.drawString(value, -.8f, .8f);
+            g.drawString(value, -.8f, -.8f);
+            g.setColor(Color.BLACK);
+            g.drawString(value, 0, 0);
+
+            g.setTransform(o);
+            ga.done(n);
+
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            if (a < .8) {
+                y -= 0.8;
+            }
+            if (a < .1) {
+                FlowchartPanel.this.remove(this);
+            }
+        }
+
+        @Override
+        public void setLocation(double x, double y) {
+
+        }
+
+        @Override
+        public double getPosX() {
+            return 0;
+        }
+
+        @Override
+        public double getPosY() {
+            return 0;
+        }
+
     }
 }

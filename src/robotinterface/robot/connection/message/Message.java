@@ -19,6 +19,7 @@ public abstract class Message {
     }
     
     public static long TIMEOUT = 30;
+    public static long MAX_TIMEOUT = 300;//Long.MAX_VALUE
     private static long time = 0;
     private static int receivedPackages = 0;
     private static int lostPackages = 0;
@@ -45,12 +46,21 @@ public abstract class Message {
         received = true;
     }
 
+    /**
+     * Define que esta mensagem está aguardando resposta.
+     * A mensagem será aguardada por <code>TIMEOUT</code> antes de ser considerada perdida.
+     */
     public final void setWaiting() {
         startReadingTime = System.currentTimeMillis();
         received = false;
         tmpTimeout = TIMEOUT;
     }
     
+    /**
+     * Define que esta mensagem está aguardando resposta.
+     * O Parametro <code>tmpTimeout</code> define o tempo de espera antes que
+     * a mensagem seja considerada perdida.
+     */
     public final void setWaiting(long tmpTimeout) {
         setWaiting();
         this.tmpTimeout = tmpTimeout;
@@ -60,16 +70,23 @@ public abstract class Message {
         return tmpTimeout;
     }
 
+    /**
+     * Define se a mensagem está em um estado válido para a leitura.
+     * 
+     * 
+     * @return
+     * @throws robotinterface.robot.connection.message.Message.TimeoutException 
+     */
     public final boolean isValidRead() throws TimeoutException {
         if (received) {
             receivedPackages++;
             time += (System.currentTimeMillis() - startReadingTime);
-            return true;
+            return true; //retorna com sucesso
         } else if (System.currentTimeMillis() - startReadingTime >= tmpTimeout) {
             lostPackages++;
-            throw new TimeoutException();
+            throw new TimeoutException(); //notifica a perda da mensagem
         } else {
-            return false;
+            return false; //aguarda mais para receber a mensagem
         }
     }
 

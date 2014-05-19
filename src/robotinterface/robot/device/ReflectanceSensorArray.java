@@ -27,22 +27,32 @@ package robotinterface.robot.device;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.nio.ByteBuffer;
 import robotinterface.drawable.Drawable;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.Rotable;
+import robotinterface.gui.panels.RobotEditorPanel;
+import robotinterface.gui.panels.sidepanel.Classifiable;
+import robotinterface.gui.panels.sidepanel.Item;
+import robotinterface.drawable.Selectable;
 import robotinterface.robot.Robot;
 import robotinterface.robot.simulation.VirtualDevice;
 
-public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable {
+public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable {
 
     private final AffineTransform transform = new AffineTransform();
     private final int values[] = new int[5];
-    private double x, y;
+    private double x, y, theta;
     private final Point2D.Double src = new Point2D.Double();
     private final Point2D.Double dst = new Point2D.Double();
+    private boolean selected;
 
     @Override
     public byte[] defaultGetMessage() {
@@ -64,13 +74,13 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         int sx = (int) (Robot.size * .8 / 2);
         int sy = -sw / 2;
         transform.setToIdentity();
-        transform.rotate(robot.getTheta());
+        transform.rotate(robot.getTheta() + theta);
         transform.rotate(-3 * Math.PI / 12);
         src.setLocation(sx, sy);
         for (int si = 4; si >= 0; si--) {
             transform.rotate(Math.PI / 12);
             transform.deltaTransform(src, dst);
-            values[si] = (robot.getEnvironment().isOver(dst.x + 2 + robot.getPosX(), dst.y + 2 + robot.getPosY())) ? 1 : 0;
+            values[si] = (robot.getEnvironment().isOver(dst.x + x + 2 + robot.getPosX(), dst.y + y + 2 + robot.getPosY())) ? 1 : 0;
             value |= (values[si] << si);
         }
 
@@ -136,11 +146,16 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
 
 //        g.drawRect((int)dst.x, (int)dst.y, 3, 3);
         AffineTransform o = ga.getT(g.getTransform());
-        o.setTransform(o);
-        o.rotate(-3 * Math.PI / 12);
+        o.translate(x, y);
+        o.rotate(-3 * Math.PI / 12 + theta);
         g.setTransform(o);
         for (int si = 0; si < 5; si++) {
-            g.setColor(Color.getHSBColor(.0f, 1, (float) (values[si])));
+            if (selected) {
+                g.setColor(RobotEditorPanel.SELECTED_COLOR);
+                //selected = false;
+            } else {
+                g.setColor(Color.getHSBColor(.0f, 1, (float) (values[si])));
+            }
             o.rotate(Math.PI / 12);
             g.setTransform(o);
             g.fillOval(sx, sy, sw, sw);
@@ -162,5 +177,58 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         for (int i = 0; i < 5; i++) {
             values[i] = 0;
         }
+    }
+
+    @Override
+    public boolean isSelected() {
+        return selected;
+    }
+
+    @Override
+    public void setSelected(boolean s) {
+        selected = s;
+    }
+
+    @Override
+    public Item getItem() {
+        Area myShape = new Area();
+
+        Polygon tmpShape = new Polygon();
+        tmpShape.addPoint(0, 4);
+        tmpShape.addPoint(0, 0);
+        tmpShape.addPoint(10, 15);
+        myShape.add(new Area(tmpShape));
+
+        tmpShape.reset();
+        tmpShape.addPoint(10, 2);
+        tmpShape.addPoint(0, 20);
+        tmpShape.addPoint(20, 20);
+        myShape.exclusiveOr(new Area(tmpShape));
+
+        tmpShape.reset();
+        tmpShape.addPoint(20, 0);
+        tmpShape.addPoint(20, 5);
+        tmpShape.addPoint(10, 15);
+        myShape.exclusiveOr(new Area(tmpShape));
+
+        tmpShape.reset();
+        tmpShape.addPoint(20, 8);
+        tmpShape.addPoint(20, 13);
+        tmpShape.addPoint(10, 15);
+        myShape.exclusiveOr(new Area(tmpShape));
+
+        Item item = new Item("Sensor Refletivo", myShape, Color.decode("#C00086"), "");
+        item.setRef(this);
+        return item;
+    }
+
+    @Override
+    public void setTheta(double t) {
+        theta = t;
+    }
+
+    @Override
+    public double getTheta() {
+        return theta;
     }
 }

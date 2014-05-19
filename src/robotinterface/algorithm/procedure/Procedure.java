@@ -30,7 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
-import robotinterface.algorithm.Command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,29 +40,34 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.SymbolTable;
+import org.nfunk.jep.Variable;
+import robotinterface.algorithm.Command;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Component;
-import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.Space;
-import robotinterface.drawable.swing.component.WidgetLine;
+import robotinterface.drawable.swing.component.SubLineBreak;
 import robotinterface.drawable.swing.component.TextLabel;
 import robotinterface.drawable.swing.component.Widget;
+import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.GUI;
+import robotinterface.gui.panels.FlowchartPanel;
 import robotinterface.gui.panels.sidepanel.Classifiable;
 import robotinterface.gui.panels.sidepanel.Item;
-import robotinterface.robot.Robot;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.Expression;
 import robotinterface.interpreter.ResourceManager;
+import robotinterface.plugin.Pluggable;
+import robotinterface.robot.Robot;
 import robotinterface.util.trafficsimulator.Clock;
 
 /**
  * Comando genérico com suporte à variaveis.
  */
-public class Procedure extends Command implements Classifiable {
+public class Procedure extends Command implements Classifiable, Pluggable {
 
     private static Object nill = new Object();
     private static Color myColor = Color.decode("#ACD630");
@@ -174,7 +178,14 @@ public class Procedure extends Command implements Classifiable {
                     v = parser.getValueAsObject();
                 }
 
-                st.makeVarIfNeeded(varName, v);
+                Variable varOld;
+                varOld = st.getVar(varName);
+                FlowchartPanel flowcharPanel = GUI.getInstance().getFlowcharPanel();//rm.getResource TODO
+                if (varOld != null){
+                    flowcharPanel.popVar(varOld);
+                }
+                Variable var = st.makeVarIfNeeded(varName, v);
+                flowcharPanel.pushVar(var);
             }
         }
 
@@ -319,7 +330,13 @@ public class Procedure extends Command implements Classifiable {
         return myArgs.size();
     }
 
-    private void removeLineArg() {
+    protected void removeLineArg(int index) {
+        if (index < myArgs.size()) {
+            myArgs.remove(index);
+        }
+    }
+    
+    protected void removeLineArg() {
         if (myArgs.size() > 0) {
             myArgs.remove(myArgs.size() - 1);
         }

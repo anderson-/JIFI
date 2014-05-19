@@ -41,7 +41,7 @@ import robotinterface.drawable.util.QuickFrame;
 import robotinterface.gui.GUI;
 import robotinterface.gui.panels.SimulationPanel;
 import robotinterface.plugin.cmdpack.begginer.Move;
-import robotinterface.plugin.cmdpack.begginer.ReadDevice;
+import robotinterface.plugin.cmdpack.begginer.Read;
 import robotinterface.plugin.cmdpack.begginer.Wait;
 import robotinterface.plugin.cmdpack.util.PrintString;
 import robotinterface.robot.Robot;
@@ -91,6 +91,13 @@ public class Interpreter extends Thread {
         this.robot = robot;
         resourceManager.setResource(robot);
     }
+//    
+//    public boolean isRunning(){
+//        if (state == PLAY){
+//            return running;
+//        }
+//        return false;
+//    }
 
     public void reset() {
         if (mainFunction != null) {
@@ -208,6 +215,9 @@ public class Interpreter extends Thread {
             currentCmd = currentCmd.step(resourceManager);
 
         } catch (ExecutionException e) {
+            if (e instanceof ForceInterruptionException){
+                return false;
+            }
             //GUI.print("Erro: " + e.getMessage());
             errorCmd = currentCmd;
             String msg = "Houve um problema ao executar o código atual.\nO bloco que originou o erro foi destacado.\nFavor corrigir e tentar novamente.";

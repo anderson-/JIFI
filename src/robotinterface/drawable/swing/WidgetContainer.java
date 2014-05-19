@@ -159,10 +159,10 @@ public abstract class WidgetContainer implements GraphicObject, Iterable<Widget>
     }
 
     public GraphicObject appendTo(DrawingPanel dp) {
-        if (parent == null) {
+        if (parent != dp) {
             parent = dp;
-            addWidget(null, 0, 0, 0, 0);
         }
+        addWidget(null, 0, 0, 0, 0);
         return this;
     }
 

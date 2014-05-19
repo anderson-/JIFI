@@ -184,7 +184,7 @@ public class Environment {
         reader.close();
     }
 
-    public double beamDistance(double x, double y, double theta, double d) {
+    public double beamDistance(double x, double y, double theta) {
         double df = IRProximitySensor.MAX_DISTANCE;
         double dt;
         double x2 = x + IRProximitySensor.MAX_DISTANCE * cos(theta);
@@ -199,7 +199,7 @@ public class Environment {
                 p = lineIt.next();
                 tmpLine.setLine(x, y, p.getX(), p.getY());
                 if (tmpLine.intersectsLine(wall)) {
-                    dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2)) - d;
+                    dt = sqrt(pow(x - p.getX(), 2) + pow(y - p.getY(), 2));
                     if (df > dt && dt > 0) {
                         df = dt;
                     }

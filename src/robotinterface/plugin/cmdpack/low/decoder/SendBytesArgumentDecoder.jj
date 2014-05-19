@@ -1,0 +1,326 @@
+
+options {
+  JAVA_UNICODE_ESCAPE = true;
+  STATIC = false;
+  DEBUG_PARSER = false; 
+}
+
+PARSER_BEGIN(SendBytesArgumentDecoder)
+package robotinterface.plugin.cmdpack.low.decoder;
+
+import java.nio.ByteBuffer;
+import java.util.Vector;
+import java.math.BigInteger;
+import org.nfunk.jep.JEP;
+
+/** Simple brace matcher. */
+public class SendBytesArgumentDecoder {
+
+
+}
+
+PARSER_END(SendBytesArgumentDecoder)
+
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL :
+    < DECIMAL_LITERAL > ([ "l", "L" ])?
+  | < HEX_LITERAL > ([ "l", "L" ])?
+  | < OCTAL_LITERAL > ([ "l", "L" ])? >
+| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >
+| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >
+| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >
+| < STRING_LITERAL :
+    "\""
+    (
+      (~[ "\"", "\\", "\n", "\r" ])
+    |
+      (
+        "\\"
+        (
+          [ "n", "t", "b", "r", "f", "\\", "'", "\"" ]
+        | [ "0"-"7" ] ([ "0"-"7" ])?
+        | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]
+        )
+      )
+    )*
+    "\"" >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER :
+    < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    )* >
+| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z", "À"-"Ö", "Ø"-"ö", "ø"-"ÿ", "Ā"-"῿", "぀"-"㆏", "㌀"-"㍿", "㐀"-"㴭", "一"-"鿿", "豈"-"﫿" ] >
+| < #DIGIT : [ "0"-"9", "٠"-"٩", "۰"-"۹", "०"-"९", "০"-"৯", "੦"-"੯", "૦"-"૯", "୦"-"୯", "௧"-"௯", "౦"-"౯", "೦"-"೯", "൦"-"൯", "๐"-"๙", "໐"-"໙", "၀"-"၉" ] >
+}
+
+<DEFAULT>TOKEN :
+{
+  < LBRACE : "{" > : STATEWUT
+}
+
+<STATEWUT> TOKEN :
+{
+  < RBRACE : "}" > : DEFAULT
+}
+
+<STATEWUT> MORE :
+{
+  < ANYTHING : (~["}"]) >
+}
+
+public Object decode (ByteBuffer msg, JEP parser) : 
+{
+  Object o;
+}
+{
+  o = expression(parser) [ o = suffix(o, parser, msg) ]
+  {
+    if (o instanceof String){
+        //System.out.println("string:" + o);
+        parser.parseExpression((String) o);
+        o = parser.getValueAsObject();
+        //System.out.println("result:" + o);
+    }
+    return o;
+  } 
+}
+
+
+private String expression (JEP parser) :
+{
+  boolean invertBytes = false;
+  String statement = "";
+}
+{
+  [
+    "-"
+    {
+        invertBytes = true;
+    }
+  ] 
+  statement = evaluableThing()
+  {
+    parser.parseExpression(statement);
+    Object value = parser.getValueAsObject();
+    StringBuilder sb = new StringBuilder();
+    if (invertBytes){
+        if (value instanceof Number) {
+            double d = ((Number) value).doubleValue();
+            sb.append("[").append(d).append("]");
+        } else if (value instanceof String) {
+            sb.append("[");
+            boolean first = true;
+            char [] array = ((String)value).toCharArray();
+            for (int i = array.length-1; i >= 0; i--){
+                char c = array[i];
+                if (first){
+                    sb.append(((byte)c));
+                    first = false;
+                } else {
+                    sb.append(",").append(((byte)c));
+                }
+            }
+            sb.append("]");
+        } else if (value instanceof Vector) {
+            Vector v = (Vector) value;
+            sb.append("[");
+            boolean first = true;
+            for (int i = v.size()-1; i >= 0; i--){
+                if (first){
+                    sb.append(v.get(i));
+                    first = false;
+                } else {
+                    sb.append(",").append(v.get(i));
+                }
+            }
+            sb.append("]");
+        } else {
+            //System.out.println("ND:" + value);
+            return "";
+        }
+        //System.out.println("-:" + value + " -> '" + sb.toString()+ "'");
+        return sb.toString();
+    } else {
+        if (value instanceof Number) {
+            double d = ((Number) value).doubleValue();
+            sb.append("[").append(d).append("]");
+        } else if (value instanceof String) {
+            sb.append("[");
+            boolean first = true;
+            for (char c : ((String)value).toCharArray()){
+                if (first){
+                    sb.append(((byte)c));
+                    first = false;
+                } else {
+                    sb.append(",").append(((byte)c));
+                }
+            }
+            sb.append("]");
+        } else {
+            sb.append("[").append(statement).append("]");
+        }
+        //System.out.println("p:" + statement + " -> " + sb.toString());
+        return sb.toString();
+    }
+  }
+}
+
+private String evaluableThing() :
+{
+    String statement = "";
+    Token t;
+    Object o;
+}
+{
+  statement = literal()
+  {
+    return statement;
+  }
+| statement = codeExpression()
+  {
+    return statement;
+  }
+| "["
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+  }
+  [
+    statement = evaluableThing()
+    {
+      sb.append(statement);
+    }
+    (
+      LOOKAHEAD(2)
+      "," statement = evaluableThing()
+      {
+        sb.append(",").append(statement);
+      }
+    )*
+  ]
+  [ "," ] "]"
+  {
+    sb.append("]");
+    return sb.toString();
+  }
+}
+
+private String literal() :
+{
+  Token t;
+}
+{
+  t = < INTEGER_LITERAL >
+  {
+    return t.image;
+  }
+| t = < STRING_LITERAL >
+  {
+    return t.image;
+  }
+| t = < IDENTIFIER >
+  {
+    return t.image;
+  }
+}
+
+private Object suffix(Object o, JEP parser, ByteBuffer msg) :
+{
+    String statement = "";
+    int a = 0, b = 8;
+    Object value;
+}
+{
+  "[" statement = evaluableThing()
+  {
+    parser.parseExpression(statement);
+    value = parser.getValueAsObject();
+    if (value instanceof Number) {
+        double d = ((Number) value).doubleValue();
+        a = (int) d;
+    }
+  }
+  [ "," statement = evaluableThing()
+  {
+    parser.parseExpression(statement);
+    value = parser.getValueAsObject();
+    if (value instanceof Number) {
+        double d = ((Number) value).doubleValue();
+        b = (int) d;
+    }
+  }
+  ] "]"
+  {
+    double d = 0;
+    //System.out.println("Parsing:" + o);
+    parser.parseExpression(o.toString());
+    o = parser.getValueAsObject();
+    if (o instanceof Number) {
+        d = ((Number) o).doubleValue();
+    } else if (o instanceof Vector){
+        Vector v = (Vector) o;
+        if (v.size() > a){
+            o = v.get(a);
+            if (o instanceof Number) {
+                d = ((Number) o).doubleValue();
+            }
+        }  
+    }
+    //System.out.println("d:" + d);
+    
+    int umax = (int)Math.pow(2,b);
+    int min = (int)-Math.pow(2,b-1);
+    int max = (int)Math.pow(2,b-1)-1;
+
+    if (d >= 0){
+        while(d > max){
+            d -= umax;
+        }
+    } else {
+        while(d < min){
+            d += umax;
+        }
+    }
+
+    //System.out.println("cast["+b+":"+max+","+min+"]:" + d);
+
+    BigInteger bi = new BigInteger("" + ((long)d), 10);
+    //System.out.println("bi:" + bi);
+    byte[] array = bi.toByteArray();
+    //for (int i = 0; i < array.length; i++){
+         //System.out.println(i+":" + array[i]);
+    //}
+    if (a >= 0 && a < array.length){
+        return (Byte) array[a];
+    } else {
+        return (Byte) array[0];
+    }
+
+  }
+}
+
+private String codeExpression() : 
+{
+  Token t;
+}
+{
+  < LBRACE > t = < RBRACE >
+  {
+    return t.image.substring(0, t.image.length() - 1);
+  }
+}

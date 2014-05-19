@@ -46,6 +46,7 @@ import robotinterface.algorithm.Command;
 import static robotinterface.algorithm.Command.identChar;
 import robotinterface.algorithm.GraphicFlowchart;
 import robotinterface.algorithm.parser.parameterparser.Argument;
+import static robotinterface.algorithm.procedure.DummyBlock.SHAPE_ROUND_RECTANGLE;
 import static robotinterface.algorithm.procedure.DummyBlock.createSimpleBlock;
 import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
@@ -75,7 +76,7 @@ public class Function extends Block {
         @Override
         public GraphicObject getDrawableResource() {
             if (resource == null) {
-                resource = createSimpleBlock(this, "   END   ", Color.black, Color.decode("#631864"));
+                resource = createSimpleBlock(this, "   END   ", Color.black, Color.decode("#631864"), SHAPE_ROUND_RECTANGLE);
             }
             return resource;
         }
@@ -485,7 +486,7 @@ public class Function extends Block {
     public GraphicObject getDrawableResource() {
         if (resource == null) {
             //resource = createDrawableFunction(this);
-            resource = createSimpleBlock(this, " BEGIN ", Color.black, Color.decode("#631864"));
+            resource = createSimpleBlock(this, " BEGIN ", Color.black, Color.decode("#631864"), SHAPE_ROUND_RECTANGLE);
         }
         return resource;
     }

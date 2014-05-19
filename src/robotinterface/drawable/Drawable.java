@@ -21,9 +21,16 @@ public interface Drawable extends Placeable{
     public static Stroke DEFAULT_STROKE  = new BasicStroke(1);
     public static Stroke BOLD_STROKE  = new BasicStroke(5);
     
-    public static final int BACKGROUND_LAYER = 1;
-    public static final int DEFAULT_LAYER = 2;
-    public static final int TOP_LAYER = 4;
+    public static final int ABSOLUTE = 1;
+    public static final int BACKGROUND_LAYER = 2;
+    public static final int DEFAULT_LAYER = 4;
+    public static final int TOP_LAYER = 8;
+    public static final int BORDER = 16;
+    
+    /*
+    * um painter para cada tipo de elemento (fundo, bordas, etc) do componente?
+    * como desenhar as camadas? como desenhar os controles swing???
+    */
     
     public int getDrawableLayer();
 

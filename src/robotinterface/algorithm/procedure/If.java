@@ -49,17 +49,20 @@ import robotinterface.algorithm.Command;
 import robotinterface.algorithm.GraphicFlowchart;
 import static robotinterface.algorithm.GraphicFlowchart.GF_J;
 import robotinterface.algorithm.parser.parameterparser.Argument;
-import robotinterface.drawable.swing.DrawableProcedureBlock;
 import robotinterface.drawable.GraphicObject;
-import robotinterface.drawable.swing.MutableWidgetContainer;
-import robotinterface.drawable.swing.component.WidgetLine;
-import robotinterface.drawable.swing.component.TextLabel;
-import robotinterface.drawable.swing.component.Widget;
 import robotinterface.drawable.graphicresource.GraphicResource;
+import robotinterface.drawable.swing.DrawableProcedureBlock;
+import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.drawable.swing.component.Component;
 import robotinterface.drawable.swing.component.Space;
 import robotinterface.drawable.swing.component.SubLineBreak;
+import robotinterface.drawable.swing.component.TextLabel;
+import robotinterface.drawable.swing.component.Widget;
+import robotinterface.drawable.swing.component.WidgetLine;
 import robotinterface.drawable.util.QuickFrame;
+import robotinterface.gui.GUI;
+import robotinterface.gui.panels.FlowchartPanel;
+import robotinterface.gui.panels.FlowchartPanel.TmpVar;
 import robotinterface.gui.panels.sidepanel.Item;
 import robotinterface.interpreter.ExecutionException;
 import robotinterface.interpreter.ResourceManager;
@@ -124,12 +127,20 @@ public class If extends Procedure {
         return true;
     }
 
+    TmpVar ifValue = new TmpVar();
+
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
+        if (ifValue.countObservers() == 0) {
+            FlowchartPanel flowcharPanel = GUI.getInstance().getFlowcharPanel();//rm.getResource TODO
+            flowcharPanel.pushVar(ifValue);
+        }
         //calcula o valor da expressão
         if (evaluate(rm)) {
+            ifValue.setValue("true");
             return blockTrue.step(rm);
         } else {
+            ifValue.setValue("false");
             return blockFalse.step(rm);
         }
     }
@@ -202,11 +213,10 @@ public class If extends Procedure {
 
         Rectangle2D.Double btb = blockTrue.getBounds(null, j, k);
         Rectangle2D.Double bfb = blockFalse.getBounds(null, j, k);
-        
+
 //        double w = btb.width + 2 * k + bfb.width;
 //        double pbtx = -btb.width - k;
 //        double pbfx = bfb.width / 2 + k;
-
         Rectangle2D.Double t = null;
         if (this instanceof GraphicResource) {
             GraphicObject d = ((GraphicResource) this).getDrawableResource();
@@ -772,7 +782,6 @@ public class If extends Procedure {
 //        tx.rotate(angle);
 //        g.fill(tx.createTransformedShape(arrowHead));
 //    }
-
     @Override
     public void drawLines(Graphics2D g) {
         if (resource != null) {
@@ -861,7 +870,7 @@ public class If extends Procedure {
             //linha final
             path.moveTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
             path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
-            
+
             Command c = getNext();
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
@@ -873,11 +882,10 @@ public class If extends Procedure {
             g.draw(path);
 
             g.setColor(Color.red);
-            
+
 //            drawArrowHead(g, bThis.getCenterX(), bBlock.getMaxY() - 7,0);
 //            drawArrowHead(g, bTrueEnd.getCenterX(), bTrueStart.getMinY()- 7,0);
 //            drawArrowHead(g, bFalseEnd.getCenterX(), bFalseStart.getMinY()- 7,0);
-
         }
     }
 

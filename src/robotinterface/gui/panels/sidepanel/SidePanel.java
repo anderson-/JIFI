@@ -8,6 +8,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +17,8 @@ import javax.swing.UIManager;
 import robotinterface.drawable.swing.WidgetContainer;
 import robotinterface.drawable.GraphicObject;
 import robotinterface.drawable.DrawingPanel;
+import robotinterface.drawable.graphicresource.SimpleContainer;
+import robotinterface.drawable.swing.MutableWidgetContainer;
 import robotinterface.plugin.Pluggable;
 
 /**
@@ -33,16 +37,20 @@ public class SidePanel extends WidgetContainer {
     private boolean dragDisabled = false;
     private RoundRectangle2D.Double closeBtn;
     private Color color = Color.gray;
-    private ArrayList<Item> itens;
+    private ArrayList<GraphicObject> itens;
+    private ArrayList<GraphicObject> tmpItens;
+    private DrawingPanel drawingPanel;
 
-    public SidePanel() {
+    public SidePanel(DrawingPanel drawingPanel) {
         itens = new ArrayList<>();
+        tmpItens = new ArrayList<>();
+
+        this.drawingPanel = drawingPanel;
 
         Item.setFont(UIManager.getDefaults().getFont("TabbedPane.font"));
 
-//        itens.add(new Item("Item 1", null, new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#C05480")));
-//        itens.add(new Item("Item 2", null, SimpleContainer.createDiamond(new Rectangle2D.Double(0, 0, 20, 20)), Color.decode("#98CB59")));
-
+//        addTmp(new GraphicObject("GraphicObject 1", new RoundRectangle2D.Double(0, 0, 20, 20, 5, 5), Color.decode("#C05480")));
+//        addTmp(new GraphicObject("GraphicObject 2", SimpleContainer.createDiamond(new Rectangle2D.Double(0, 0, 20, 20)), Color.decode("#98CB59")));
         this.closeBtn = new RoundRectangle2D.Double(-15, 15, 20, 20, 10, 10);
         bounds.x = 0;
     }
@@ -54,14 +62,99 @@ public class SidePanel extends WidgetContainer {
     public void setColor(Color color) {
         this.color = color;
     }
-    
-    public void setOpen (boolean b){
+
+    public void setOpen(boolean b) {
         open = b;
     }
 
     @Override
     public int getDrawableLayer() {
         return GraphicObject.TOP_LAYER;
+    }
+
+    public void clearTempPanel() {
+        tmpItens.clear();
+    }
+    
+    public void clearPanel() {
+        itens.clear();
+    }
+
+    boolean switchAnim = false;
+    boolean animLeft = true;
+    double animPos = 0;
+
+    public void switchAnimLeft() {
+        if (!tmpItens.isEmpty()) {
+            switchAnim = true;
+            animLeft = true;
+        }
+    }
+
+    public void switchAnimRight() {
+        if (!tmpItens.isEmpty()) {
+            switchAnim = true;
+            animLeft = false;
+        }
+    }
+
+    public void hideSwing(boolean hide) {
+        if (hide) {
+            for (GraphicObject o : tmpItens) {
+                if (o instanceof MutableWidgetContainer) {
+                    MutableWidgetContainer c = (MutableWidgetContainer) o;
+                    drawingPanel.remove(c);
+                }
+            }
+        } else {
+            for (GraphicObject o : tmpItens) {
+                if (o instanceof MutableWidgetContainer) {
+                    MutableWidgetContainer c = (MutableWidgetContainer) o;
+                    drawingPanel.add(c);
+                }
+            }
+        }
+    }
+
+    private void drawItens(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in, ArrayList<GraphicObject> itens, boolean tmp) {
+        int x;
+        if (tmp) {
+            x = (int) (10 + animPos);
+        } else {
+            x = (int) (10 - panelWidth + animPos);
+        }
+        int y = 10 + panelItensY;
+        int wtmp = panelWidth;
+        panelWidth = 0;
+        ArrayList<GraphicObject> itensTmp = (ArrayList<GraphicObject>) itens.clone();
+        for (GraphicObject i : itensTmp) {
+
+//                g.setColor(Color.GREEN);
+//                g.draw(i.getObjectShape());
+            if (i instanceof Item) {
+                i.setLocation(x, y);
+                i.draw(g, ga, in);
+            } else {
+                i.setLocation(x + drawingPanel.getWidth() - panelWidth, y);
+                AffineTransform t = ga.getT(g.getTransform());
+                g.translate(x, y);
+                i.draw(g, ga, in);
+                g.setTransform(t);
+                i.getObjectBouds();
+            }
+
+            y += i.getObjectBouds().height + 10;
+            int w = (int) (i.getObjectBouds().width + 25);
+            if (w > panelWidth) {
+                panelWidth = w;
+            }
+        }
+
+        if (wtmp > panelWidth) {
+            panelWidth = wtmp;
+        }
+
+        panelItensHeight = y - panelItensY + 30;
     }
 
     @Override
@@ -125,20 +218,47 @@ public class SidePanel extends WidgetContainer {
             animOpen = true;
         } else if (in.isKeyPressed(KeyEvent.VK_2)) {
             animClose = true;
+        } else if (in.isKeyPressed(KeyEvent.VK_3)) {
+            switchAnimLeft();
+        } else if (in.isKeyPressed(KeyEvent.VK_4)) {
+            switchAnimRight();
         }
 
-        int x = 10, y = 10 + panelItensY;
-        ArrayList<Item> itensTmp = (ArrayList<Item>) itens.clone();
-        for (Item i : itensTmp) {
-            i.setLocation(x, y);
-//                g.setColor(Color.GREEN);
-//                g.draw(i.getObjectShape());
-            i.draw(g, ga, in);
-            y += i.getObjectBouds().height + 10;
-            panelWidth = (int) (i.getObjectBouds().width + 2 * 10);
+        //animação
+        double velocity = .2; //em segundos
+        velocity = ga.getClock().getDt() * panelWidth / velocity;//converte para px/s dS=dt*(S/t) => dS/dt=v=(S/t) => S=v*t
+
+        //set drawing bounds?
+        g.setClip(0, 0, panelWidth, ga.getHeight());
+        if (switchAnim) {
+            hideSwing(true);
+            if (animLeft) {
+                if (animPos + velocity < panelWidth) {
+                    animPos += velocity;
+                } else {
+                    switchAnim = false;
+                }
+            } else {
+                if (animPos - velocity > 0) {
+                    animPos -= velocity;
+                } else {
+                    switchAnim = false;
+                }
+            }
+        } else {
+            if (animLeft) {
+                animPos = panelWidth;
+            } else {
+                animPos = 0;
+                hideSwing(false);
+            }
+//            animPos = panelWidth;
         }
 
-        panelItensHeight = y - panelItensY + 30;
+        drawItens(g, ga, in, itens, false);
+        drawItens(g, ga, in, tmpItens, true);
+
+        g.setClip(null);
 
         //scrollbar
         if (ga.getHeight() != 0 && panelItensHeight != 0) {
@@ -150,13 +270,8 @@ public class SidePanel extends WidgetContainer {
             g.fillRect(panelWidth - 2, (int) barMidPos, 2, (int) barSize);
         }
 
-        //animação
-
-        double velocity = .2; //em segundos
-        velocity = ga.getClock().getDt() * panelWidth / velocity;//converte para px/s dS=dt*(S/t) => dS/dt=v=(S/t) => S=v*t
-
         if (animOpen) {
-            if (bounds.x > ga.getWidth() - panelWidth) {
+            if (bounds.x - velocity > ga.getWidth() - panelWidth) {
                 bounds.x -= velocity;
             } else {
                 bounds.x = ga.getWidth() - panelWidth;
@@ -165,7 +280,7 @@ public class SidePanel extends WidgetContainer {
             }
         } else if (animClose) {
             open = false;
-            if (bounds.x < ga.getWidth()) {
+            if (bounds.x + velocity < ga.getWidth()) {
                 bounds.x += velocity;
             } else {
                 bounds.x = ga.getWidth();
@@ -183,28 +298,79 @@ public class SidePanel extends WidgetContainer {
         }
     }
 
-    public void add(Item item) {
-        itens.add(item);
-        item.setPanel(this);
+    public void add(GraphicObject item) {
+        add(item, itens);
     }
 
-    public void addAll(Collection<Item> list) {
-        itens.addAll(list);
-        for (Item i : list) {
-            i.setPanel(this);
-        }
+    public void addAll(Collection<GraphicObject> list) {
+        addAll(list, itens);
     }
 
     public void addAllClasses(Collection<Class> list) {
+        addAllClasses(list, itens);
+    }
+
+    public void addTmp(GraphicObject item) {
+        add(item, tmpItens);
+    }
+
+    public void addTmpAll(Collection<GraphicObject> list) {
+        addAll(list, tmpItens);
+    }
+
+    public void addTmpAllClasses(Collection<Class> list) {
+        addAllClasses(list, tmpItens);
+    }
+
+    private void add(GraphicObject item, ArrayList<GraphicObject> itens) {
+        itens.add(item);
+        if (item instanceof Item) {
+            ((Item) item).setPanel(this);
+        }
+        if (item instanceof WidgetContainer) {
+            drawingPanel.add(item);
+            if (item instanceof MutableWidgetContainer) {
+                ((MutableWidgetContainer) item).setAbsolute(true);
+                ((MutableWidgetContainer) item).setWidgetVisible(true);
+                ((MutableWidgetContainer) item).setMouseBlocked(true);
+                ((MutableWidgetContainer) item).setSimpleDraw(true);
+            }
+        }
+    }
+
+    private void addAll(Collection<GraphicObject> list, ArrayList<GraphicObject> itens) {
+        itens.addAll(list);
+        for (GraphicObject i : list) {
+            if (i instanceof Item) {
+                ((Item) i).setPanel(this);
+            }
+            if (i instanceof WidgetContainer) {
+                drawingPanel.add(i);
+                if (i instanceof MutableWidgetContainer) {
+                    ((MutableWidgetContainer) i).setAbsolute(true);
+                }
+            }
+        }
+    }
+
+    private void addAllClasses(Collection<Class> list, ArrayList<GraphicObject> itens) {
         for (Class c : list) {
             try {
                 if (Classifiable.class.isAssignableFrom(c)) {
                     Classifiable cl = (Classifiable) c.newInstance();
-                    Item i = cl.getItem();
+                    GraphicObject i = cl.getItem();
                     if (i != null) {
                         itens.add(i);
-                        i.setPanel(this);
-                        i.setRef(c);
+                        if (i instanceof Item) {
+                            ((Item) i).setPanel(this);
+                            ((Item) i).setRef(c);
+                        }
+                        if (i instanceof WidgetContainer) {
+                            drawingPanel.add(i);
+                            if (i instanceof MutableWidgetContainer) {
+                                ((MutableWidgetContainer) i).setAbsolute(true);
+                            }
+                        }
                     }
                 } else {
                     throw new Exception("ClassTypeError");
@@ -232,7 +398,7 @@ public class SidePanel extends WidgetContainer {
         return null;
     }
 
-    protected void ItemSelected(Item item, Object ref) {
+    public void itemSelected(Item item, Object ref) {
         System.out.println(ref);
     }
 }

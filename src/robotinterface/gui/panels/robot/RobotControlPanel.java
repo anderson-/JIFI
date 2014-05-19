@@ -12,7 +12,10 @@ import java.awt.event.MouseListener;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -22,10 +25,12 @@ import robotinterface.robot.action.RotateAction;
 import robotinterface.robot.connection.Connection;
 import robotinterface.robot.connection.Serial;
 import robotinterface.robot.connection.Serial2;
+import robotinterface.robot.device.Button;
 import robotinterface.robot.device.Compass;
 import robotinterface.robot.device.Device;
 import robotinterface.robot.device.HBridge;
 import robotinterface.robot.device.IRProximitySensor;
+import robotinterface.robot.device.LED;
 import robotinterface.robot.device.ReflectanceSensorArray;
 import robotinterface.robot.simulation.VirtualConnection;
 
@@ -51,40 +56,91 @@ public class RobotControlPanel extends JPanel {
         public ConnectionStatusGraph() {
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
+        public void step() {
             int nbars = (int) (getWidth() / size);
-            {
-                if (serial != null && serial.isConnected()) {
-                    int s = serial.getSendedPackages();
-                    int r = serial.getReceivedPackages();
-                    sendedArray.add(s - sended);
-                    receivedArray.add(r - received);
-                    sended = s;
-                    received = r;
-                }
-
+            int newSended = 0;
+            int newReceived = 0;
+            int newLost = 0;
+            if (serial != null && serial.isConnected()) {
+                int s = serial.getSendedPackages();
+                int r = serial.getReceivedPackages();
                 int l = Device.getLostPackages();
-                lostArray.add(l - lost);
+
+                newSended = s - sended;
+                newReceived = r - received;
+                newLost = l - lost;
+
+                sendedArray.add(newSended);
+                receivedArray.add(newReceived);
+                lostArray.add(newLost);
+
+                sended = s;
+                received = r;
                 lost = l;
+            }
 
-                float ping = Device.getPingEstimative();
-                if (!Float.isNaN(ping)) {
-                    statusLabel2.setText("Ping: " + (int) ping + " ms");
+            //atualiza botão
+            if (button != null) {
+                if (connection == null || !connection.isConnected()) {
+                    button.setIcon(ICON_OFFLINE);
                 } else {
-                    statusLabel2.setText(" - ");
-                }
+                    boolean oldLost = true;
 
-                //statusLabel3.setText("Lost: " + lost);
-                statusLabel3.setText(sended + "|" + received + "|" + lost);
-                statusLabel3.setToolTipText("Enviado|Recebido|Perdido");
+                    for (int i = lostArray.size() - 1; i > lostArray.size() - 6 && i >= 0; i--) {
+                        oldLost &= (lostArray.get(i) > 0 || sendedArray.get(i) == 0);
+                        oldLost &= (receivedArray.get(i) == 0);
+                    }
 
-                while (sendedArray.size() > nbars) {
-                    sendedArray.remove(0);
-                    lostArray.remove(0);
-                    receivedArray.remove(0);
+                    if (newReceived == 0 && newLost >= 0) {
+                        if (newSended > 0) {
+                            if (oldLost) {
+                                button.setIcon(ICON_ERROR);
+                            } else {
+                                button.setIcon(ICON_TRANSMIT);
+                            }
+                        } else {
+                            button.setIcon(ICON_IDLE);
+                        }
+                    } else if (newSended == 0) {
+                        if (newReceived > 0) {
+                            button.setIcon(ICON_RECEIVE);
+                        } else {
+                            if (virtual) {
+                                button.setIcon(ICON_RECEIVE_TRANSMITV);
+                            } else {
+                                button.setIcon(ICON_IDLE);
+                            }
+                        }
+                    } else {
+                        if (virtual) {
+                            button.setIcon(ICON_RECEIVE_TRANSMITV);
+                        } else {
+                            button.setIcon(ICON_RECEIVE_TRANSMIT);
+                        }
+                    }
                 }
             }
+
+            float ping = Device.getPingEstimative();
+            if (!Float.isNaN(ping)) {
+                statusLabel2.setText("Ping: " + (int) ping + " ms");
+            } else {
+                statusLabel2.setText(" - ");
+            }
+
+            //statusLabel3.setText("Lost: " + lost);
+            statusLabel3.setText(sended + "|" + received + "|" + lost);
+            statusLabel3.setToolTipText("Enviado|Recebido|Perdido");
+
+            while (sendedArray.size() > nbars) {
+                sendedArray.remove(0);
+                lostArray.remove(0);
+                receivedArray.remove(0);
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
 
             int maxS = 0;
             int maxL = 0;
@@ -114,6 +170,10 @@ public class RobotControlPanel extends JPanel {
             float c = height / max;
             float h, t;
 
+            if (g == null) {
+                return;
+            }
+
             g.setColor(Color.black);
             g.fillRect(0, 0, getWidth(), getHeight());
 
@@ -139,6 +199,33 @@ public class RobotControlPanel extends JPanel {
             }
         }
     }
+
+    private static final ImageIcon ICON_OFFLINE;
+    private static final ImageIcon ICON_IDLE;
+    private static final ImageIcon ICON_ERROR;
+    private static final ImageIcon ICON_FULL_ERROR;
+    private static final ImageIcon ICON_RECEIVE;
+    private static final ImageIcon ICON_TRANSMIT;
+    private static final ImageIcon ICON_RECEIVE_TRANSMIT;
+    private static final ImageIcon ICON_RECEIVEV;
+    private static final ImageIcon ICON_TRANSMITV;
+    private static final ImageIcon ICON_RECEIVE_TRANSMITV;
+
+    static {
+        ICON_OFFLINE = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-offline.png"));
+        ICON_IDLE = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-idle.png"));
+        ICON_ERROR = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-error.png"));
+        ICON_FULL_ERROR = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/software-update-urgent.png"));
+
+        ICON_RECEIVE = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-receive.png"));
+        ICON_TRANSMIT = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-transmit.png"));
+        ICON_RECEIVE_TRANSMIT = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/network-transmit-receive.png"));
+
+        ICON_RECEIVEV = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/virtual-network-receive.png"));
+        ICON_TRANSMITV = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/virtual-network-transmit.png"));
+        ICON_RECEIVE_TRANSMITV = new ImageIcon(RobotControlPanel.class.getResource("/resources/tango/32x32/status/virtual-network-transmit-receive.png"));
+    }
+
     public static final String VIRTUAL_CONNECTION = "Virtual";
     public static int INSTANCE = 0;
     private TitledBorder border;
@@ -147,6 +234,9 @@ public class RobotControlPanel extends JPanel {
     private RobotManager robotManager;
     private boolean connected = false;
     private Robot robot;
+    private MouseListener ml;
+    private JButton button = null;
+    private boolean virtual = false;
 
     public RobotControlPanel(RobotManager rm) {
         INSTANCE++;
@@ -156,10 +246,12 @@ public class RobotControlPanel extends JPanel {
         robot.add(new Compass());
         robot.add(new IRProximitySensor());
         robot.add(new ReflectanceSensorArray());
+        robot.add(new LED());
+        robot.add(new Button());
         robot.add(new Action() { //ação 0
             @Override
             public void putMessage(ByteBuffer data, Robot robot) {
-                
+
             }
         });
         robot.add(new RotateAction());//ação 1 (como na biblioteca em cpp)
@@ -179,6 +271,9 @@ public class RobotControlPanel extends JPanel {
             public void run() {
                 try {
                     while (true) {
+                        if (connectionStatusGraph instanceof ConnectionStatusGraph) {
+                            ((ConnectionStatusGraph) connectionStatusGraph).step();
+                        }
                         connectionStatusGraph.repaint();
                         Thread.sleep(500);
                     }
@@ -188,7 +283,7 @@ public class RobotControlPanel extends JPanel {
             }
         }.start();
 
-        MouseListener ml = new MouseListener() {
+        ml = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
             }
@@ -207,11 +302,22 @@ public class RobotControlPanel extends JPanel {
                     int i = connectionComboBox.getSelectedIndex();
                     connectionComboBox.removeAllItems();
                     connectionComboBox.addItem(VIRTUAL_CONNECTION);
-                    for (String str : serial.getAvailableDevices()) {
+                    Collection<String> availableDevices = serial.getAvailableDevices();
+                    for (String str : availableDevices) {
                         connectionComboBox.addItem(str);
                     }
                     if (i != -1) {
                         connectionComboBox.setSelectedIndex(i);
+                    }
+
+                    if (button != null) {
+                        if (e == null || e.getSource() == button) {
+                            if (availableDevices.size() > 0) {
+                                button.setEnabled(true);
+                            } else {
+                                button.setEnabled(false);
+                            }
+                        }
                     }
                 }
             }
@@ -229,13 +335,21 @@ public class RobotControlPanel extends JPanel {
 
     }
 
+    public void setConnectButton(JButton c) {
+        c.addMouseListener(ml);
+        button = c;
+        ml.mouseEntered(null);
+    }
+
     public static Collection<Class> getAvailableDevices() {
         ArrayList<Class> devices = new ArrayList<>();
 
-        devices.add(HBridge.class);
+//        devices.add(HBridge.class);
         devices.add(Compass.class);
         devices.add(IRProximitySensor.class);
         devices.add(ReflectanceSensorArray.class);
+        devices.add(LED.class);
+        devices.add(Button.class);
 
         return devices;
     }
@@ -260,7 +374,7 @@ public class RobotControlPanel extends JPanel {
     public JComboBox getConnectionComboBox() {
         return connectionComboBox;
     }
-    
+
     public boolean tryConnect() {
         if (connected) {
             connected = false;
@@ -276,8 +390,13 @@ public class RobotControlPanel extends JPanel {
             statusLabel.setText("Desconectado");
             statusLabel2.setText("");
             statusLabel3.setText("");
-            
+
             robot.setMainConnection(null);
+
+            if (button != null) {
+                button.setIcon(ICON_OFFLINE);
+                button.setToolTipText("Conectar");
+            }
 
             connectButton.setForeground(Color.black);
             connectButton.setText("Conectar");
@@ -288,10 +407,12 @@ public class RobotControlPanel extends JPanel {
             String str = (String) connectionComboBox.getSelectedItem();
             if (str.equals(VIRTUAL_CONNECTION)) {
                 connection = new VirtualConnection();
+                virtual = true;
             } else {
                 serial.setDefaultPort(str);
                 connectionStatusGraph.setVisible(true);
                 connection = new VirtualConnection(serial);
+                virtual = false;
             }
             statusLabel.setForeground(Color.gray);
             statusLabel.setText("Conectando...");
@@ -301,6 +422,11 @@ public class RobotControlPanel extends JPanel {
                 statusLabel.setForeground(Color.green.darker());
                 statusLabel.setText("Conectado");
 
+                if (button != null) {
+                    button.setIcon(ICON_IDLE);
+                    button.setToolTipText("Desconectar");
+                }
+
                 connectButton.setForeground(Color.red.darker());
                 connectButton.setText("Desconectar");
                 connectionComboBox.setEnabled(false);
@@ -309,6 +435,10 @@ public class RobotControlPanel extends JPanel {
                 statusLabel.setText("Falha");
                 statusLabel2.setText("");
                 statusLabel3.setText("");
+                if (button != null) {
+                    button.setIcon(ICON_FULL_ERROR);
+                    button.setText("Tentar Novamente");
+                }
                 connectionComboBox.setEnabled(true);
                 return false;
             }
@@ -439,6 +569,30 @@ public class RobotControlPanel extends JPanel {
             INSTANCE--;
         }
     }//GEN-LAST:event_removeButtonActionPerformed
+
+    public void simpleConectButtonActionPerformed() {
+        if (connectionComboBox.getItemCount() == 2) {
+            if (connected) {
+                if (virtual) {
+                    tryConnect();
+                    connectionComboBox.setSelectedIndex(1);
+                    tryConnect();
+                } else {
+                    tryConnect();
+                    connectionComboBox.setSelectedIndex(0);
+                    tryConnect();
+                }
+            } else {
+                connectionComboBox.setSelectedIndex(1);
+                tryConnect();
+            }
+        } else if (connectionComboBox.getItemCount() == 1) {
+            connectionComboBox.setSelectedIndex(0);
+            tryConnect();
+        } else {
+
+        }
+    }
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         tryConnect();

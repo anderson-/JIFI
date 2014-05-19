@@ -30,11 +30,6 @@ public class Widget extends Component {
         isStatic = false;
     }
 
-    @Deprecated
-    public Widget(JComponent widget, int x, int y, int width, int height) {
-        this(widget, new Rectangle(x, y, width, height));
-    }
-
     public Widget(JComponent widget, int width, int height) {
         this(widget, new Rectangle(0, 0, width, height));
     }

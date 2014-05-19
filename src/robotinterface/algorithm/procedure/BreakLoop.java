@@ -34,7 +34,7 @@ public class BreakLoop extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock(this, " break; ", Color.black, myColor);
+            resource = createSimpleBlock(this, " break; ", Color.black, myColor, 0);
         }
         return resource;
     }

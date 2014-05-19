@@ -10,7 +10,7 @@ import robotinterface.plugin.Pluggable;
  *
  * @author antunes
  */
-public interface Classifiable extends Pluggable {
+public interface Classifiable {
 
     public Item getItem();
 }

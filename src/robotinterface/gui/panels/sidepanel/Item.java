@@ -25,7 +25,7 @@ public class Item implements GraphicObject {
 
     private static Font font = null;
     private static double maxHeight = 0;
-    private static double maxWidth = 0;
+    public static double maxWidth = 0;
     private static double maxIconHeight = 0;
     private static double maxIconWidth = 0;
     private static int insetX = 5;
@@ -80,6 +80,14 @@ public class Item implements GraphicObject {
         //float d = (float)(name.hashCode()%360)/360;
         //this.color = Color.getHSBColor(d,1,1);
     }
+    
+    public Item copy(){
+        Item item = new Item(name, icon, color, itemTip);
+        item.ref = ref;
+        item.image = image;
+        item.panel = panel;
+        return item;
+    }
 
     public Object getRef() {
         return ref;
@@ -108,6 +116,11 @@ public class Item implements GraphicObject {
     public Color getColor() {
         return color;
     }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+
     
     public boolean isSelected() {
         return selected;
@@ -197,7 +210,7 @@ public class Item implements GraphicObject {
                 }
                 if (in.mouseClicked()) {
                     //notify
-                    panel.ItemSelected(this, ref);
+                    panel.itemSelected(this, ref);
                 }
             }
         }
@@ -236,7 +249,7 @@ public class Item implements GraphicObject {
 
         g.setColor(color.darker());
         g.translate(x, y);
-        g.drawString(name, 0, 0);
+        g.drawString(name, 0, -2);
         g.translate(-x, -y);
 
         g.translate(-shape.x, -shape.y);

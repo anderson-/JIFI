@@ -5,7 +5,6 @@ package robotinterface.plugin.cmdpack.util;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -27,7 +26,7 @@ import robotinterface.util.trafficsimulator.Clock;
  */
 public class StepMode extends Procedure {
 
-   private static Color myColor = Color.decode("#631864");
+    private static Color myColor = Color.decode("#631864");
 
     public StepMode() {
 
@@ -38,7 +37,7 @@ public class StepMode extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock(this, " (toggle step mode) ", Color.black, myColor);
+            resource = createSimpleBlock(this, " (toggle step mode) ", Color.black, myColor, 0);
         }
         return resource;
     }
@@ -46,12 +45,12 @@ public class StepMode extends Procedure {
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Interpreter interpreter = rm.getResource(Interpreter.class);
-        interpreter.setTimestep((interpreter.getTimestep() == 0)? 200 : 0);
+        interpreter.setTimestep((interpreter.getTimestep() == 0) ? 200 : 0);
     }
 
     @Override
     public Item getItem() {
-        
+
         Area myShape = new Area();
         Polygon tmpPoly = new Polygon();
         tmpPoly.addPoint(10, 0);
@@ -60,21 +59,21 @@ public class StepMode extends Procedure {
         tmpPoly.addPoint(0, 10);
         myShape.add(new Area(tmpPoly));
         myShape.subtract(new Area(new Ellipse2D.Double(5, 5, 10, 10)));
-        
+
         tmpPoly.reset();
         tmpPoly.addPoint(18, 0);
         tmpPoly.addPoint(20, 2);
         tmpPoly.addPoint(2, 20);
         tmpPoly.addPoint(0, 18);
         myShape.add(new Area(tmpPoly));
-        
+
         myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
         return new Item("Modo passo-a-passo", myShape, myColor);
     }
-    
+
     @Override
     public void drawLines(Graphics2D g) {
-        
+
     }
 
     @Override
@@ -84,6 +83,6 @@ public class StepMode extends Procedure {
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        
+
     }
 }

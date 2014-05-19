@@ -104,8 +104,7 @@ public class Decoder implements DecoderConstants {
     mark = null;
     if (sb.length() > 1)
     {
-      //System.out.println("~ '" + sb.substring(1) + "'");
-      return sb.substring(1);
+      //System.out.println("~ '" + sb.substring(1) + "'");      return sb.substring(1);
     }
     else
     {
@@ -1052,6 +1051,51 @@ public class Decoder implements DecoderConstants {
     finally { jj_save(3, xla); }
   }
 
+  private boolean jj_3R_38() {
+    if (jj_3R_26()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_40()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_43() {
+    if (jj_3R_45()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_49()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_63() {
+    if (jj_3R_67()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_21() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(LPAREN)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_38()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAREN)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_62() {
+    if (jj_3R_66()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_61() {
+    if (jj_3R_65()) return true;
+    return false;
+  }
+
   private boolean jj_3R_47() {
     if (jj_scan_token(BIT_OR)) return true;
     if (jj_3R_43()) return true;
@@ -1335,16 +1379,6 @@ public class Decoder implements DecoderConstants {
     return false;
   }
 
-  private boolean jj_3R_20() {
-    if (jj_3R_24()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_25()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   private boolean jj_3R_22() {
     if (jj_3R_26()) return true;
     return false;
@@ -1356,6 +1390,16 @@ public class Decoder implements DecoderConstants {
     if (jj_3R_22()) {
     jj_scanpos = xsp;
     if (jj_3R_23()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_20() {
+    if (jj_3R_24()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_25()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
@@ -1500,51 +1544,6 @@ public class Decoder implements DecoderConstants {
   private boolean jj_3R_49() {
     if (jj_scan_token(XOR)) return true;
     if (jj_3R_45()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_38() {
-    if (jj_3R_26()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_40()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_43() {
-    if (jj_3R_45()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_49()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_63() {
-    if (jj_3R_67()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_21() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_scan_token(LPAREN)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_38()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAREN)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_62() {
-    if (jj_3R_66()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_61() {
-    if (jj_3R_65()) return true;
     return false;
   }
 
