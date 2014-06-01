@@ -3,11 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/ShortcutsWindow.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/panels/SimulationPanel.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/robot/Robot.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/gui/GUI.java</file>
-            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/drawable/DrawingPanel.java</file>
+            <file>file:/home/andy/Projects/RobotInterface/src/robotinterface/algorithm/procedure/Block.java</file>
         </group>
     </open-files>
 </project-private>

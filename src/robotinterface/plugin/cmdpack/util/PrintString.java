@@ -82,7 +82,7 @@ public class PrintString extends Procedure implements FunctionToken<PrintString>
             arg = getArg(i);
             arg.parse(parser);
             if (parser.hasError()) {
-                throw new ExecutionException(parser.getErrorInfo() + " in \"" + arg.getStatement() + "\"");
+//                throw new ExecutionException(parser.getErrorInfo() + " in \"" + arg.getStatement() + "\"");
             }
             int padpi = out.indexOf(padps); //printAllDecimalPlacesIndex
             int ptdpi = out.indexOf(ptdps); //printTwoDecimalPlacesIndex
