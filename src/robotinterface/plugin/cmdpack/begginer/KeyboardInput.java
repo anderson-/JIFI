@@ -81,18 +81,19 @@ public class KeyboardInput extends Procedure implements FunctionToken<KeyboardIn
     public Item getItem() {
         Area myShape = new Area();
         Polygon tmpShape = new Polygon();
-        tmpShape.addPoint(0, 0);
-        tmpShape.addPoint(7, 0);
-        tmpShape.addPoint(7, 18);
-        tmpShape.addPoint(0, 18);
+        tmpShape.addPoint(4, 0);
+        tmpShape.addPoint(16, 0);
+        tmpShape.addPoint(12, 16);
+        tmpShape.addPoint(0, 16);
         myShape.add(new Area(tmpShape));
 
         tmpShape.reset();
-        tmpShape.addPoint(11, 0);
-        tmpShape.addPoint(18, 0);
-        tmpShape.addPoint(18, 18);
-        tmpShape.addPoint(11, 18);
-        myShape.add(new Area(tmpShape));
+        tmpShape.addPoint(6, 4);
+        tmpShape.addPoint(12, 4);
+        tmpShape.addPoint(10, 12);
+        tmpShape.addPoint(4, 12);
+        myShape.subtract(new Area(tmpShape));
+
         return new Item("Entrada", myShape, myColor, "Mantém o robô se movendo ou faz o programa esperar por alguns milissegundos");
     }
 

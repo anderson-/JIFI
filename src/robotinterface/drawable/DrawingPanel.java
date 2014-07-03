@@ -73,7 +73,7 @@ import robotinterface.util.trafficsimulator.Timer;
 public class DrawingPanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener, ComponentListener, GraphicObject {
 
     //outras constantes
-    public final double MIN_ZOOM = 0.5;
+    public final double MIN_ZOOM = 0.2;
     public final double MAX_ZOOM = 4.0;
     protected long PAINT_DELAY = 20;
     protected long NO_PAINT_DELAY = 100;

@@ -1877,6 +1877,9 @@ public class GUI extends JFrame implements ComponentListener {
         path = path.substring(0, path.lastIndexOf('/') + 1);
         path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();
 
+        String defaultPath = System.getProperty("java.library.path");
+        System.out.println("Carregando algo do tipo: \"" + JniNamer.getJniName("librxtxSerial") + "\"");
+
         try {
             String newPath = path;
             /*
@@ -1891,11 +1894,21 @@ public class GUI extends JFrame implements ComponentListener {
              * something like OpenJDK Runtime Environment (build 1.6.0_0-b11), 
              * try installing the official Sun JDK and see if that works.
              */
-//            setLibraryPath(newPath);
-//            System.loadLibrary("rxtxSerial");
+            setLibraryPath(newPath);
+            System.loadLibrary("rxtxSerial");
+            System.out.println("Biblioteca librxtxSerial." + JniNamer.extension(JniNamer.os()) + " carregada com sucesso em " + path);
         } catch (Error | Exception e) {
 //            e.printStackTrace();
-            System.exit(0);
+            System.out.println("Falha ao caregar librxtxSerial." + JniNamer.extension(JniNamer.os()) + " em " + path);
+            try {
+                setLibraryPath(defaultPath);
+                System.loadLibrary("rxtxSerial");
+                System.out.println("Biblioteca librxtxSerial." + JniNamer.extension(JniNamer.os()) + " carregada com sucesso em " + defaultPath);
+            } catch (Error | Exception e2) {
+                e.printStackTrace();
+                System.out.println("Falha ao caregar librxtxSerial." + JniNamer.extension(JniNamer.os()) + " em " + defaultPath);
+                e2.printStackTrace();
+            }
         }
 
         /* Set the Nimbus look and feel */

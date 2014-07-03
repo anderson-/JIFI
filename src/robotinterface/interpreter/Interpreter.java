@@ -73,6 +73,7 @@ public class Interpreter extends Thread {
     public Interpreter() {
         super("Interpreter");
         parser = new JEP();
+        parser.addFunction("get", new Get());
         clock = new Clock();
 
         resourceManager = new ResourceManager();
@@ -120,6 +121,7 @@ public class Interpreter extends Thread {
 
         }
         parser.setAllowAssignment(true);
+        parser.addFunction("get", new Get());
         if (robot != null && robot.getMainConnection() != null) {
             robot.stopAll();
             robot.stop();
@@ -214,6 +216,8 @@ public class Interpreter extends Thread {
             }
             currentCmd = currentCmd.step(resourceManager);
 
+        } catch (ForceInterruptionException e) {
+            return false;
         } catch (ExecutionException e) {
             if (e instanceof ForceInterruptionException){
                 return false;
@@ -225,6 +229,7 @@ public class Interpreter extends Thread {
             int PromptResult = JOptionPane.showOptionDialog(null, msg, "Erro", JOptionPane.NO_OPTION, JOptionPane.ERROR_MESSAGE, null, ObjButtons, ObjButtons[1]);
             if (PromptResult == JOptionPane.NO_OPTION) {
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
             }
             System.err.println(e.getMessage());
             return false;

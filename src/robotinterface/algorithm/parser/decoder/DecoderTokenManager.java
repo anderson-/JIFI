@@ -8,6 +8,7 @@ import robotinterface.algorithm.parser.Parser;
 import robotinterface.algorithm.parser.parameterparser.Argument;
 import robotinterface.algorithm.parser.parameterparser.ParameterParser;
 import robotinterface.gui.panels.editor.EditorPanel;
+import robotinterface.interpreter.Get;
 import robotinterface.gui.panels.robot.RobotControlPanel;
 import robotinterface.robot.device.Device;
 
