@@ -60,6 +60,7 @@ public class Interpreter implements s3f.core.simulation.System {
 
     @Override
     public void reset() {
+//        System.out.println("int-reset");
         if (mainFunction != null) {
             currentCmd = mainFunction;
         } else {
@@ -78,6 +79,7 @@ public class Interpreter implements s3f.core.simulation.System {
         }
         parser.setAllowAssignment(true);
         parser.addFunction("get", new Get());
+        state = PAUSED;
     }
 
     public Function getMainFunction() {
@@ -119,15 +121,17 @@ public class Interpreter implements s3f.core.simulation.System {
     public void beginStep() {
         step = true;
     }
-    
+
     public void step() {
+//        System.out.println("int-step");
         if (currentCmd == null) {
+            state = DONE;
             return;
         }
 
         clock.setPaused(false);
 
-        //System.out.println(currentCmd); //exibe o comando atual
+//        System.out.println(currentCmd.getClass()); //exibe o comando atual
         try {
             currentCmd.begin(resourceManager);
             while (!currentCmd.perform(resourceManager)) {
@@ -136,15 +140,16 @@ public class Interpreter implements s3f.core.simulation.System {
                     Thread.sleep(5);
                 } catch (InterruptedException ex) {
                 }
-                if (state != RUNNING){
-                    return;
-                }
+//                if (state != RUNNING) {
+//                    return;
+//                }
             }
             currentCmd = currentCmd.step(resourceManager);
 
         } catch (ForceInterruptionException e) {
-            
+            state = DONE;
         } catch (ExecutionException e) {
+            state = DONE;
             if (e instanceof ForceInterruptionException) {
                 return;
             }
@@ -163,8 +168,10 @@ public class Interpreter implements s3f.core.simulation.System {
 
     @Override
     public boolean performStep() {
-        step = false;
-        step();
+        if (step) {
+            step = false;
+            step();
+        }
         return true;
     }
 
