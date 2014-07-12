@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import s3f.core.plugin.PluginManager;
 import s3f.jifi.core.Command;
+import s3f.jifi.core.FlowchartPanel;
 import s3f.jifi.core.FlowchartPanel.TmpVar;
 import s3f.jifi.core.GraphicFlowchart;
 import static s3f.jifi.core.GraphicFlowchart.GF_J;
@@ -118,8 +119,8 @@ public class If extends Procedure {
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
         if (ifValue.countObservers() == 0) {
-//            FlowchartPanel flowcharPanel = GUI.getInstance().getFlowcharPanel();//rm.getResource TODO
-//            flowcharPanel.pushVar(ifValue);
+            FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
+            flowcharPanel.pushVar(ifValue);
         }
         //calcula o valor da expressão
         if (evaluate(rm)) {

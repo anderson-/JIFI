@@ -104,7 +104,7 @@ public class Flowchart extends ComplexElement implements TextFile, SimulableElem
         }
         return null;
     }
-
+    
     @Override
     public s3f.core.simulation.System getSystem() {
 //        interpreter.setMainFunction(getFunction()); //não é o melhor lugar!

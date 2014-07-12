@@ -176,12 +176,12 @@ public class Procedure extends Command implements Classifiable, Pluggable {
 
                 Variable varOld;
                 varOld = st.getVar(varName);
-//                FlowchartPanel flowcharPanel = GUI.getInstance().getFlowcharPanel();//rm.getResource TODO
-//                if (varOld != null){
-//                    flowcharPanel.popVar(varOld);
-//                }
+                FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
+                if (varOld != null){
+                    flowcharPanel.popVar(varOld);
+                }
                 Variable var = st.makeVarIfNeeded(varName, v);
-//                flowcharPanel.pushVar(var);
+                flowcharPanel.pushVar(var);
             }
         }
 

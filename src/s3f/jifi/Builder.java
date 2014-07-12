@@ -10,6 +10,7 @@ import s3f.core.plugin.PluginBuilder;
 import s3f.jifi.core.Flowchart;
 import s3f.jifi.flowchart.BreakLoop;
 import s3f.jifi.flowchart.Comment;
+import s3f.jifi.flowchart.FunctionBlock;
 import s3f.jifi.flowchart.If;
 import s3f.jifi.flowchart.KeyboardInput;
 import s3f.jifi.flowchart.PrintString;
@@ -53,6 +54,9 @@ public class Builder extends PluginBuilder {
         o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new Comment());
         pm.registerFactory(o);
+//        o = new ConfigurableObject("s3f.jifi.cmd");
+//        o.getData().setProperty("procedure", new FunctionBlock());
+//        pm.registerFactory(o);
         
         pm.registerFactory(Flowchart.FLOWCHART_FILES);
     }

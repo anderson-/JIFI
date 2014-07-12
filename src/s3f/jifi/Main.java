@@ -20,6 +20,8 @@ public class Main {
         PluginManager pm = PluginManager.getInstance(args, Main.class);
         pm.loadSoftPlugin("s3f/magenta/plugin.cfg", null);
         pm.loadSoftPlugin("s3f/jifi/plugin.cfg", null);
+        
+        pm.printTree(System.out);
         MainUI.buildAndRun();
     }
 }

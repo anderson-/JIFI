@@ -41,6 +41,7 @@ import s3f.magenta.graphicresource.GraphicResource;
 import s3f.magenta.swing.WidgetContainer;
 import s3f.magenta.sidepanel.Item;
 import s3f.magenta.sidepanel.SidePanel;
+import s3f.util.RandomColor;
 
 /**
  *
@@ -755,13 +756,14 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     public void pushVar(Variable var) {
         var.addObserver(this);
         v.add(var);
-        c.add(generateRandomColor());
+        c.add(RandomColor.generate(.40f, .90f));
         q.add(new LinkedList<UpdateVar>());
         update(var, null);
     }
 
     void setInterpreter(Interpreter interpreter) {
         this.interpreter = interpreter;
+        interpreter.addResource(this);
     }
 
     //:(
@@ -812,15 +814,6 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
     public void removePropertyChangeListener2(PropertyChangeListener l) {
         support.removePropertyChangeListener(l);
-    }
-
-    float golden_ratio_conjugate = 0.618033988749895f;
-    float h = (float) Math.random();
-
-    public Color generateRandomColor() {
-        h += golden_ratio_conjugate;
-        h %= 1f;
-        return Color.getHSBColor(h, 0.35f, 0.95f);
     }
 
     private class UpdateVar implements Drawable {
