@@ -39,7 +39,7 @@ public class Interpreter implements s3f.core.simulation.System {
 
     private final Clock clock;
     private final JEP parser;
-    private final ResourceManager resourceManager;
+    private ResourceManager resourceManager;
     private Function mainFunction;
     private Command currentCmd = null;
     private Command errorCmd = null;
@@ -58,9 +58,12 @@ public class Interpreter implements s3f.core.simulation.System {
         resourceManager.setResource(this);
     }
 
+    public void addResource(Object o) {
+        resourceManager.setResource(o);
+    }
+
     @Override
     public void reset() {
-//        System.out.println("int-reset");
         if (mainFunction != null) {
             currentCmd = mainFunction;
         } else {
@@ -122,8 +125,17 @@ public class Interpreter implements s3f.core.simulation.System {
         step = true;
     }
 
-    public void step() {
-//        System.out.println("int-step");
+    @Override
+    public boolean performStep() {
+        if (step) {
+            step = false;
+            step();
+        }
+        return true;
+    }
+
+    private void step() {
+        
         if (currentCmd == null) {
             state = DONE;
             return;
@@ -150,9 +162,6 @@ public class Interpreter implements s3f.core.simulation.System {
             state = DONE;
         } catch (ExecutionException e) {
             state = DONE;
-            if (e instanceof ForceInterruptionException) {
-                return;
-            }
             //GUI.print("Erro: " + e.getMessage());
             errorCmd = currentCmd;
             String msg = "Houve um problema ao executar o código atual.\nO bloco que originou o erro foi destacado.\nFavor corrigir e tentar novamente.";
@@ -165,14 +174,4 @@ public class Interpreter implements s3f.core.simulation.System {
             System.err.println(e.getMessage());
         }
     }
-
-    @Override
-    public boolean performStep() {
-        if (step) {
-            step = false;
-            step();
-        }
-        return true;
-    }
-
 }

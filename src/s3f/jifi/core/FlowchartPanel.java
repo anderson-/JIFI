@@ -23,14 +23,11 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Queue;
 import java.util.Stack;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import org.nfunk.jep.Variable;
 import s3f.core.plugin.EntityManager;
 import s3f.core.plugin.PluginManager;
-import s3f.jifi.core.Command;
-import s3f.jifi.core.GraphicFlowchart;
+import s3f.jifi.core.interpreter.Interpreter;
 import s3f.jifi.flowchart.Block;
 import s3f.jifi.flowchart.DummyBlock;
 import s3f.jifi.flowchart.Function;
@@ -42,7 +39,6 @@ import s3f.magenta.DrawingPanel;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.graphicresource.GraphicResource;
 import s3f.magenta.swing.WidgetContainer;
-import s3f.magenta.sidepanel.Classifiable;
 import s3f.magenta.sidepanel.Item;
 import s3f.magenta.sidepanel.SidePanel;
 
@@ -68,7 +64,6 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     private final Stack<Function> undo = new Stack<>();
     private final Stack<Function> redo = new Stack<>();
     private final SidePanel sidePanel;
-//    private final Interpreter interpreter;
     private Function function;
     private boolean keyActionUsed = false;
     private Command newCommand = null;
@@ -80,6 +75,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     private ArrayList<Queue<UpdateVar>> q = new ArrayList<>();
     private final PropertyChangeSupport support;
     private Function tmpCopy;
+    private Interpreter interpreter;
 
     public FlowchartPanel(Function function) {
         support = new PropertyChangeSupport(this);
@@ -310,21 +306,23 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     @Override
     public void drawTopLayer(Graphics2D g, GraphicAttributes ga, InputState in) {
 
-//        Command cmd = interpreter.getCurrentCommand();
-//        if (interpreter.getInterpreterState() == Interpreter.STOP) {
-//            executionCommand = null;
-////        } else if (interpreter.getTimestep() < 20) {
-////            executionCommand = interpreter.getMainFunction().getDrawableResource();
-//        } else {
-//            if (cmd instanceof GraphicResource) {
-//                GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
-//                if (d != null && cmd != function) {
-//                    executionCommand = d;
-//                }
-//            }
-//        }
-//        Command error = interpreter.getErrorCommand();
         Command error = null;
+        if (interpreter != null) {
+            Command cmd = interpreter.getCurrentCommand();
+            if (interpreter.getSystemState() == Interpreter.DONE) {
+                executionCommand = null;
+//        } else if (interpreter.getTimestep() < 20) {
+//            executionCommand = interpreter.getMainFunction().getDrawableResource();
+            } else {
+                if (cmd instanceof GraphicResource) {
+                    GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
+                    if (d != null && cmd != function) {
+                        executionCommand = d;
+                    }
+                }
+            }
+            error = interpreter.getErrorCommand();
+        }
 
         if (error != null) {
             GraphicObject errorCommand = ((GraphicResource) error).getDrawableResource();
@@ -716,12 +714,6 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
         return false;
     }
 
-    public static void main(String[] args) {
-//        QuickFrame.applyLookAndFeel();
-//        FlowchartPanel p = new FlowchartPanel(Interpreter.newTestFunction(), new Interpreter());
-//        QuickFrame.create(p, "Teste FlowcharPanel").addComponentListener(p);
-    }
-
     public void pushUndo() {
         tmpCopy = function.copy();
         undo.add(tmpCopy);
@@ -768,6 +760,10 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
         update(var, null);
     }
 
+    void setInterpreter(Interpreter interpreter) {
+        this.interpreter = interpreter;
+    }
+
     //:(
     public static class TmpVar extends Variable {
 
@@ -778,16 +774,19 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-//        Command cmd = interpreter.getCurrentCommand();
+
         GraphicObject tmpGO = null;
-//        if (interpreter.getInterpreterState() != Interpreter.STOP) {
-//            if (cmd instanceof GraphicResource) {
-//                GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
-//                if (d != null && cmd != function) {
-//                    tmpGO = d;
-//                }
-//            }
-//        }
+        if (interpreter != null) {
+            Command cmd = interpreter.getCurrentCommand();
+            if (interpreter.getSystemState() != Interpreter.DONE) {
+                if (cmd instanceof GraphicResource) {
+                    GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
+                    if (d != null && cmd != function) {
+                        tmpGO = d;
+                    }
+                }
+            }
+        }
 
         if (o instanceof Variable && tmpGO != null) {
             Variable variable = (Variable) o;

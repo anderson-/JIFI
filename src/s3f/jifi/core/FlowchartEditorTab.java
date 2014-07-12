@@ -7,22 +7,12 @@ package s3f.jifi.core;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import s3f.core.plugin.Data;
-import s3f.core.plugin.EntityManager;
 import s3f.core.plugin.Plugabble;
-import s3f.core.plugin.PluginManager;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
-import s3f.core.simulation.Simulator;
 import s3f.core.ui.tab.TabProperty;
 import s3f.jifi.core.interpreter.Interpreter;
-import s3f.jifi.core.parser.decoder.Decoder;
-import s3f.jifi.core.parser.decoder.ParseException;
 import s3f.jifi.flowchart.Function;
 
 /**
@@ -37,7 +27,7 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
     private Flowchart flowchart;
 
     public FlowchartEditorTab() {
-        data = new Data("editorTab", "s3f.base.code", "Editor Tab");
+        data = new Data("editorTab", "s3f.core.code", "Editor Tab");
         flowchartPanel = new FlowchartPanel(new Function());
         TabProperty.put(data, "Editor", null, "Editor de código", flowchartPanel);
     }
@@ -46,27 +36,16 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
     public void setContent(Element content) {
         if (content instanceof Flowchart) {
             flowchart = (Flowchart) content;
-            content.setCurrentEditor(this);
-
-            Decoder parser;
-            try {
-                parser = new Decoder(new ByteArrayInputStream(flowchart.getText().getBytes("UTF-8")));
-                Function function = parser.decode();
+            flowchartPanel.setInterpreter((Interpreter) flowchart.getSystem());
+            Function function = flowchart.getFunction();
+            if (function != null) {
                 flowchartPanel.removePropertyChangeListener2(this);
                 flowchartPanel.setFunction(function);
-                
-                EntityManager em = PluginManager.getInstance().createFactoryManager(null);
-                Simulator sim = (Simulator) em.getProperty("s3f.core.interpreter.tmp", "interpreter");
-                Interpreter i = new Interpreter();
-                i.setMainFunction(function);
-                sim.add(i);
-                
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
-            } catch (ParseException ex) {
-                ex.printStackTrace();
+                ((Interpreter) flowchart.getSystem()).setMainFunction(function);
+                flowchartPanel.addPropertyChangeListener2(this);
             }
-            flowchartPanel.addPropertyChangeListener2(this);
+            data.setProperty(TabProperty.TITLE, content.getName());
+            data.setProperty(TabProperty.ICON, content.getIcon());
         }
     }
 
@@ -77,7 +56,15 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
 
     @Override
     public void update() {
-
+//        EntityManager em = PluginManager.getInstance().createFactoryManager(null);
+//        Simulator sim = (Simulator) em.getProperty("s3f.core.interpreter.tmp", "interpreter");
+//        Interpreter i = new Interpreter();
+//        for (Object o : flowchart.getExternalResources()) {
+//            i.addResource(o);
+//        }
+//        i.setMainFunction(flowchartPanel.getFunction());
+//        sim.clear();
+//        sim.add(i);
     }
 
     @Override

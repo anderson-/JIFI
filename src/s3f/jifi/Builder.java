@@ -8,6 +8,8 @@ package s3f.jifi;
 import s3f.core.plugin.ConfigurableObject;
 import s3f.core.plugin.PluginBuilder;
 import s3f.jifi.core.Flowchart;
+import s3f.jifi.flowchart.BreakLoop;
+import s3f.jifi.flowchart.Comment;
 import s3f.jifi.flowchart.If;
 import s3f.jifi.flowchart.KeyboardInput;
 import s3f.jifi.flowchart.PrintString;
@@ -34,6 +36,9 @@ public class Builder extends PluginBuilder {
         o.getData().setProperty("procedure", new While());
         pm.registerFactory(o);
         o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new BreakLoop());
+        pm.registerFactory(o);
+        o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new KeyboardInput());
         pm.registerFactory(o);
         o = new ConfigurableObject("s3f.jifi.cmd");
@@ -44,6 +49,9 @@ public class Builder extends PluginBuilder {
         pm.registerFactory(o);
         o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new Procedure());
+        pm.registerFactory(o);
+        o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new Comment());
         pm.registerFactory(o);
         
         pm.registerFactory(Flowchart.FLOWCHART_FILES);

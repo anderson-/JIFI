@@ -4,7 +4,6 @@
  */
 package s3f.magenta.swing;
 
-import s3f.magenta.swing.WidgetContainer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -79,6 +78,14 @@ public class MutableWidgetContainer extends WidgetContainer {
     private boolean absolute = false;
     private boolean mouseBlocked = false;
     private boolean simpleDraw = false;
+
+    public MutableWidgetContainer(Boolean simpleDraw) {
+        this(Color.RED);
+        this.simpleDraw = simpleDraw;
+        this.absolute = true;
+        this.mouseBlocked = true;
+        setWidgetVisible(true);
+    }
 
     public MutableWidgetContainer(Color color) {
         super(new Rectangle(0, 0, 1, 1));
@@ -212,10 +219,6 @@ public class MutableWidgetContainer extends WidgetContainer {
         //força a atualização do tamanho desse objeto
         shapeBounds.setRect(0, 0, 0, 0);
         updateHeight = true;
-    }
-
-    public void setSimpleDraw(boolean b) {
-        simpleDraw = b;
     }
 
     public void updateStructure() {
