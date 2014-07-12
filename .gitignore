@@ -1,5 +1,5 @@
-build/
-dist/
-nbproject/
-nbproject/private/private.xml
-*.*~
+/build/
+/dist/
+/test/
+/nbproject/private/
+*~
