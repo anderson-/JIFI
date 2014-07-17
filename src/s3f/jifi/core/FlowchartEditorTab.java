@@ -36,12 +36,11 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
     public void setContent(Element content) {
         if (content instanceof Flowchart) {
             flowchart = (Flowchart) content;
-            flowchartPanel.setInterpreter((Interpreter) flowchart.getSystem());
             Function function = flowchart.getFunction();
             if (function != null) {
                 flowchartPanel.removePropertyChangeListener2(this);
                 flowchartPanel.setFunction(function);
-                ((Interpreter) flowchart.getSystem()).setMainFunction(function);
+                flowchartPanel.setInterpreter((Interpreter) flowchart.getSystem());
                 flowchartPanel.addPropertyChangeListener2(this);
             }
             data.setProperty(TabProperty.TITLE, content.getName());

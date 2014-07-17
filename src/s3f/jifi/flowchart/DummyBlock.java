@@ -24,6 +24,10 @@ public class DummyBlock extends Procedure {
     public static final int SHAPE_RECTANGLE = 0;
     public static final int SHAPE_ROUND_RECTANGLE = 1;
     public static final int SHAPE_CIRCLE = 2;
+    
+    public DummyBlock(){
+        
+    }
 
     public static GraphicObject createSimpleBlock(Command c, final String str, final Color strColor, final Color color, final int shapeType) {
         MutableWidgetContainer mwc = new DrawableProcedureBlock(c, color) {

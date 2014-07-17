@@ -57,7 +57,6 @@ public class Flowchart extends ComplexElement implements TextFile, SimulableElem
 
     @Override
     public final void setText(String text) {
-        System.out.println("update text");
         this.text = text;
     }
 

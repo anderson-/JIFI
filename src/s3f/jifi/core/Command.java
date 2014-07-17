@@ -31,6 +31,7 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import s3f.jifi.flowchart.Block;
 import static s3f.jifi.flowchart.Function.getBounds;
 import s3f.magenta.GraphicObject;
@@ -134,13 +135,22 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
     }
 
     public void remove() {
+        if (parent instanceof Block) {
+            Block block = (Block) parent;
+            if (block.getStart() == this) {
+                block.shiftStart();
+            }
+        }
         parent = null;
+
         if (prev != null) {
             prev.next = next;
         }
         if (next != null) {
             next.prev = prev;
         }
+        prev = null;
+        next = null;
     }
 
     //inicio da execução do comando

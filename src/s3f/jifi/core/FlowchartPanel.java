@@ -71,12 +71,13 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     private Item itemSelected = null;
     private int clickDrop = 0;
     private GraphicObject executionCommand = null;
-    private ArrayList<Variable> v = new ArrayList<>();
-    private ArrayList<Color> c = new ArrayList<>();
+    private ArrayList<Variable> vars = new ArrayList<>();
+    private ArrayList<Color> colors = new ArrayList<>();
     private ArrayList<Queue<UpdateVar>> q = new ArrayList<>();
     private final PropertyChangeSupport support;
     private Function tmpCopy;
     private Interpreter interpreter;
+    public boolean DEBUG_IDENT = false;
 
     public FlowchartPanel(Function function) {
         support = new PropertyChangeSupport(this);
@@ -119,14 +120,8 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
             sidePanel.add(item);
         }
 
-//        sidePanel.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/algorithm/plugin.txt", Procedure.class));
-//        sidePanel.addAllClasses(PluginManager.getPluginsAlpha("robotinterface/plugin/cmdpack/plugin.txt", Procedure.class));
         add(sidePanel);
 
-//        this.interpreter = interpreter;
-//        if (!interpreter.isAlive()) {
-//            this.interpreter.start();
-//        }
         setFunction(function);
         super.setName("Fluxograma");
         gridSize = -10;
@@ -135,7 +130,6 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     }
 
     private static final <T> T newInstance(Object ref) {
-        System.out.println(ref);
         if (ref instanceof Class) {
             Class c = (Class) ref;
             if (Pluggable.class.isAssignableFrom(c)) {
@@ -154,29 +148,23 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
         sidePanel.setOpen(!b);
     }
 
-//    @Override
-//    public Interpreter getInterpreter() {
-//        return interpreter;
-//    }
     public Function getFunction() {
         return function;
     }
 
     public final void setFunction(Function function) {
-        removeGraphicResources(this.function);
-        this.function = function;
-
-        ident(function);
-
+        hideGraphicResources(this.function, true, true);
+        if (this.function == null) {
+            this.function = function;
+        }
+        ident();
         setName(function.toString());
-//        interpreter.setInterpreterState(Interpreter.STOP);
-//        interpreter.setMainFunction(function);
     }
 
-    public void ident(Function f) {
+    private void ident() {
         addDummyBlocks(function, this);
         ident(function, true);
-        addAllDrawableResources(function, this);
+        hideGraphicResources(function, false, false);
     }
 
     private static void addDummyBlocks(Command c, FlowchartPanel fp) {
@@ -193,7 +181,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                     //confirma
                     if (it.getParent() instanceof Block) {
                         if (((Block) it.getParent()).size() > 2) {
-                            fp.removeGraphicResources(it);
+                            fp.hideGraphicResources(it, true, true);
                         }
                     }
                 }
@@ -216,10 +204,10 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
         }
         if (c instanceof Block) {
             Block b = (Block) c;
-            if (b.size() == 1) { //só tem o EndBlock
-                DummyBlock db = new DummyBlock();
-                b.add(db);
-            }
+//            if (b.size() == 1) { //só tem o EndBlock
+//                DummyBlock db = new DummyBlock();
+//                b.add(db);
+//            }
             Command it = b.getStart();
             while (it != null) {
                 hideAllWidgets(it, ign);
@@ -261,14 +249,8 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
                     //g.draw(d.getObjectShape());
-
                     //alterar usando fIx e fIy
-                    if (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY()) {
-                        addNext = true;
-                    } else {
-                        addNext = false;
-                    }
-
+                    addNext = (c instanceof DummyBlock || p.y > d.getObjectBouds().getCenterY());
                 }
             }
             Command n = newCommand;
@@ -291,13 +273,13 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
             redo.clear();
 
             if (c instanceof DummyBlock) {
-                removeGraphicResources(c);
+                hideGraphicResources(c, true, true);
             }
 
             selection.clear();
             selection.add(newCommand);
 
-            ident(function);
+//            ident(function);
             support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
             return true;
         }
@@ -376,35 +358,27 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                                 }
                             }
                         }
+                        hideGraphicResources(newCommand, true, false);
                         newCommand = null;
-                        itemSelected.setSelected(false);
-                        itemSelected = null;
+                        if (itemSelected != null) {
+                            itemSelected.setSelected(false);
+                            itemSelected = null;
+                        }
                         clickDrop = 0;
                     }
                 } else {
+                    hideGraphicResources(newCommand, true, false);
                     newCommand = null;
-                    itemSelected.setSelected(false);
-                    itemSelected = null;
+                    if (itemSelected != null) {
+                        itemSelected.setSelected(false);
+                        itemSelected = null;
+                    }
                     clickDrop = 0;
                 }
             }
         }
-    }
 
-    public void addAllDrawableResources(Command c, DrawingPanel p) {
-        GraphicObject d = ((GraphicResource) c).getDrawableResource();
-        add(d); //com verificação null e contains 
-        if (c instanceof Block) {
-            Block b = (Block) c;
-            Command it = b.getStart();
-            while (it != null) {
-                addAllDrawableResources(it, p);
-                it = it.getNext();
-            }
-        } else if (c instanceof If) {
-            addAllDrawableResources(((If) c).getBlockTrue(), p);
-            addAllDrawableResources(((If) c).getBlockFalse(), p);
-        }
+        ident();
     }
 
     @Override
@@ -414,8 +388,9 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
     private void printBounds(Graphics2D g, Command c) {
         Rectangle2D.Double bounds = c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K);
+        g.setColor(RandomColor.generate(1, 1));
         g.draw(bounds);
-        g.drawString(c.getCommandName(), (int) bounds.getMaxX(), (int) bounds.y);
+        g.drawString(c.getCommandName(), (int) bounds.getMaxX(), (int) (bounds.y + bounds.height));
         if (c instanceof Block) {
             Block b = (Block) c;
             Command it = b.getStart();
@@ -469,11 +444,12 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     @Override
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
 
-        ident(function);
+        if (DEBUG_IDENT) {
+            g.setStroke(DEFAULT_STROKE);
+            RandomColor.setSeed(0);
+            printBounds(g, function);
+        }
 
-//        g.setStroke(DEFAULT_STROKE);
-//        g.setColor(Color.MAGENTA);
-//        printBounds(g, function);
         drawSelection(g);
 
         if (in.isKeyPressed(KeyEvent.VK_DELETE) && !selection.isEmpty()) {
@@ -482,13 +458,13 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
             for (Command c : selection) {
                 if (!(c instanceof FunctionEnd)) {
-                    removeGraphicResources(c);
+                    hideGraphicResources(c, true, true);
                 }
             }
 
             selection.clear();
 
-            ident(function);
+//            ident(function);
             support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
         }
 
@@ -514,14 +490,14 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                             if (c instanceof Procedure) {
                                 Procedure p = (Procedure) c;
                                 copy.add(p.copy((Procedure) p.createInstance()));
-                                removeGraphicResources(c);
+                                hideGraphicResources(c, true, true);
                             } else if (!(c instanceof FunctionEnd)) {
                                 System.out.println("Erro de copia " + c);
                             }
                         }
 
                         selection.clear();
-                        ident(function);
+//                        ident(function);
                         support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
                     }
                     keyActionUsed = true;
@@ -553,11 +529,11 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                                 c = p.copy((Procedure) p.createInstance());
                             }
                             s.addAfter(c);
-                            addAllDrawableResources(c, this);
+                            hideGraphicResources(c, false, false);
                             selection.add(c);
                             s = c;
                         }
-                        ident(function);
+////                        ident(function);
                         support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
                     }
                     keyActionUsed = true;
@@ -641,6 +617,31 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
                 selection.clear();
             }
         }
+
+        if (newCommand == null && in.getMouseButton() == MouseEvent.BUTTON1 && in.isMouseDragged()) {
+            Point p = in.getTransformedMouse();
+            newCommand = function.find(p);
+            if (newCommand != null) {
+                if (newCommand == function || newCommand instanceof Function.FunctionEnd) {
+                    newCommand = null;
+                } else {
+                    hideGraphicResources(newCommand, true, false);
+                    newCommand.remove();
+                    for (GraphicObject o : sidePanel.getItens()) {
+                        if (o instanceof Item) {
+                            Item item = (Item) o;
+                            Object ref = item.getRef();
+                            if (ref instanceof Class) {
+                                Class aClass = (Class) ref;
+                                if (aClass.equals(newCommand.getClass())) {
+                                    itemSelected = item;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void addToSelection(Command c) {
@@ -655,29 +656,56 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
         selection.add(c);
     }
 
-    private void removeGraphicResources(Command c) {
+//    private void removeGraphicRessources(Command c) {
+//        if (c == null) {
+//            return;
+//        }
+//
+//        if (c instanceof Block) {
+//            Command it = ((Block) c).getStart();
+//            while (it != null) {
+//                removeGraphicResources(it);
+//                it = it.getNext();
+//            }
+//        } else if (c instanceof If) {
+//            removeGraphicResources(((If) c).getBlockTrue());
+//            removeGraphicResources(((If) c).getBlockFalse());
+//        }
+//
+//        super.remove(c.getDrawableResource());
+//
+//        //foi para command;
+////        if (c.getParent() instanceof Block && c == ((Block) c.getParent()).getStart()) {
+////            ((Block) c.getParent()).shiftStart();
+////        }
+//        c.remove();
+//    }
+    private void hideGraphicResources(Command c, boolean hide, boolean delete) {
         if (c == null) {
             return;
         }
 
         if (c instanceof Block) {
-            Command it = ((Block) c).getStart();
+            Block block = (Block) c;
+            Command it = block.getStart();
             while (it != null) {
-                removeGraphicResources(it);
+                hideGraphicResources(it, hide, delete);
                 it = it.getNext();
             }
+            hideGraphicResources(block.getEnd(), hide, delete);
         } else if (c instanceof If) {
-            removeGraphicResources(((If) c).getBlockTrue());
-            removeGraphicResources(((If) c).getBlockFalse());
+            hideGraphicResources(((If) c).getBlockTrue(), hide, delete);
+            hideGraphicResources(((If) c).getBlockFalse(), hide, delete);
         }
 
-        super.remove(c.getDrawableResource());
-
-        if (c.getParent() instanceof Block && c == ((Block) c.getParent()).getStart()) {
-            ((Block) c.getParent()).shiftStart();
+        if (hide) {
+            super.remove(c.getDrawableResource());
+            if (delete) {
+                c.remove();
+            }
+        } else {
+            super.add(c.getDrawableResource());
         }
-
-        c.remove();
     }
 
     private boolean isValidSelection() {
@@ -748,21 +776,22 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
     }
 
     public void popVar(Variable varOld) {
-        int i = v.indexOf(varOld);
-        v.remove(i);
-        c.remove(i);
+        int i = vars.indexOf(varOld);
+        vars.remove(i);
+        colors.remove(i);
     }
 
     public void pushVar(Variable var) {
         var.addObserver(this);
-        v.add(var);
-        c.add(RandomColor.generate(.40f, .90f));
+        vars.add(var);
+        colors.add(RandomColor.generate(.40f, .90f));
         q.add(new LinkedList<UpdateVar>());
         update(var, null);
     }
 
     void setInterpreter(Interpreter interpreter) {
         this.interpreter = interpreter;
+        interpreter.setMainFunction(function);
         interpreter.addResource(this);
     }
 
@@ -792,12 +821,12 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
         if (o instanceof Variable && tmpGO != null) {
             Variable variable = (Variable) o;
-            int i = v.indexOf(variable);
+            int i = vars.indexOf(variable);
             Object value = variable.getValue();
             if (value == null) {
                 value = "0";
             }
-            UpdateVar updateVar = new UpdateVar(tmpGO.getPosX(), tmpGO.getPosY(), ((variable.getName().isEmpty()) ? "" : variable.getName() + " = ") + value, c.get(i));
+            UpdateVar updateVar = new UpdateVar(tmpGO.getPosX(), tmpGO.getPosY(), ((variable.getName().isEmpty()) ? "" : variable.getName() + " = ") + value, colors.get(i));
             this.add2(updateVar);
             Queue<UpdateVar> queue = q.get(i);
             queue.add(updateVar);
@@ -820,17 +849,16 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
         private double x, y, a = 1;
         private String value;
-        private Color color;
+        private final Color color;
 
         public UpdateVar(double x, double y, String value) {
-            this.x = x;
-            this.y = y;
-            this.value = value;
-            this.color = Color.white;
+            this(x, y, value, Color.white);
         }
 
         private UpdateVar(double x, double y, String value, Color color) {
-            this(x, y, value);
+            this.x = x;
+            this.y = y;
+            this.value = value;
             this.color = color;
         }
 
