@@ -752,22 +752,6 @@ public class If extends Procedure {
         return resource;
     }
 
-//    private static final AffineTransform tx = new AffineTransform();
-//    private static final Polygon arrowHead = new Polygon();
-//
-//    static {
-//        arrowHead.addPoint(0, 2);
-//        arrowHead.addPoint(-3, -2);
-//        arrowHead.addPoint(3, -2);
-//    }
-//
-//    public static void drawArrowHead(Graphics2D g, double x, double y, int sqrAngRotateFromDown) {
-//        double angle = sqrAngRotateFromDown * Math.PI / 2; 
-//        tx.setToIdentity();
-//        tx.translate(x, y);
-//        tx.rotate(angle);
-//        g.fill(tx.createTransformedShape(arrowHead));
-//    }
     @Override
     public void drawLines(Graphics2D g) {
         if (resource != null) {
@@ -857,21 +841,21 @@ public class If extends Procedure {
             path.moveTo(bTrueEnd.getCenterX(), bBlock.getMaxY() - GF_J);
             path.lineTo(bFalseEnd.getCenterX(), bBlock.getMaxY() - GF_J);
 
+            GraphicObject d = null;
             Command c = getNext();
             if (c instanceof GraphicResource) {
-                GraphicObject d = ((GraphicResource) c).getDrawableResource();
+                d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
                     path.moveTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
                     path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
                 }
             }
             g.draw(path);
-
-            g.setColor(Color.red);
-
-//            drawArrowHead(g, bThis.getCenterX(), bBlock.getMaxY() - 7,0);
-//            drawArrowHead(g, bTrueEnd.getCenterX(), bTrueStart.getMinY()- 7,0);
-//            drawArrowHead(g, bFalseEnd.getCenterX(), bFalseStart.getMinY()- 7,0);
+            drawArrow(g, bTrueEnd.getCenterX(), bTrueStart.getMinY(), ARROW_DOWN);
+            drawArrow(g, bFalseEnd.getCenterX(), bFalseStart.getMinY(), ARROW_DOWN);
+            if (d != null) {
+                drawArrow(g, bThis.getCenterX(), bBlock.getMaxY(), ARROW_DOWN);
+            }
         }
     }
 

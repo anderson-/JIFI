@@ -6,12 +6,7 @@
 package s3f.jifi.core;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import s3f.core.code.CodeEditorTab;
 import s3f.core.plugin.Plugabble;
@@ -19,9 +14,7 @@ import s3f.core.plugin.SimulableElement;
 import s3f.core.project.ComplexElement;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
-import s3f.core.project.FileCreator;
 import s3f.core.project.Resource;
-import s3f.core.project.SimpleElement;
 import s3f.core.project.editormanager.DefaultEditorManager;
 import s3f.core.project.editormanager.EditorManager;
 import s3f.core.project.editormanager.TextFile;

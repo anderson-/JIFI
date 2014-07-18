@@ -11,6 +11,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -53,6 +54,10 @@ public class MutableWidgetContainer extends WidgetContainer {
     static {
         defaultFont = new Font("Dialog", Font.BOLD, 12);
     }
+
+    public static Stroke BOUNDS_STROKE = new BasicStroke(5);
+    public static Stroke SHADOW_STROKE = new BasicStroke(5);
+    public static Stroke FLOWCHART_LINE_STROKE = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     protected String boxLabel = "";
     protected Color color;
@@ -236,11 +241,10 @@ public class MutableWidgetContainer extends WidgetContainer {
     public void drawBackground(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
         //linhas
         g.setColor(color.darker());
-        g.setStroke(BOLD_STROKE);
+        g.setStroke(FLOWCHART_LINE_STROKE);
         g.translate(-bounds.x, -bounds.y);
         backDraw(g);
         g.translate(bounds.x, bounds.y);
-
     }
 
     @Override
@@ -278,11 +282,9 @@ public class MutableWidgetContainer extends WidgetContainer {
             //sombra
             AffineTransform t = ga.getT();
 
-            t.translate(
-                    3, 2);
+            t.translate(3, 2);
             g.setColor(color.darker());
-            g.setStroke(
-                    new BasicStroke(5));
+            g.setStroke(SHADOW_STROKE);
             g.draw(t.createTransformedShape(shape));
             ga.done(t);
 
@@ -291,7 +293,7 @@ public class MutableWidgetContainer extends WidgetContainer {
 
             g.fill(shape);
 
-            g.setStroke(new BasicStroke(5));
+            g.setStroke(BOUNDS_STROKE);
             g.setColor(color);
 
             g.draw(shape);
