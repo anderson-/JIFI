@@ -28,6 +28,7 @@ import org.nfunk.jep.Variable;
 import s3f.core.plugin.EntityManager;
 import s3f.core.plugin.PluginManager;
 import s3f.jifi.core.interpreter.Interpreter;
+import s3f.jifi.core.parser.Parser;
 import s3f.jifi.flowchart.Block;
 import s3f.jifi.flowchart.DummyBlock;
 import s3f.jifi.flowchart.Function;
@@ -38,9 +39,9 @@ import s3f.magenta.Drawable;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.graphicresource.GraphicResource;
-import s3f.magenta.swing.WidgetContainer;
 import s3f.magenta.sidepanel.Item;
 import s3f.magenta.sidepanel.SidePanel;
+import s3f.magenta.swing.WidgetContainer;
 import s3f.util.RandomColor;
 
 /**
@@ -154,17 +155,25 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
     public final void setFunction(Function function) {
         hideGraphicResources(this.function, true, true);
-        if (this.function == null) {
-            this.function = function;
+        if (this.function != null) {
+            System.out.println("o" + this.function.hashCode());
         }
-        ident();
+        this.function = function;
+        System.out.println("n" + function.hashCode());
         setName(function.toString());
+        System.out.println(Parser.encode(function));
+        //ident();
     }
 
     private void ident() {
-        addDummyBlocks(function, this);
-        ident(function, true);
-        hideGraphicResources(function, false, false);
+        try {
+            System.out.println("i" + function.hashCode());
+            addDummyBlocks(function, this);
+            ident(function, true);
+            hideGraphicResources(function, false, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void addDummyBlocks(Command c, FlowchartPanel fp) {
@@ -771,7 +780,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
             pushUndo();
             setFunction(redo.pop());
             selection.clear();
-            support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
+//            support.firePropertyChange(PROPERTY_CHANGE, tmpCopy, function);
         }
     }
 
