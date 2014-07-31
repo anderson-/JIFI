@@ -63,6 +63,7 @@ public class DummyBlock extends Procedure {
                     s.archeight = s.arcwidth = 20;
                     s.setFrame(bounds);
                 } else if (shapeType == SHAPE_CIRCLE) {
+                    shapeStartY = 5;
                     Ellipse2D.Double s = ((Ellipse2D.Double) shape);
                     s.setFrame(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getWidth());
                 } else {

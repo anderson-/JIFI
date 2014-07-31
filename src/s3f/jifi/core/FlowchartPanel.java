@@ -167,7 +167,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer {
 
     private void ident() {
         try {
-            System.out.println("i" + function.hashCode());
+//            System.out.println("i" + function.hashCode());
             addDummyBlocks(function, this);
             ident(function, true);
             hideGraphicResources(function, false, false);

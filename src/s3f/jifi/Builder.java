@@ -7,9 +7,11 @@ package s3f.jifi;
 
 import s3f.core.plugin.ConfigurableObject;
 import s3f.core.plugin.PluginBuilder;
+import s3f.core.ui.GUIBuilder;
 import s3f.jifi.core.Flowchart;
 import s3f.jifi.flowchart.BreakLoop;
 import s3f.jifi.flowchart.Comment;
+import s3f.jifi.flowchart.DoWhile;
 import s3f.jifi.flowchart.FunctionBlock;
 import s3f.jifi.flowchart.If;
 import s3f.jifi.flowchart.KeyboardInput;
@@ -24,6 +26,10 @@ import s3f.jifi.flowchart.While;
  */
 public class Builder extends PluginBuilder {
 
+    static {
+        GUIBuilder.setSplashScreen(new JIFISplashScreen("/resources/jifi_logo90.png"));
+    }
+    
     public Builder() {
         super("JIFI");
     }
@@ -35,6 +41,9 @@ public class Builder extends PluginBuilder {
         pm.registerFactory(o);
         o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new While());
+        pm.registerFactory(o);
+        o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new DoWhile());
         pm.registerFactory(o);
         o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new BreakLoop());

@@ -15,8 +15,6 @@ import s3f.core.project.ComplexElement;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.project.Resource;
-import s3f.core.project.editormanager.DefaultEditorManager;
-import s3f.core.project.editormanager.EditorManager;
 import s3f.core.project.editormanager.TextFile;
 import s3f.jifi.core.interpreter.Interpreter;
 import s3f.jifi.core.parser.decoder.Decoder;
@@ -30,7 +28,6 @@ import s3f.jifi.flowchart.Function;
 public class Flowchart extends ComplexElement implements TextFile, SimulableElement {
 
     public static final Element.CategoryData FLOWCHART_FILES = new Element.CategoryData("flowcht", "jf", new ImageIcon(Flowchart.class.getResource("/resources/icons/fugue/block.png")), new Flowchart());
-    private static final EditorManager EDITOR_MANAGER = new DefaultEditorManager(new FlowchartEditorTab(), new CodeEditorTab());
     private static final ImageIcon ICON_DEFAULT_ERROR = new ImageIcon(FlowchartEditorTab.class.getResource("/resources/icons/fugue/block--exclamation.png"));
     private static final ImageIcon ICON_TEXT = new ImageIcon(FlowchartEditorTab.class.getResource("/resources/icons/fugue/script-block.png"));
     private static final ImageIcon ICON_TEXT_ERROR = new ImageIcon(FlowchartEditorTab.class.getResource("/resources/icons/fugue/script-block--exclamation.png"));
@@ -39,7 +36,7 @@ public class Flowchart extends ComplexElement implements TextFile, SimulableElem
     private final Interpreter interpreter;
 
     public Flowchart() {
-        super("flowchart", "/resources/icons/fugue/block.png", FLOWCHART_FILES, EDITOR_MANAGER);
+        super("flowchart", "/resources/icons/fugue/block.png", FLOWCHART_FILES, new Class[]{FlowchartEditorTab.class});
         interpreter = new Interpreter();
     }
 
@@ -96,7 +93,7 @@ public class Flowchart extends ComplexElement implements TextFile, SimulableElem
         }
         return null;
     }
-    
+
     @Override
     public s3f.core.simulation.System getSystem() {
 //        interpreter.setMainFunction(getFunction()); //não é o melhor lugar!

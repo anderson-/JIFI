@@ -35,30 +35,39 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import s3f.jifi.core.Command;
 import static s3f.jifi.core.Command.identChar;
-import s3f.jifi.core.GraphicFlowchart;
-import static s3f.jifi.core.GraphicFlowchart.GF_J;
-import s3f.jifi.flowchart.Function.FunctionEnd;
-import s3f.magenta.GraphicObject;
-import s3f.magenta.graphicresource.GraphicResource;
-import s3f.magenta.swing.MutableWidgetContainer;
 import s3f.jifi.core.FlowchartPanel;
 import s3f.jifi.core.FlowchartPanel.TmpVar;
-import s3f.magenta.sidepanel.Item;
+import s3f.jifi.core.GraphicFlowchart;
+import static s3f.jifi.core.GraphicFlowchart.GF_J;
 import s3f.jifi.core.interpreter.ExecutionException;
 import s3f.jifi.core.interpreter.ResourceManager;
+import static s3f.jifi.flowchart.DummyBlock.SHAPE_CIRCLE;
+import static s3f.jifi.flowchart.DummyBlock.SHAPE_ROUND_RECTANGLE;
+import static s3f.jifi.flowchart.DummyBlock.createSimpleBlock;
+import s3f.jifi.flowchart.Function.FunctionEnd;
+import s3f.magenta.GraphicObject;
+import s3f.magenta.exemples.DrawableTest.Circle;
+import s3f.magenta.graphicresource.GraphicResource;
+import s3f.magenta.sidepanel.Item;
+import s3f.magenta.swing.MutableWidgetContainer;
 
 /**
  * Laço de repetição simples.
  */
-public class While extends Block {
+public class DoWhile extends Block {
 
     private static Color myColor = Color.decode("#1281BD");
     private GraphicObject resource = null;
 
-    public While() {
+    public DoWhile() {
+        MutableWidgetContainer mwc = If.createSimpleIf(this, "0");
+        mwc.setName("While");
+        mwc.setColor(myColor);
+        getEnd().setRes((GraphicObject) mwc);
     }
 
-    public While(String procedure) {
+    public DoWhile(String procedure) {
+        this();
         setProcedure(procedure);
     }
 
@@ -66,34 +75,51 @@ public class While extends Block {
 
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
-        if (whileValue.countObservers() == 0) {
-            FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
-            flowcharPanel.pushVar(whileValue);
-        }
         if (breakLoop) {
             breakLoop = false;
-            whileValue.setValue("false");
             return super.step(rm);
         }
 
-        if (evaluate(rm)) {
-            whileValue.setValue("true");
+        if (returnNext) {
+            reset();
+            if (evaluate(rm)) {
+                returnNext = false;
+                return start;
+            } else {
+                return super.step(rm);
+            }
+        } else {
             return start;
         }
 
-        whileValue.setValue("false");
-        return super.step(rm);
+//        if (whileValue.countObservers() == 0) {
+//            FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
+//            flowcharPanel.pushVar(whileValue);
+//        }
+//        if (breakLoop) {
+//            breakLoop = false;
+//            whileValue.setValue("false");
+//            return super.step(rm);
+//        }
+//
+//        if (evaluate(rm)) {
+//            whileValue.setValue("true");
+//            return start;
+//        }
+//
+//        whileValue.setValue("false");
+//        return super.step(rm);
     }
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append("while (").append(getProcedure()).append(")").append("{\n");
+        sb.append(ident).append("do {\n");
         Command it = start;
         while (it != null) {
             it.toString(ident + identChar, sb);
             it = it.getNext();
         }
-        sb.append(ident).append("}\n");
+        sb.append(ident).append("}").append(" while (").append(getProcedure()).append(");\n");
     }
 
     @Override
@@ -116,21 +142,18 @@ public class While extends Block {
         myShape.add(new Area(tmpPoli));
         myShape.subtract(new Area(new Ellipse2D.Double(5, 5, 10, 10)));
         myShape.add(new Area(new Ellipse2D.Double(7, 7, 6, 6)));
-        return new Item("Repetição", myShape, myColor, "Repete os comandos internos enquando a condição fornecida for verdadeira");
+        return new Item("dRepetição", myShape, myColor, "Repete os comandos internos enquando a condição fornecida for verdadeira");
     }
 
     @Override
     public Object createInstance() {
-        return new While();
+        return new DoWhile();
     }
 
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            MutableWidgetContainer mwc = If.createSimpleIf(this, "1");
-            mwc.setName("While");
-            mwc.setColor(myColor);
-            resource = mwc;
+            resource = createSimpleBlock(this, " do ", Color.BLACK, myColor, SHAPE_CIRCLE);;
         }
         return resource;
     }
@@ -170,52 +193,54 @@ public class While extends Block {
                 }
             }
 
-            path.moveTo(bEnd.getCenterX(), bBlock.getMaxY() - 3 * GF_J);
-            path.lineTo(bEnd.getCenterX(), bBlock.getMaxY() - 2 * GF_J);
-            path.lineTo(bBlock.getMinX(), bBlock.getMaxY() - 2 * GF_J);
+            Rectangle2D.Double bE = getEnd().getDrawableResource().getObjectBouds();
+
+            path.moveTo(bEnd.getCenterX(), bE.getCenterY());
+            path.lineTo(bEnd.getCenterX(), bE.getCenterY());
+            path.lineTo(bBlock.getMinX(), bE.getCenterY());
             path.lineTo(bBlock.getMinX(), bThis.getCenterY());
             path.lineTo(bThis.getCenterX(), bThis.getCenterY());
 
             c = getNext();
             boolean end = false;
-
-//            if (c != null && c instanceof BlockEnd && !(c instanceof FunctionEnd)) {
-//                end = true;
-//                c = this.getParent();
-//                if (c != null && !(c instanceof While)) {
-//                    c = c.getParent();
-//                    if (c != null && !(c instanceof If)) {
-//                        c = null;
-//                    }
-//                }
-//            }
+//
+            if (c != null && c instanceof BlockEnd && !(c instanceof FunctionEnd)) {
+                end = true;
+                c = this.getParent();
+                if (c != null && !(c instanceof DoWhile)) {
+                    c = c.getParent();
+                    if (c != null && !(c instanceof If)) {
+                        c = null;
+                    }
+                }
+            }
 
             Rectangle2D.Double bNext = null;
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
 
-                    g.drawString("F", (int) bThis.getMaxX() + 5, (int) bThis.getCenterY() - 5);
-                    g.drawString("T", (int) bThis.getCenterX() - 20, (int) bThis.getMaxY() + 10);
-
-                    path.moveTo(bThis.getCenterX(), bThis.getCenterY());
-                    path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
-                    path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
+//                    g.drawString("F", (int) bThis.getMaxX() + 5, (int) bThis.getCenterY() - 5);
+//                    g.drawString("T", (int) bThis.getCenterX() - 20, (int) bThis.getMaxY() + 10);
+//
+                    path.moveTo(bThis.getCenterX(), bE.getCenterY());
+//                    path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
+//                    path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
                     if (!end) {
                         bNext = d.getObjectBouds();
-                        path.lineTo(bNext.getCenterX(), bBlock.getMaxY() - GF_J);
-                        path.lineTo(bNext.getCenterX(), bBlock.getMaxY());
+//                        path.lineTo(bNext.getCenterX(), bE.getMaxY() - GF_J);
+                        path.lineTo(bNext.getCenterX(), bNext.getMinY());
                     } else {
-                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
+//                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
 //                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
                     }
                 }
             }
             g.draw(path);
-            drawArrow(g, bThis.getMinX(), bThis.getCenterY(), ARROW_RIGHT);
+            drawArrow(g, bThis.getMinX() + 1, bThis.getCenterY(), ARROW_RIGHT);
             drawArrow(g, bThis.getCenterX(), bBlock.getMinY(), ARROW_DOWN);
             if (bNext != null) {
-                drawArrow(g, bNext.getCenterX(), bBlock.getMaxY(), ARROW_DOWN);
+                drawArrow(g, bNext.getCenterX(), bNext.getMinY(), ARROW_DOWN);
             }
         }
     }
@@ -225,7 +250,7 @@ public class While extends Block {
         Rectangle2D.Double bounds = super.getBounds(tmp, j, k);
         bounds.width += k;
         bounds.x -= k / 2;
-        bounds.height += 2 * j;
+//        bounds.height += 2 * j;
         return bounds;
     }
 }

@@ -48,6 +48,7 @@ public class Block extends Procedure {
     public class BlockEnd extends Command {
 
         protected Command begin;
+        private GraphicObject resource;
 
         protected BlockEnd() {
         }
@@ -74,7 +75,11 @@ public class Block extends Procedure {
 
         @Override
         public GraphicObject getDrawableResource() {
-            return null;
+            return resource;
+        }
+
+        void setRes(GraphicObject resource) {
+            this.resource = resource;
         }
     }
     protected Command start;
