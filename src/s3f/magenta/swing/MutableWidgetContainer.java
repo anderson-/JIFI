@@ -7,6 +7,7 @@ package s3f.magenta.swing;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -20,26 +21,31 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import s3f.jifi.core.parser.parameterparser.Argument;
 import s3f.jifi.flowchart.Procedure;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.GraphicObject;
+import s3f.magenta.sidepanel.Item;
 import s3f.magenta.swing.component.Component;
 import s3f.magenta.swing.component.SubLineBreak;
 import s3f.magenta.swing.component.TextLabel;
 import s3f.magenta.swing.component.Widget;
 import s3f.magenta.swing.component.WidgetLine;
-import s3f.magenta.sidepanel.Item;
 
 /**
  *
@@ -50,11 +56,6 @@ public class MutableWidgetContainer extends WidgetContainer {
     protected static Font defaultFont;
     public static final int INSET_Xd = 5;
     public static final int INSET_Yd = 5;
-
-    static {
-        defaultFont = new Font("Dialog", Font.BOLD, 12);
-    }
-
     public static Stroke BOUNDS_STROKE = new BasicStroke(5);
     public static Stroke SHADOW_STROKE = new BasicStroke(5);
     public static Stroke FLOWCHART_LINE_STROKE = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -90,6 +91,7 @@ public class MutableWidgetContainer extends WidgetContainer {
         this.absolute = true;
         this.mouseBlocked = true;
         setWidgetVisible(true);
+        defaultFont = UIManager.getDefaults().getFont("TabbedPane.font");
     }
 
     public MutableWidgetContainer(Color color) {

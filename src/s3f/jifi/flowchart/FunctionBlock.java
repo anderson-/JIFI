@@ -92,7 +92,6 @@ public class FunctionBlock extends Procedure {
         return new FunctionBlock();
     }
     private GraphicObject d = null;
-    private static Font font = new Font("Dialog", Font.BOLD, 12);
 
     @Override
     public GraphicObject getDrawableResource() {

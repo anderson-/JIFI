@@ -39,21 +39,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.JButton;
 import javax.swing.JTextField;
+import org.nfunk.jep.JEP;
 import s3f.jifi.core.Command;
 import static s3f.jifi.core.Command.identChar;
 import s3f.jifi.core.GraphicFlowchart;
+import s3f.jifi.core.interpreter.ExecutionException;
+import s3f.jifi.core.interpreter.ResourceManager;
 import s3f.jifi.core.parser.parameterparser.Argument;
 import static s3f.jifi.flowchart.DummyBlock.SHAPE_ROUND_RECTANGLE;
 import static s3f.jifi.flowchart.DummyBlock.createSimpleBlock;
-import s3f.magenta.swing.DrawableProcedureBlock;
 import s3f.magenta.GraphicObject;
+import s3f.magenta.graphicresource.GraphicResource;
+import s3f.magenta.swing.DrawableProcedureBlock;
 import s3f.magenta.swing.MutableWidgetContainer;
-import s3f.magenta.swing.component.WidgetLine;
+import s3f.magenta.swing.component.Component;
 import s3f.magenta.swing.component.TextLabel;
 import s3f.magenta.swing.component.Widget;
-import s3f.magenta.graphicresource.GraphicResource;
-import s3f.magenta.swing.component.Component;
-import s3f.jifi.core.interpreter.ResourceManager;
+import s3f.magenta.swing.component.WidgetLine;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -100,14 +102,41 @@ public class Function extends Block {
         updateFunction(name, args, this);
     }
 
-    private static void updateFunction(String name, String args, Function f) {
-        f.setName(name);
-        f.getArgs().clear();
-        if (args != null) {
-            for (String arg : args.split(",")) {
-                arg = arg.replace("var", "").trim();
-//                f.getArgs().add(arg);
+    @Override
+    public boolean perform(ResourceManager rm) throws ExecutionException {
+        String s = "";
+        for (Argument a : super.getArgs()) {
+            s += a.getStringValue() + ";";
+        }
+        s = s.replaceAll("var", "");
+        super.execute(s, rm);
+        return true;
+    }
+
+    @Override
+    protected void updateVariables() {
+        getVariableNames().clear();
+        getVariableValues().clear();
+        for (Argument a : super.getArgs()) {
+            String v = a.getStringValue();
+            v = v.substring(v.indexOf("var") + 3);
+            if (v.contains("=")) {
+                v = v.substring(0, v.indexOf('='));
             }
+            addVariable(v.trim(), "13");
+        }
+    }
+
+    private void updateFunction(String name, String args, Function f) {
+        f.setName(name);
+        if (args != null && !args.trim().isEmpty()) {
+            int i = 0;
+            for (String arg : args.split(",")) {
+//                arg = arg.replace("var", "").trim();
+                addLineArg(i, Argument.EXPRESSION, arg);
+                i++;
+            }
+            super.setProcedure(args.replace(',', ';'));
         }
     }
 
@@ -119,9 +148,6 @@ public class Function extends Block {
         this.name = name;
     }
 
-//    public Collection<String> getArgs() {
-//        return args;
-//    }
     public void addArgs(Collection<String> args) {
         this.args.addAll(args);
     }
@@ -141,7 +167,7 @@ public class Function extends Block {
         return true;
         //return super.addBegin(c);
     }
-    
+
     private static Command boundaryTest(Point2D p, Command it) {
         if (it.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K).contains(p)) {
             return it;
@@ -245,7 +271,16 @@ public class Function extends Block {
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append("func ").append(name).append("(").append("").append(") {\n");
+        sb.append(ident).append("func ").append(name).append("(");
+        boolean comma = false;
+        for (Argument arg : getArgs()) {
+            if (comma) {
+                sb.append(", ");
+            }
+            sb.append(arg.getStringValue());
+            comma = true;
+        }
+        sb.append(") {\n");
         Command it = start;
         while (it != null) {
             it.toString(ident + identChar, sb);

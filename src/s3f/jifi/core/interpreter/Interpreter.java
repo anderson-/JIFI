@@ -25,10 +25,22 @@
  */
 package s3f.jifi.core.interpreter;
 
+import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.nfunk.jep.JEP;
+import org.nfunk.jep.ParseException;
+import org.nfunk.jep.function.PostfixMathCommand;
+import s3f.core.plugin.EntityManager;
+import s3f.core.plugin.PluginManager;
+import s3f.core.project.Project;
 import s3f.jifi.core.Command;
+import s3f.jifi.core.Flowchart;
+import s3f.jifi.core.FlowchartPanel;
+import s3f.jifi.core.parser.parameterparser.Argument;
 import s3f.jifi.flowchart.Function;
+import s3f.jifi.flowchart.Return;
 import s3f.util.trafficsimulator.Clock;
 
 /**
@@ -62,16 +74,52 @@ public class Interpreter implements s3f.core.simulation.System {
         resourceManager.setResource(o);
     }
 
-    @Override
-    public void reset() {
-        if (mainFunction != null) {
-            currentCmd = mainFunction;
-        } else {
-            currentCmd = null;
-        }
-
+    private JEP reset(JEP parser) {
         parser.initFunTab(); // clear the contents of the function table
         parser.addStandardFunctions();
+
+        EntityManager em = PluginManager.getInstance().createFactoryManager(null);
+        Project project = (Project) em.getProperty("s3f.core.project.tmp", "project");
+        for (s3f.core.project.Element e : project.getElements()) {
+            if (e instanceof Flowchart) {
+                final Flowchart flowchart = (Flowchart) e;
+
+                parser.addFunction(flowchart.getName(), new PostfixMathCommand() {
+                    {
+                        numberOfParameters = -1;
+                    }
+
+                    @Override
+                    public void run(Stack inStack) throws ParseException {
+
+                        checkStack(inStack);
+
+                        Function function = flowchart.getFunction().copy();
+                        String args = "";
+                        for (int i = function.getArgSize() - 1; i >= 0; i--) {
+                            Object o = inStack.pop();
+                            String arg = function.getArg(i).getStringValue();
+                            if (arg.contains("=")) {
+                                arg = arg.substring(0, arg.indexOf('='));
+                            }
+                            arg += "  = " + o;
+                            args = o + ", " + args;
+                            function.addLineArg(i, Argument.EXPRESSION, arg);
+                        }
+
+//                        System.out.println("running: " + flowchart.getName() + "(" + args + ")");
+                        try {
+                            inStack.push(quickRun(function, clock, Interpreter.this));
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            throw new ParseException(e.getMessage());
+                        }
+                    }
+                });
+            }
+        }
+
 //        parser.setTraverse(true); //exibe debug
         parser.setImplicitMul(false);//multiplicação implicita: 2x+4
         parser.initSymTab(); // clear the contents of the symbol table
@@ -82,7 +130,54 @@ public class Interpreter implements s3f.core.simulation.System {
         }
         parser.setAllowAssignment(true);
         parser.addFunction("get", new Get());
+        return parser;
+    }
+
+    @Override
+    public void reset() {
+        if (mainFunction != null) {
+            currentCmd = mainFunction;
+        } else {
+            currentCmd = null;
+        }
+
+        reset(parser);
         state = PAUSED;
+    }
+
+    private Object quickRun(Command cmd, Clock clock, Interpreter i) throws ExecutionException {
+        ResourceManager rm = new ResourceManager();
+        rm.setResource(clock);
+        rm.setResource(reset(new JEP()));
+        rm.setResource(i);
+        return quickRun(cmd, rm, clock);
+    }
+
+    @Deprecated
+    private static Object quickRun(Command cmd, ResourceManager rm, Clock clock) throws ExecutionException {
+        if (cmd == null) {
+            return null;
+        } else {
+
+            cmd.begin(rm);
+            while (!cmd.perform(rm)) {
+                clock.increase();
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException ex) {
+                }
+//                if (state != RUNNING) {
+//                    return;
+//                }
+            }
+
+            if (cmd instanceof Return) {
+                return ((Return) cmd).getValue();
+            } else {
+                cmd = cmd.step(rm);
+                return quickRun(cmd, rm, clock);
+            }
+        }
     }
 
     public Function getMainFunction() {
@@ -135,7 +230,7 @@ public class Interpreter implements s3f.core.simulation.System {
     }
 
     private void step() {
-        
+
         if (currentCmd == null) {
             state = DONE;
             return;

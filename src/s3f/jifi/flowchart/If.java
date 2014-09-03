@@ -119,8 +119,12 @@ public class If extends Procedure {
     @Override
     public Command step(ResourceManager rm) throws ExecutionException {
         if (ifValue.countObservers() == 0) {
-            FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
-            flowcharPanel.pushVar(ifValue);
+            try {
+                FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
+                flowcharPanel.pushVar(ifValue);
+            } catch (s3f.jifi.core.interpreter.ResourceNotFoundException e) {
+
+            }
         }
         //calcula o valor da expressão
         if (evaluate(rm)) {
@@ -232,16 +236,20 @@ public class If extends Procedure {
             y += ch + j * .6;
         }
 
-        Rectangle2D.Double btbs = blockTrue.get(0).getDrawableResource().getObjectBouds();
-        Rectangle2D.Double bfbs = blockFalse.get(0).getDrawableResource().getObjectBouds();
-        double pbt = Math.abs(btb.x - btbs.getCenterX());
-        double pbf = Math.abs(bfb.x - bfbs.getCenterX());
-        blockTrue.ident(x - (btb.width - pbt) - k / 2, y, j, k);
-        blockFalse.ident(x + pbf + k / 2, y, j, k);
+        try {
+            Rectangle2D.Double btbs = blockTrue.get(0).getDrawableResource().getObjectBouds();
+            Rectangle2D.Double bfbs = blockFalse.get(0).getDrawableResource().getObjectBouds();
+            double pbt = Math.abs(btb.x - btbs.getCenterX());
+            double pbf = Math.abs(bfb.x - bfbs.getCenterX());
+            blockTrue.ident(x - (btb.width - pbt) - k / 2, y, j, k);
+            blockFalse.ident(x + pbf + k / 2, y, j, k);
 
-        y += ((bfb.height > btb.height) ? bfb.height : btb.height) + j;
-        if (getNext() != null) {
-            getNext().ident(x, y, j, k);
+            y += ((bfb.height > btb.height) ? bfb.height : btb.height) + j;
+            if (getNext() != null) {
+                getNext().ident(x, y, j, k);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

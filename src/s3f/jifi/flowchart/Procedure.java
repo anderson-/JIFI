@@ -124,7 +124,7 @@ public class Procedure extends Command implements Classifiable, Pluggable {
         return true;
     }
 
-    private void updateVariables() {
+    protected void updateVariables() {
         names.clear();
         values.clear();
         for (String str : procedure.split(";")) {
@@ -176,12 +176,19 @@ public class Procedure extends Command implements Classifiable, Pluggable {
 
                 Variable varOld;
                 varOld = st.getVar(varName);
-                FlowchartPanel flowcharPanel = rm.getResource(FlowchartPanel.class);
-                if (varOld != null){
-                    flowcharPanel.popVar(varOld);
+                FlowchartPanel flowcharPanel;
+                try {
+                    flowcharPanel = rm.getResource(FlowchartPanel.class);
+                    if (varOld != null) {
+                        flowcharPanel.popVar(varOld);
+                    }
+                } catch (s3f.jifi.core.interpreter.ResourceNotFoundException e) {
+                    flowcharPanel = null;
                 }
                 Variable var = st.makeVarIfNeeded(varName, v);
-                flowcharPanel.pushVar(var);
+                if (flowcharPanel != null) {
+                    flowcharPanel.pushVar(var);
+                }
             }
         }
 
@@ -205,8 +212,6 @@ public class Procedure extends Command implements Classifiable, Pluggable {
                 }
             }
         }
-
-//        parser.parseExpression(procedure);
         return o;
     }
 
@@ -246,13 +251,15 @@ public class Procedure extends Command implements Classifiable, Pluggable {
         ArrayList<String> vars = new ArrayList<>();
         Command it = this;
         while (it != null) {
-            Command up = it.getPrevious();
-            while (up != null) {
+            Command up = it;
+            do {
                 if (up instanceof Procedure) {
+//                    System.out.println("..."+up + " " + ((Procedure) up).getVariableNames().size());
+                    ((Procedure) up).updateVariables();
                     vars.addAll(((Procedure) up).getVariableNames());
                 }
                 up = up.getPrevious();
-            }
+            } while (up != null);
             it = it.getParent();
         }
         return vars;
@@ -314,7 +321,7 @@ public class Procedure extends Command implements Classifiable, Pluggable {
         myArgs.addAll(Arrays.asList(args));
     }
 
-    protected Argument getArg(int index) {
+    public Argument getArg(int index) {
         return addLineArg(index);
     }
 
@@ -322,7 +329,7 @@ public class Procedure extends Command implements Classifiable, Pluggable {
         return myArgs;
     }
 
-    protected int getArgSize() {
+    public int getArgSize() {
         return myArgs.size();
     }
 
@@ -331,7 +338,7 @@ public class Procedure extends Command implements Classifiable, Pluggable {
             myArgs.remove(index);
         }
     }
-    
+
     protected void removeLineArg() {
         if (myArgs.size() > 0) {
             myArgs.remove(myArgs.size() - 1);

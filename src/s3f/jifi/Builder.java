@@ -17,6 +17,7 @@ import s3f.jifi.flowchart.If;
 import s3f.jifi.flowchart.KeyboardInput;
 import s3f.jifi.flowchart.PrintString;
 import s3f.jifi.flowchart.Procedure;
+import s3f.jifi.flowchart.Return;
 import s3f.jifi.flowchart.Wait;
 import s3f.jifi.flowchart.While;
 
@@ -66,6 +67,9 @@ public class Builder extends PluginBuilder {
 //        o = new ConfigurableObject("s3f.jifi.cmd");
 //        o.getData().setProperty("procedure", new FunctionBlock());
 //        pm.registerFactory(o);
+        o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new Return());
+        pm.registerFactory(o);
         
         pm.registerFactory(Flowchart.FLOWCHART_FILES);
     }
