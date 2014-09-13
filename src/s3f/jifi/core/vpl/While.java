@@ -5,12 +5,17 @@
  */
 package s3f.jifi.core.vpl;
 
+import org.mozilla.javascript.ast.WhileLoop;
+
 /**
  *
  * @author anderson
  */
-public abstract class CustomStatement {
+public class While extends Statement<org.mozilla.javascript.ast.WhileLoop> {
 
-    
+    public While(WhileLoop subTree) {
+        super(subTree);
+        super.setName("while");
+    }
 
 }

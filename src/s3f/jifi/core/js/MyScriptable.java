@@ -11,9 +11,11 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
-import s3f.magenta.core.SwingASTParser;
-import s3f.magenta.core.SwingASTParserManager;
+import org.mozilla.javascript.ast.NodeVisitor;
+import s3f.magenta.core.SubASTParser;
+import s3f.magenta.core.ASTCompositeParser;
 
 //-- This is the class whose instance method will be made available in a JavaScript scope as a global function.
 //-- It extends from ScriptableObject because instance methods of only scriptable objects can be directly exposed
@@ -58,15 +60,39 @@ public class MyScriptable extends ScriptableObject {
         System.out.println(tree.debugPrint());
 //        System.out.println(tree.toSource());
 
-        SwingASTParserManager pm = new SwingASTParserManager();
-        pm.register(new SwingASTParser("2", Token.SCRIPT, Token.FUNCTION));
-        pm.register(new SwingASTParser("1", Token.SCRIPT));
-        pm.register(new SwingASTParser("3", Token.SCRIPT, Token.FUNCTION, Token.NAME, Token.NAME, Token.BLOCK, Token.VAR, Token.VAR, Token.NAME, Token.MUL, Token.NAME, Token.NUMBER));
-        pm.register(new SwingASTParser("6", new String[]{"fun"}, Token.CALL, -1));
-        pm.register(new SwingASTParser("ret", Token.RETURN, Token.NUMBER));
-        //implementar OR(int,int,int,int) alocando 4 numeros < 255 em um int
-        //vai dar problema com os numeros negativos, então arrueme...
-        pm.build(tree, null);
+        ASTCompositeParser cp = new ASTCompositeParser();
+        cp.register(new SubASTParser("1", Token.SCRIPT, Token.FUNCTION));
+        cp.register(new SubASTParser("2", Token.FUNCTION, Token.NAME, Token.NAME, Token.BLOCK, Token.VAR, Token.VAR, Token.NAME, Token.MUL, Token.NAME, Token.NUMBER));
+        cp.register(new SubASTParser("ret", Token.RETURN, new int[]{Token.NUMBER, Token.NAME}));
+        cp.parse(tree, (Object) null);
+
+        tree.visit(new NodeVisitor() {
+            @Override
+            public boolean visit(AstNode tree) {
+                if (Token.keywordToName(tree.getType()) != null || tree.getType() == Token.SCRIPT) {
+                    System.out.println(">" + Token.typeToName(tree.getType()));
+                    return true;
+                }
+                return true;
+            }
+        });
+
+    }
+
+    public abstract static class MyNodevisitor {
+
+        private NodeVisitor nv = new NodeVisitor() {
+
+            AstNode parent = null;
+            
+            @Override
+            public boolean visit(AstNode an) {
+                parent = an;
+                return MyNodevisitor.this.visit(an);
+            }
+        };
+
+        public abstract boolean visit(AstNode an);
 
     }
 
@@ -84,24 +110,30 @@ public class MyScriptable extends ScriptableObject {
         myScriptable.register("fun", C.class, "tests", Double.class, String.class);
 
         String testScript = ""
-                + "    function f(n){\n"
-                + "var x = n*3;\n"
-                + "//teste\n"
-                + "var result = fun(12.32 * n);\n"
-                + "    x++;\n"
-                + "    java.lang.System.out.println(result);\n"
-                + "    java.lang.System.out.println(x);\n"
-                + "    if (x == 10){\n"
-                + "     java.lang.System.out.println(13123);\n"
-                + "    } else {\n"
-                + "     java.lang.System.out.println(234234);\n"
-                + "    }\n"
-                + "    return n;\n"
-                + "    }\n"
+                + "    function f(n) return 2*n \n"
                 + "    f(0);\n"
-                + "var w = 3;\n"
+                + "    var w = 3;\n"
                 + "    f(w);\n"
                 + "";
+//        String testScript = ""
+//                + "    function f(n){\n"
+//                + "      var x = n*3;\n"
+//                + "      //teste\n"
+//                + "      var result = fun(12.32 * n);\n"
+//                + "      x++;\n"
+//                + "      java.lang.System.out.println(result);\n"
+//                + "      java.lang.System.out.println(x);\n"
+//                + "      if (x == 10){\n"
+//                + "        java.lang.System.out.println(13123);\n"
+//                + "      } else {\n"
+//                + "        java.lang.System.out.println(234234);\n"
+//                + "      }\n"
+//                + "      return 2;\n"
+//                + "    }\n"
+//                + "    f(0);\n"
+//                + "    var w = 3;\n"
+//                + "    f(w);\n"
+//                + "";
 
         myScriptable.parse(testScript, "My Script");
 //        myScriptable.compileAndRun(testScript, "My Script");

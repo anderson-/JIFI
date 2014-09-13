@@ -3,17 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package s3f.jifi.core.vpl;
 
-import java.util.ArrayList;
-import org.mozilla.javascript.ast.AstNode;
+import org.mozilla.javascript.ast.ScriptNode;
 
 /**
  *
  * @author anderson
  */
-public  class Switch  {
+public class Script extends Statement<org.mozilla.javascript.ast.ScriptNode>{
 
-    private ArrayList<AstNode> paths = new ArrayList<>();
+    public Script(ScriptNode subTree) {
+        super(subTree);
+        super.setName("script");
+    }
     
 }

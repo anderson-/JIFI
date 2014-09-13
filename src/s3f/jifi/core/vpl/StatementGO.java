@@ -4,14 +4,14 @@
  * and open the template in the editor.
  */
 
-package s3f.jifi.core.vpl.editor;
+package s3f.jifi.core.vpl;
 
-import javax.swing.JPanel;
+import s3f.magenta.core.CompositeGraphicObject;
 
 /**
  *
  * @author anderson
  */
-public class SymbolEditor extends JPanel {
+public class StatementGO extends CompositeGraphicObject{
     
 }

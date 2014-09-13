@@ -59,11 +59,11 @@ public class ShapeRender implements Render {
             g.draw(t.createTransformedShape(shape));
             ga.done(t);
 
-            int w = shape.getBounds().width;
-            if (w != l) {
-                System.out.println(w/(l - w));
-                l = w;
-            }
+//            int w = shape.getBounds().width;
+//            if (w != l) {
+//                System.out.println(w/(l - w));
+//                l = w;
+//            }
 
             //white background
             g.setColor(Color.white);
