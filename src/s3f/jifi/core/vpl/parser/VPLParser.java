@@ -5,6 +5,11 @@
  */
 package s3f.jifi.core.vpl.parser;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.mozilla.javascript.Node;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.Token;
@@ -20,6 +25,7 @@ import s3f.jifi.core.vpl.Script;
 import s3f.jifi.core.vpl.Statement;
 import s3f.jifi.core.vpl.While;
 import s3f.magenta.DrawingPanel;
+import s3f.magenta.GraphicObject;
 import s3f.magenta.util.QuickFrame;
 
 /**
@@ -37,7 +43,7 @@ public class VPLParser {
             case Token.BLOCK:
                 if (node instanceof Block) {
                     return parse((Block) node);
-                } else if (node instanceof Scope){
+                } else if (node instanceof Scope) {
                     return parse((Scope) node);
                 }
             case Token.WHILE:
@@ -45,7 +51,7 @@ public class VPLParser {
 //            case Token.FOR:
 //                return parse((Loop) node);
 //            case Token.IF:
-//                return parse((IfStatement) node);
+//                return parse((If) node);
             default:
                 return new Statement(node);
         }
@@ -76,6 +82,7 @@ public class VPLParser {
         }
         return block;
     }
+
     private static s3f.jifi.core.vpl.Block parse(Scope node) {
         s3f.jifi.core.vpl.Block block = new s3f.jifi.core.vpl.Block(node);
         for (Node statement : node) {
@@ -92,25 +99,34 @@ public class VPLParser {
         return block;
     }
 
+    static String readFile(String path, Charset encoding) {
+        try {
+            byte[] encoded = Files.readAllBytes(Paths.get(path));
+            return new String(encoded, encoding);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("File not found: " + path);
+        }
+    }
+
     public static void main(String[] args) {
-        String script = ""
-                + "var x = 2;"
-                + "var y = 3;"
-                + "func(x,y);"
-                + "{print('teste');}"
-                + "if (x==2){print('teste2');}"
-                + "";
+        
+        String script = readFile("/home/gnome3/testscript.js", Charset.defaultCharset());
         AstRoot tree = new Parser().parse(script, "", 1);
         Script parse = parse(tree);
 
         DrawingPanel p = new DrawingPanel();
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        
+        int x = 0;
         for (s3f.jifi.core.vpl.Node n : parse.getTree()) {
-            System.out.println(n);
-            p.add(((Statement)n).getGraphicResource());
+            System.out.println("> " + n);
+            GraphicObject graphicResource = ((Statement) n).getGraphicResource();
+            if (graphicResource != null) {
+                p.add(graphicResource);
+                graphicResource.setLocation(x += 20, 0);
+            }
         }
-        
-        
+        parse.ident(0, 0, 100, 100);
+
     }
 }

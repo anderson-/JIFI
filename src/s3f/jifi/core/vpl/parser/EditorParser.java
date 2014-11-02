@@ -27,7 +27,7 @@ import org.mozilla.javascript.ast.ParenthesizedExpression;
 import s3f.jifi.core.vpl.Statement;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.core.ASTCompositeParser;
-import s3f.magenta.core.CompositeGraphicObject;
+import s3f.magenta.core.FlowchartSymbol;
 import s3f.magenta.core.ShapeCreator;
 import s3f.magenta.core.ShapeRender;
 import s3f.magenta.core.SubASTParser;
@@ -112,7 +112,7 @@ public class EditorParser {
 
     }
 
-    public static JPanel parse(AstNode tree, CompositeGraphicObject cgo) {
+    public static JPanel parse(AstNode tree, FlowchartSymbol cgo) {
         JPanel panel = cgo.getContainer();
         panel.setLayout(new MigLayout("insets 25 10 0 10"));
         ASTCompositeParser<JPanel, JPanel> parser;
@@ -200,7 +200,7 @@ public class EditorParser {
     public static void main(String[] args) {
         DrawingPanel p = new DrawingPanel();
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        CompositeGraphicObject cgo = new CompositeGraphicObject();
+        FlowchartSymbol cgo = new FlowchartSymbol();
         String ex = "(23/7)*func(12 + x)+(2*(3||2-x(1,2,3*3.1415+f((5%22)))))";
         long t = t();
         AstNode expression = ((org.mozilla.javascript.ast.ExpressionStatement) new Parser().parse(ex, "etc", 1).getFirstChild()).getExpression();
@@ -211,7 +211,7 @@ public class EditorParser {
         t = t();
         EditorParser.parse(expression, cgo);
         System.out.println("t:" + (t() - t));
-        cgo.setWidgetVisible(true);
+//        cgo.setWidgetVisible(true);
         cgo.setShapeCreator(ShapeCreator.DIAMOND);
         cgo.addRender(new ShapeRender(Color.GREEN));
         p.add(cgo);

@@ -17,6 +17,7 @@ public class Function extends Statement<org.mozilla.javascript.ast.FunctionNode>
     public Function(FunctionNode subTree) {
         super(subTree);
         super.setName("function");
+        super.setGraphicResource(null);
     }
     
 }

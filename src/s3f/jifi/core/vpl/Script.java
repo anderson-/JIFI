@@ -17,6 +17,9 @@ public class Script extends Statement<org.mozilla.javascript.ast.ScriptNode>{
     public Script(ScriptNode subTree) {
         super(subTree);
         super.setName("script");
+        super.setGraphicResource(null);
     }
+    
+    
     
 }

@@ -110,7 +110,7 @@ public class MyScriptable extends ScriptableObject {
         myScriptable.register("fun", C.class, "tests", Double.class, String.class);
 
         String testScript = ""
-                + "    function f(n) return 2*n \n"
+                + "    function f(n){ return 2*n} \n"
                 + "    f(0);\n"
                 + "    var w = 3;\n"
                 + "    f(w);\n"

@@ -9,7 +9,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,6 +26,8 @@ import net.miginfocom.swing.MigLayout;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import s3f.magenta.Drawable;
 import s3f.magenta.DrawingPanel;
+import s3f.magenta.GraphicObject;
+import s3f.magenta.swing.CompositeGraphicObject;
 import s3f.magenta.swing.WidgetContainer;
 import s3f.magenta.swing.component.Widget;
 import s3f.magenta.util.QuickFrame;
@@ -32,7 +36,7 @@ import s3f.magenta.util.QuickFrame;
  *
  * @author anderson
  */
-public class CompositeGraphicObject extends WidgetContainer {
+public class FlowchartSymbol implements CompositeGraphicObject {
 
     private final JPanel container;
     private final ArrayList<Render> renders;
@@ -40,15 +44,19 @@ public class CompositeGraphicObject extends WidgetContainer {
     private final Widget content;
     private Iterator<Render> iterator;
     private Render currentRender;
+    private Shape shape;
+    private Rectangle2D.Double bounds;
+    private AffineTransform transform;
 
-    public CompositeGraphicObject() {
+    public FlowchartSymbol() {
         container = new JPanel();
         container.setBackground(new Color(0, 0, 0, 0));
 //        container.setBackground(Color.red);
         container.setLayout(new GridBagLayout());
         renders = new ArrayList<>();
-        content = new Widget(container);
-        super.addWidget(content);
+        content = new Widget(container, new Rectangle(0,0,100,30));
+        transform = new AffineTransform();
+        bounds = new Rectangle2D.Double();
     }
 
     public JPanel getContainer() {
@@ -87,12 +95,18 @@ public class CompositeGraphicObject extends WidgetContainer {
     @Override
     public Shape getObjectShape() {
         shape = shapeCreator.create(getObjectBouds());
-        return super.getObjectShape();
+        if (shape != null) {
+            transform.setToIdentity();
+            transform.translate(bounds.x, bounds.y);
+            return transform.createTransformedShape(shape);
+        } else {
+            return bounds;
+        }
     }
 
     @Override
     public final Rectangle2D.Double getObjectBouds() {
-        bounds.setRect(0, 0, container.getPreferredSize().getWidth(), container.getPreferredSize().getHeight());
+        bounds.setRect(getPosX(), getPosY(), container.getPreferredSize().getWidth(), container.getPreferredSize().getHeight());
         return bounds;
     }
 
@@ -149,7 +163,7 @@ public class CompositeGraphicObject extends WidgetContainer {
     public static void main(String[] args) {
         DrawingPanel p = new DrawingPanel();
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        CompositeGraphicObject cgo = new CompositeGraphicObject();
+        FlowchartSymbol cgo = new FlowchartSymbol();
         {
             JPanel container1 = cgo.getContainer();
 
@@ -204,10 +218,69 @@ public class CompositeGraphicObject extends WidgetContainer {
             panel.add(new JLabel(");"), arg);
 //            cgo.setContent(panel);
         }
-        cgo.setWidgetVisible(true);
         cgo.setShapeCreator(ShapeCreator.DIAMOND);
         cgo.addRender(new ShapeRender(Color.GREEN));
         p.add(cgo);
+    }
+
+    @Override
+    public GraphicObject appendTo(DrawingPanel drawingPanel) {
+        //remove possiveis duplicados
+        drawingPanel.remove(content.widget);
+        content.widget.removeMouseMotionListener(drawingPanel);
+        //adiciona componente swing
+        drawingPanel.add(content.widget);
+        //permite receber ações de movimento do mouse no DrawingPanel
+        content.widget.addMouseMotionListener(drawingPanel);
+        return this;
+    }
+
+    @Override
+    public boolean isWidgetVisible() {
+        return true;
+    }
+
+    @Override
+    public void setObjectBounds(double x, double y, double width, double height) {
+        throw new UnsupportedOperationException("Not supported yet."); //okay
+    }
+
+    @Override
+    public void setLocation(double x, double y) {
+        bounds.x = x;
+        bounds.y = y;
+    }
+
+    @Override
+    public double getPosX() {
+        return bounds.x;
+    }
+
+    @Override
+    public double getPosY() {
+        return bounds.y;
+    }
+
+    @Override
+    public  Iterator<Widget> iterator() {
+        return new Iterator<Widget>() {
+            boolean first = false;
+
+            @Override
+            public boolean hasNext() {
+                first = !first;
+                return first;
+            }
+
+            @Override
+            public Widget next() {
+                return content;
+            }
+
+            @Override
+            public void remove() {
+            }
+        };
     }
 
 }
