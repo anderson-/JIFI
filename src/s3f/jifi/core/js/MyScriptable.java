@@ -8,14 +8,15 @@ package s3f.jifi.core.js;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.NodeVisitor;
-import s3f.magenta.core.SubASTParser;
-import s3f.magenta.core.ASTCompositeParser;
+import s3f.jifi.core.interpreter.ResourceManager;
+import s3f.util.trafficsimulator.Clock;
 
 //-- This is the class whose instance method will be made available in a JavaScript scope as a global function.
 //-- It extends from ScriptableObject because instance methods of only scriptable objects can be directly exposed
@@ -60,23 +61,22 @@ public class MyScriptable extends ScriptableObject {
         System.out.println(tree.debugPrint());
 //        System.out.println(tree.toSource());
 
-        ASTCompositeParser cp = new ASTCompositeParser();
-        cp.register(new SubASTParser("1", Token.SCRIPT, Token.FUNCTION));
-        cp.register(new SubASTParser("2", Token.FUNCTION, Token.NAME, Token.NAME, Token.BLOCK, Token.VAR, Token.VAR, Token.NAME, Token.MUL, Token.NAME, Token.NUMBER));
-        cp.register(new SubASTParser("ret", Token.RETURN, new int[]{Token.NUMBER, Token.NAME}));
-        cp.parse(tree, (Object) null);
-
-        tree.visit(new NodeVisitor() {
-            @Override
-            public boolean visit(AstNode tree) {
-                if (Token.keywordToName(tree.getType()) != null || tree.getType() == Token.SCRIPT) {
-                    System.out.println(">" + Token.typeToName(tree.getType()));
-                    return true;
-                }
-                return true;
-            }
-        });
-
+//        ASTCompositeParser cp = new ASTCompositeParser();
+//        cp.register(new SubASTParser("1", Token.SCRIPT, Token.FUNCTION));
+//        cp.register(new SubASTParser("2", Token.FUNCTION, Token.NAME, Token.NAME, Token.BLOCK, Token.VAR, Token.VAR, Token.NAME, Token.MUL, Token.NAME, Token.NUMBER));
+//        cp.register(new SubASTParser("ret", Token.RETURN, new int[]{Token.NUMBER, Token.NAME}));
+//        cp.parse(tree, (Object) null);
+//
+//        tree.visit(new NodeVisitor() {
+//            @Override
+//            public boolean visit(AstNode tree) {
+//                if (Token.keywordToName(tree.getType()) != null || tree.getType() == Token.SCRIPT) {
+//                    System.out.println(">" + Token.typeToName(tree.getType()));
+//                    return true;
+//                }
+//                return true;
+//            }
+//        });
     }
 
     public abstract static class MyNodevisitor {
@@ -84,7 +84,7 @@ public class MyScriptable extends ScriptableObject {
         private NodeVisitor nv = new NodeVisitor() {
 
             AstNode parent = null;
-            
+
             @Override
             public boolean visit(AstNode an) {
                 parent = an;
@@ -136,30 +136,34 @@ public class MyScriptable extends ScriptableObject {
 //                + "";
 
         myScriptable.parse(testScript, "My Script");
-//        myScriptable.compileAndRun(testScript, "My Script");
+        myScriptable.compileAndRun(testScript, "My Script", null);
     }
 
-    public void register(String javascriptFunctionName, Class anClass, String methodName, Class... args) throws NoSuchMethodException {
-        Method method = anClass.getMethod(methodName, args);
-        if (Modifier.isStatic(method.getModifiers())) {
-            functions.put(javascriptFunctionName, method);
-        } else {
-            throw new IllegalArgumentException(method.getName() + "(...) is not static.");
+    public void register(String javascriptFunctionName, Class anClass, String methodName, Class... args) {
+        try {
+            Method method = anClass.getMethod(methodName, args);
+            if (Modifier.isStatic(method.getModifiers())) {
+                functions.put(javascriptFunctionName, method);
+            } else {
+                throw new IllegalArgumentException(method.getName() + "(...) is not static.");
+            }
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(methodName + "(" + Arrays.toString(args) + ") not found, check if all the parameters are not primitive typed.");
         }
     }
 
-    public void compileAndRun(final String script, String name) {
+    public void compileAndRun(final String script, String name, ResourceManager rm) {
         try {
             Context.enter();
             Context context = Context.getCurrentContext();
             context.setOptimizationLevel(-1);
             context.setGeneratingDebug(true);
-//            context.setDebugger(new JSDebugger(), "My DEb");
+            context.setDebugger(new JSDebugger(script), "My DEb");
 
             Scriptable scriptExecutionScope = new ImporterTopLevel(context);
 
             for (Map.Entry<String, Method> e : functions.entrySet()) {
-                FunctionObject scriptableInstanceMethodBoundJavascriptFunction = new MyFunctionObject(e.getKey(), e.getValue(), this);
+                FunctionObject scriptableInstanceMethodBoundJavascriptFunction = new MyFunctionObject(e.getKey(), e.getValue(), this, rm);
                 scriptExecutionScope.put(e.getKey(), scriptExecutionScope, scriptableInstanceMethodBoundJavascriptFunction);
             }
             context.initStandardObjects();
@@ -181,15 +185,29 @@ public class MyScriptable extends ScriptableObject {
 
     private static class MyFunctionObject extends FunctionObject {
 
-        private MyFunctionObject(String name, Member methodOrConstructor, Scriptable parentScope) {
+        private final ResourceManager rm;
+        private boolean varargs;
+
+        private MyFunctionObject(String name, Member methodOrConstructor, Scriptable parentScope, ResourceManager rm) {
             super(name, methodOrConstructor, parentScope);
+            this.rm = rm;
+            if (methodOrConstructor instanceof Method) {
+                Method method = (Method) methodOrConstructor;
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                varargs = parameterTypes[0].isAssignableFrom(Context.class);
+            }
         }
 
         @Override
         public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-            Object[] argsEx = new Object[args.length + 1];
-            System.arraycopy(args, 0, argsEx, 0, args.length);
-            argsEx[args.length] = "asd"; //resourceManager
+            Object[] argsEx = args;
+            if (!varargs) {
+                argsEx = new Object[args.length + 1];
+                System.arraycopy(args, 0, argsEx, 0, args.length);
+                argsEx[args.length] = rm;
+                System.out.println(">>>ex " + this.getMethodOrConstructor());
+            }
+            System.out.println("*> " + Arrays.toString(argsEx));
             return super.call(cx, scope, getParentScope(), argsEx);
         }
     }

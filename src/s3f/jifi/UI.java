@@ -5,7 +5,20 @@
  */
 package s3f.jifi;
 
+import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
+import s3f.core.plugin.EntityManager;
+import s3f.core.plugin.PluginManager;
 import s3f.core.ui.GUIBuilder;
+import s3f.jifi.core.interpreter.ResourceManager;
+import s3f.jifi.core.js.MyScriptable;
+import s3f.magenta.sidepanel.Classifiable;
+import s3f.magenta.sidepanel.Item;
+import s3f.util.trafficsimulator.Clock;
 
 public class UI extends GUIBuilder {
 
@@ -15,7 +28,7 @@ public class UI extends GUIBuilder {
 
     @Override
     public void init() {
-        
+
 //        System.out.println("addTab");
 //        this.addTab(new TesteTab(), 2);
 //        this.addToolbarComponent(new ToolBarButton().getJComponent(), 0);
