@@ -24,6 +24,7 @@ import s3f.core.plugin.PluginManager;
 import s3f.core.project.Editor;
 import s3f.core.project.Project;
 import s3f.core.script.Script;
+import s3f.jifi.core.interpreter.ForceInterruptionException;
 
 /**
  *
@@ -33,13 +34,35 @@ public class JSDebugger implements Debugger, DebugFrame {
 
     Stack<ScriptableObject> scopeStack = new Stack<>();
     ScriptableObject currentScope = null;
-    private final String source;
     private RSyntaxTextArea textArea;
+    private boolean killProgram = false;
+    private boolean stepByStep = false;
+    private boolean pause = false;
+    private boolean running = false;
 
-    public JSDebugger(String source) {
-        this.source = source;
+    public JSDebugger() {
+
+    }
+
+    public void setStepByStepExecution(boolean stepByStep) {
+        this.stepByStep = stepByStep;
+        pause = false;
+    }
+
+    public void step() {
+        pause = false;
+    }
+
+    public void killProgram() {
+        killProgram = true;
+    }
+    
+    public boolean isRunning(){
+        return running;
+    }
+
+    public void init(String source) {
         EntityManager em = PluginManager.getInstance().createFactoryManager(null);
-
         Project project = (Project) em.getProperty("s3f.core.project.tmp", "project");
         for (s3f.core.project.Element e : project.getElements()) {
             if (e instanceof Script) {
@@ -70,6 +93,7 @@ public class JSDebugger implements Debugger, DebugFrame {
 
     @Override
     public void onEnter(Context cx, Scriptable activation, Scriptable thisObj, Object[] args) {
+        running = true;
         if (activation instanceof ScriptableObject) {
             currentScope = (ScriptableObject) activation;
             scopeStack.push(currentScope);
@@ -78,34 +102,44 @@ public class JSDebugger implements Debugger, DebugFrame {
 
     @Override
     public void onLineChange(Context cx, int lineNumber) {
-
+        running = true;
 //        System.out.println("onLineChange:" + source.split("\\n")[lineNumber - 1]);
 //
 //        for (Object id : currentScope.getIds()) {
 //            Object value = currentScope.get(id);
 //            System.out.println(": " + id + " " + value + " " + ((value != null) ? value.getClass().getSimpleName() : ""));
 //        }
-        try {
-            textArea.removeAllLineHighlights();
+        if (textArea != null) {
+            try {
+                textArea.removeAllLineHighlights();
 //            textArea.addLineHighlight(lineNumber, Color.decode("#9AFF86"));
-            textArea.addLineHighlight(lineNumber, Color.getHSBColor(lineNumber/20f, 0.35f, 0.95f));
-        } catch (BadLocationException ex) {
+                textArea.addLineHighlight(lineNumber, Color.getHSBColor(lineNumber / 20f, 0.35f, 0.95f));
+            } catch (BadLocationException ex) {
 
+            }
         }
-        
-        try {
-            Thread.sleep(5);
-        } catch (Exception e){
+
+        do {
+            if (killProgram) {
+                killProgram = false;
+                throw new ForceInterruptionException();
+            }
             
+            try {
+                Thread.sleep(pause ? 100 : 5);
+            } catch (Exception e) {
+
+            }
+        } while (pause);
+
+        if (stepByStep) {
+            pause = true;
         }
-        
     }
 
     @Override
     public void onExceptionThrown(Context cx, Throwable ex) {
-        textArea.setEnabled(true);
-        textArea.removeAllLineHighlights();
-        textArea.setHighlightCurrentLine(true);
+        
     }
 
     @Override
@@ -116,6 +150,7 @@ public class JSDebugger implements Debugger, DebugFrame {
         } else {
             currentScope = null;
             done();
+            running = false;
         }
     }
 
@@ -125,9 +160,10 @@ public class JSDebugger implements Debugger, DebugFrame {
     }
 
     public void done() {
-        textArea.setEnabled(true);
-        textArea.removeAllLineHighlights();
-        textArea.setHighlightCurrentLine(true);
+        if (textArea != null) {
+            textArea.setEnabled(true);
+            textArea.removeAllLineHighlights();
+            textArea.setHighlightCurrentLine(true);
+        }
     }
-
 }

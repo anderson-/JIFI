@@ -15,6 +15,8 @@ import org.mozilla.javascript.*;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.NodeVisitor;
+import org.mozilla.javascript.debug.Debugger;
+import s3f.jifi.core.interpreter.ForceInterruptionException;
 import s3f.jifi.core.interpreter.ResourceManager;
 import s3f.util.trafficsimulator.Clock;
 
@@ -136,7 +138,7 @@ public class MyScriptable extends ScriptableObject {
 //                + "";
 
         myScriptable.parse(testScript, "My Script");
-        myScriptable.compileAndRun(testScript, "My Script", null);
+        myScriptable.compileAndRun(testScript, "My Script", null, null);
     }
 
     public void register(String javascriptFunctionName, Class anClass, String methodName, Class... args) {
@@ -152,13 +154,15 @@ public class MyScriptable extends ScriptableObject {
         }
     }
 
-    public void compileAndRun(final String script, String name, ResourceManager rm) {
+    public void compileAndRun(final String script, String name, ResourceManager rm, Debugger debugger) {
         try {
             Context.enter();
             Context context = Context.getCurrentContext();
             context.setOptimizationLevel(-1);
             context.setGeneratingDebug(true);
-            context.setDebugger(new JSDebugger(script), "My DEb");
+            if (debugger != null) {
+                context.setDebugger(debugger, "My DEb");
+            }
 
             Scriptable scriptExecutionScope = new ImporterTopLevel(context);
 
@@ -168,9 +172,12 @@ public class MyScriptable extends ScriptableObject {
             }
             context.initStandardObjects();
             org.mozilla.javascript.Script compiledScript = context.compileString(script, name, 0, null);
-            Object o = compiledScript.exec(context, scriptExecutionScope);
-            System.out.println("Ret:" + o);
-
+            try {
+                Object o = compiledScript.exec(context, scriptExecutionScope);
+                System.out.println("Ret:" + o);
+            } catch (ForceInterruptionException e) {
+                System.out.println("Stop!");
+            }
         } catch (Exception e) {
             throw e;
         } finally {
@@ -205,9 +212,9 @@ public class MyScriptable extends ScriptableObject {
                 argsEx = new Object[args.length + 1];
                 System.arraycopy(args, 0, argsEx, 0, args.length);
                 argsEx[args.length] = rm;
-                System.out.println(">>>ex " + this.getMethodOrConstructor());
+//                System.out.println(">>>ex " + this.getMethodOrConstructor());
             }
-            System.out.println("*> " + Arrays.toString(argsEx));
+//            System.out.println("*> " + Arrays.toString(argsEx));
             return super.call(cx, scope, getParentScope(), argsEx);
         }
     }

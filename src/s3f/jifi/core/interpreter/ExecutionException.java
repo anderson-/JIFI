@@ -28,7 +28,7 @@ package s3f.jifi.core.interpreter;
 /**
  * Exceção lançada quando um comando não pode ser executado.
  */
-public class ExecutionException extends Exception {
+public class ExecutionException extends RuntimeException {
 
     public ExecutionException() {
         super("ExecutionException");

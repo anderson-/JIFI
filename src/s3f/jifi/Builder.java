@@ -8,6 +8,8 @@ package s3f.jifi;
 import s3f.core.plugin.ConfigurableObject;
 import s3f.core.plugin.PluginBuilder;
 import s3f.core.ui.GUIBuilder;
+import s3f.jifi.core.commands.Print;
+import s3f.jifi.core.commands.Wait;
 
 /**
  *
@@ -60,6 +62,14 @@ public class Builder extends PluginBuilder {
 //        pm.registerFactory(o);
 //        
 //        pm.registerFactory(Flowchart.FLOWCHART_FILES);
+        
+        ConfigurableObject o;
+        o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new Wait());
+        pm.registerFactory(o);
+        o = new ConfigurableObject("s3f.jifi.cmd");
+        o.getData().setProperty("procedure", new Print());
+        pm.registerFactory(o);
     }
 
 }

@@ -16,7 +16,7 @@ public final class ResourceManager {
 
     private final Map<Class, Object> map = new HashMap<>();
 
-    public void setResource(Object resource){
+    public void addResource(Object resource){
         map.remove(resource.getClass());
         map.put(resource.getClass(), resource);
     }
