@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package s3f.jifi.flowchart.parser.parameterparser;
+package s3f.jifi.flowchart.parameterparser;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;

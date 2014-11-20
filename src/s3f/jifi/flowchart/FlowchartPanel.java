@@ -29,8 +29,8 @@ import s3f.core.plugin.PluginManager;
 import s3f.jifi.Builder;
 import s3f.jifi.flowchart.blocks.Block;
 import s3f.jifi.flowchart.blocks.DummyBlock;
-import s3f.jifi.flowchart.blocks.Function;
-import s3f.jifi.flowchart.blocks.Function.FunctionEnd;
+import s3f.jifi.flowchart.blocks.ScriptBlock;
+import s3f.jifi.flowchart.blocks.ScriptBlock.FunctionEnd;
 import s3f.jifi.flowchart.blocks.If;
 import s3f.jifi.flowchart.blocks.Procedure;
 import s3f.magenta.Drawable;
@@ -49,7 +49,7 @@ import s3f.util.cyzx.Undoable;
  *
  * @author antunes
  */
-public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<Function> {
+public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<ScriptBlock> {
 
     public static final String PROPERTY_CHANGE = "change";
     private static final Font defaultFont;
@@ -64,10 +64,10 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
     public ArrayList<JPanel> tabs = new ArrayList<>();
     private final ArrayList<Command> selection = new ArrayList<>();
     private final ArrayList<Command> copy = new ArrayList<>();
-    private final Stack<Function> undo = new Stack<>();
-    private final Stack<Function> redo = new Stack<>();
+    private final Stack<ScriptBlock> undo = new Stack<>();
+    private final Stack<ScriptBlock> redo = new Stack<>();
     private final SidePanel sidePanel;
-    private Function function;
+    private ScriptBlock function;
     private boolean keyActionUsed = false;
     private Command newCommand = null;
     private Item itemSelected = null;
@@ -76,12 +76,12 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
     private ArrayList<Color> colors = new ArrayList<>();
     private ArrayList<Queue<UpdateVar>> q = new ArrayList<>();
     private final PropertyChangeSupport support;
-    private Function tmpCopy;
+    private ScriptBlock tmpCopy;
 //    private Interpreter interpreter;
-    private HistoryManager<Function> hm = new HistoryManager<>(this);
+    private HistoryManager<ScriptBlock> hm = new HistoryManager<>(this);
     public boolean DEBUG_IDENT = false;
 
-    public FlowchartPanel(Function function) {
+    public FlowchartPanel(ScriptBlock function) {
         support = new PropertyChangeSupport(this);
         sidePanel = new SidePanel(this) {
             @Override
@@ -153,11 +153,11 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
         sidePanel.setOpen(!b);
     }
 
-    public Function getFunction() {
+    public ScriptBlock getFunction() {
         return function;
     }
 
-    public synchronized final void setFunction(Function function) {
+    public synchronized final void setFunction(ScriptBlock function) {
         hideGraphicResources(this.function, true, true);
         this.clear();
         add(sidePanel);
@@ -228,7 +228,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
         }
     }
 
-    private static void ident(Function f, boolean b) {
+    private static void ident(ScriptBlock f, boolean b) {
         f.ident(GraphicFlowchart.GF_X,
                 GraphicFlowchart.GF_Y,
                 GraphicFlowchart.GF_J,
@@ -249,8 +249,8 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
 
             //(***) descomentar para adicionar blocos antes 
             //se clicado na parte superior da seleção
-            if (c instanceof Function) {
-                c = ((Function) c).get(0);
+            if (c instanceof ScriptBlock) {
+                c = ((ScriptBlock) c).get(0);
                 addNext = false; //(***)
             }
 
@@ -616,7 +616,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
             Point p = in.getTransformedMouse();
             newCommand = function.find(p);
             if (newCommand != null) {
-                if (newCommand == function || newCommand instanceof Function.FunctionEnd) {
+                if (newCommand == function || newCommand instanceof ScriptBlock.FunctionEnd) {
                     newCommand = null;
                 } else {
                     hideGraphicResources(newCommand, true, false);
@@ -734,12 +734,12 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
 //    }
 
     @Override
-    public Function copy() {
+    public ScriptBlock copy() {
         return function.copy();
     }
 
     @Override
-    public void setState(Function state) {
+    public void setState(ScriptBlock state) {
         setFunction(state);
     }
 
@@ -800,7 +800,7 @@ public class FlowchartPanel extends DrawingPanel implements Observer, Undoable<F
         {
             
         }
-        FlowchartPanel flowchartPanel = new FlowchartPanel(new Function());
+        FlowchartPanel flowchartPanel = new FlowchartPanel(new ScriptBlock());
         QuickFrame.create(flowchartPanel, "Teste do painel de desenho").addComponentListener(flowchartPanel);
     }
 

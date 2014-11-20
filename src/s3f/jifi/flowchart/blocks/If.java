@@ -38,7 +38,7 @@ import s3f.core.plugin.PluginManager;
 import s3f.jifi.flowchart.Command;
 import s3f.jifi.flowchart.GraphicFlowchart;
 import static s3f.jifi.flowchart.GraphicFlowchart.GF_J;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.graphicresource.GraphicResource;
 import s3f.magenta.sidepanel.Item;

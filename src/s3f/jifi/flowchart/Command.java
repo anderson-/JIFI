@@ -35,7 +35,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import s3f.jifi.flowchart.blocks.Block;
-import static s3f.jifi.flowchart.blocks.Function.getBounds;
+import static s3f.jifi.flowchart.blocks.ScriptBlock.getBounds;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.FlowchartBlock;
 import s3f.magenta.GraphicObject;

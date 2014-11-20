@@ -1,4 +1,4 @@
-package s3f.jifi.flowchart.parser.syntax;
+package s3f.jifi.flowchart.syntax;
 
 /*
  * 03/16/2004

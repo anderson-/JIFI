@@ -38,7 +38,7 @@ import s3f.jifi.flowchart.GraphicFlowchart;
 import static s3f.jifi.flowchart.GraphicFlowchart.GF_J;
 import static s3f.jifi.flowchart.blocks.DummyBlock.SHAPE_CIRCLE;
 import static s3f.jifi.flowchart.blocks.DummyBlock.createSimpleBlock;
-import s3f.jifi.flowchart.blocks.Function.FunctionEnd;
+import s3f.jifi.flowchart.blocks.ScriptBlock.FunctionEnd;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.graphicresource.GraphicResource;
 import s3f.magenta.sidepanel.Item;

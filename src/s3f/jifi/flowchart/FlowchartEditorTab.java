@@ -15,9 +15,9 @@ import s3f.core.project.Editor;
 import s3f.core.project.Element;
 import s3f.core.script.Script;
 import s3f.core.ui.tab.TabProperty;
-import s3f.jifi.flowchart.parser.builder.parser.FlowchartBuilder;
-import s3f.jifi.flowchart.parser.builder.parser.ParseException;
-import s3f.jifi.flowchart.blocks.Function;
+import s3f.jifi.flowchart.builder.parser.FlowchartBuilder;
+import s3f.jifi.flowchart.builder.parser.ParseException;
+import s3f.jifi.flowchart.blocks.ScriptBlock;
 
 /**
  *
@@ -32,7 +32,7 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
 
     public FlowchartEditorTab() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
-        flowchartPanel = new FlowchartPanel(new Function());
+        flowchartPanel = new FlowchartPanel(new ScriptBlock());
         TabProperty.put(data, "Editor", null, "Editor de código", flowchartPanel);
     }
 
@@ -41,7 +41,7 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
         if (content instanceof Script) {
             flowchart = (Script) content;
             FlowchartBuilder parser;
-            Function function = null;
+            ScriptBlock function = null;
             try {
                 parser = new FlowchartBuilder(new ByteArrayInputStream(flowchart.getText().getBytes("UTF-8")));
                 function = parser.decode();

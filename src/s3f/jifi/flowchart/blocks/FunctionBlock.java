@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.sidepanel.Item;
 import s3f.magenta.swing.DrawableProcedureBlock;
@@ -25,16 +25,16 @@ public class FunctionBlock extends Procedure {
     //talvez tenha que ser criado um clone completo da função (para recursividade)
     //o parser suporta isso? Acho que não...
 
-    private Function function;
+    private ScriptBlock function;
 
     public FunctionBlock() {
     }
 
-    public FunctionBlock(Function function) {
+    public FunctionBlock(ScriptBlock function) {
         setFunction(function);
     }
 
-    public final void setFunction(Function function) {
+    public final void setFunction(ScriptBlock function) {
         if (function == null) {
             return;
         }
@@ -43,7 +43,7 @@ public class FunctionBlock extends Procedure {
         function.getEnd().setBlockBegin(this);
     }
 
-    public Function getFunction() {
+    public ScriptBlock getFunction() {
         return function;
     }
 

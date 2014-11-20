@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package s3f.jifi.flowchart.parser.parameterparser;
+package s3f.jifi.flowchart.parameterparser;
 
 import java.util.ArrayList;
 import java.util.List;
-import s3f.jifi.flowchart.parser.builder.parser.FlowchartBuilderConstants;
-import s3f.jifi.flowchart.parser.builder.parser.ParseException;
-import s3f.jifi.flowchart.parser.builder.parser.Token;
+import s3f.jifi.flowchart.builder.parser.FlowchartBuilderConstants;
+import s3f.jifi.flowchart.builder.parser.ParseException;
+import s3f.jifi.flowchart.builder.parser.Token;
 
 /**
  *

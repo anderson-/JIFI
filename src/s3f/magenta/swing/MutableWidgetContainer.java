@@ -36,7 +36,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.jifi.flowchart.blocks.Procedure;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.GraphicObject;

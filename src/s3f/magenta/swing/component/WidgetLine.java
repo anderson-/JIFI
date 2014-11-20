@@ -20,7 +20,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.jifi.flowchart.blocks.Procedure;
 
 /**

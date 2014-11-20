@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package s3f.jifi.flowchart.parser.builder;
+package s3f.jifi.flowchart.builder;
 
 import java.util.ArrayList;
 import java.util.Arrays;

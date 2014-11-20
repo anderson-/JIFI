@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import s3f.jifi.flowchart.Command;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.magenta.GraphicObject;
 import s3f.magenta.swing.DrawableProcedureBlock;
 import s3f.magenta.swing.MutableWidgetContainer;

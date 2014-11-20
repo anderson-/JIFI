@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import s3f.magenta.swing.DrawableProcedureBlock;
 import s3f.magenta.DrawingPanel;
 import s3f.magenta.GraphicObject;

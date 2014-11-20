@@ -41,7 +41,7 @@ import javax.swing.JTextField;
 import s3f.jifi.flowchart.Command;
 import static s3f.jifi.flowchart.Command.identChar;
 import s3f.jifi.flowchart.GraphicFlowchart;
-import s3f.jifi.flowchart.parser.parameterparser.Argument;
+import s3f.jifi.flowchart.parameterparser.Argument;
 import static s3f.jifi.flowchart.blocks.DummyBlock.SHAPE_ROUND_RECTANGLE;
 import static s3f.jifi.flowchart.blocks.DummyBlock.createSimpleBlock;
 import s3f.magenta.GraphicObject;
@@ -56,7 +56,7 @@ import s3f.magenta.swing.component.WidgetLine;
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
  */
-public class Function extends Block {
+public class ScriptBlock extends Block {
 
     public class FunctionEnd extends BlockEnd {
 
@@ -81,13 +81,13 @@ public class Function extends Block {
     private String name = "prog";
     private ArrayList<String> args;
 
-    public Function() {
+    public ScriptBlock() {
         super.setEnd(new FunctionEnd());
         //super(new FunctionEnd());
         args = new ArrayList<>();
     }
 
-    public Function(String name, String args) {
+    public ScriptBlock(String name, String args) {
         this();
         this.name = name;
         updateFunction(name, args, this);
@@ -107,7 +107,7 @@ public class Function extends Block {
         }
     }
 
-    private void updateFunction(String name, String args, Function f) {
+    private void updateFunction(String name, String args, ScriptBlock f) {
         f.setName(name);
         if (args != null && !args.trim().isEmpty()) {
             int i = 0;
@@ -206,7 +206,7 @@ public class Function extends Block {
         if (getDrawableResource().getObjectShape().contains(p)) {
             return this;
         }
-        return Function.find(p, this);
+        return ScriptBlock.find(p, this);
     }
 
     Rectangle2D.Double shape = new Rectangle2D.Double();
@@ -234,8 +234,8 @@ public class Function extends Block {
     public Procedure copy(Procedure copy) {
         Procedure p = super.copy(copy);
 
-        if (copy instanceof Function) {
-            ((Function) copy).name = name;
+        if (copy instanceof ScriptBlock) {
+            ((ScriptBlock) copy).name = name;
             //TODO: copiar argumentos e etc
         } else {
             System.out.println("Erro ao copiar: ");
@@ -245,31 +245,20 @@ public class Function extends Block {
         return p;
     }
 
-    public Function copy() {
-        return (Function) copy((Procedure) new Function());
+    public ScriptBlock copy() {
+        return (ScriptBlock) copy((Procedure) new ScriptBlock());
     }
 
     @Override
     public void toString(String ident, StringBuilder sb) {
-        sb.append(ident).append("func ").append(name).append("(");
-        boolean comma = false;
-        for (Argument arg : getArgs()) {
-            if (comma) {
-                sb.append(", ");
-            }
-            sb.append(arg.getStringValue());
-            comma = true;
-        }
-        sb.append(") {\n");
         Command it = start;
         while (it != null) {
-            it.toString(ident + identChar, sb);
+            it.toString(ident, sb);
             it = it.getNext();
         }
-        sb.append(ident).append("}\n");
     }
 
-    public static MutableWidgetContainer createDrawableFunction(final Function f) {
+    public static MutableWidgetContainer createDrawableFunction(final ScriptBlock f) {
 
         final JTextField tfName = new JTextField();
 
