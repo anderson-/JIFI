@@ -124,30 +124,34 @@ public class If extends Procedure {
     public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
         //tmp = Command.getBounds(this, tmp, j, k, Ix, Iy, a);
         tmp = super.getBounds(tmp, j, k);
-
+        
         Rectangle2D.Double p = new Rectangle2D.Double();
         p.setRect(tmp);
-        double bfh;
-        double bth;
-        double width;
-        //false
-        p = getBlockFalse().getBounds(p, j, k);
-        bfh = p.height;
-        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
-        width = p.getMaxX();
-        tmp.width = p.width;
-        //true
-        p = getBlockTrue().getBounds(p, j, k);
-        bth = p.height;
-        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
-        tmp.width += p.width + 2 * k;
-        width -= p.getMinX();
-        //tmp.x += -(tmp.width - p.width - k) + tmp.width / 2 - p.width;
-
-        tmp.height += GF_J * .6;
-        tmp.height += (bfh > bth) ? bfh : bth;
-
-        tmp.width = width;
+//        double bfh;
+//        double bth;
+//        double width;
+//        //false
+//        p = getBlockFalse().getBounds(p, j, k);
+//        bfh = p.height;
+//        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+//        width = p.getMaxX();
+//        tmp.width = p.width;
+//        //true
+//        p = getBlockTrue().getBounds(p, j, k);
+//        bth = p.height;
+//        tmp.x = (p.x < tmp.x) ? p.x : tmp.x;
+//        tmp.width += p.width + 2 * k;
+//        width -= p.getMinX();
+//        //tmp.x += -(tmp.width - p.width - k) + tmp.width / 2 - p.width;
+//
+//        tmp.height += GF_J * .6;
+//        tmp.height += (bfh > bth) ? bfh : bth;
+//
+//        tmp.width = width;
+        tmp.add(getBlockFalse().getBounds(p, j, k));
+        tmp.add(getBlockTrue().getBounds(p, j, k));
+        tmp.width += 2 * k;
+        tmp.height += GF_J;
 
         return tmp;
     }
