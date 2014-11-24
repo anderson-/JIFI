@@ -5,104 +5,74 @@
  */
 package s3f.jifi.core.vpl;
 
-import java.awt.geom.Rectangle2D;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.Scope;
 import s3f.magenta.GraphicObject;
-import s3f.magenta.graphicresource.GraphicResource;
 
 /**
  *
  * @author anderson
  */
-public class Block extends Statement<AstNode> {
+public class Block extends Statement {
 
     public Block(Scope subTree) {
         super(subTree);
         super.setName("block");
         super.setGraphicResource(null);
     }
-    
+
     public Block(org.mozilla.javascript.ast.Block subTree) {
         super(subTree);
         super.setName("block");
         super.setGraphicResource(null);
     }
 
-    @Override
-    public void ident(double x, double y, double j, double k) {
-        
-        System.out.println(getSubTree().toSource() + "#");
-
-        double cw = 0;
-        double ch = 0;
-
-        Rectangle2D.Double t = null;
-        if (this instanceof GraphicResource) {
-            GraphicObject d = ((GraphicResource) this).getDrawableResource();
-
-            if (d != null) {
-                t = (Rectangle2D.Double) d.getObjectBouds();
-            }
-        }
-
-        if (t != null) {
-            cw = t.width;
-            ch = t.height;
-
-            double px = x - (cw / 2);
-            double py = y;
-
-            if (this instanceof GraphicResource) {
-                GraphicObject d = ((GraphicResource) this).getDrawableResource();
-
-                if (d != null) {
-                    d.setLocation(px, py);
-                }
-            }
-
-            y += ch + j;
-        }
-
-        if (getNext() != null) {
-            ((Statement) getNext()).ident(x, y, j, k);
-        }
+    protected Block(AstNode subTree) {
+        super(subTree);
     }
 
     @Override
-    public Rectangle2D.Double getBounds(Rectangle2D.Double tmp, double j, double k) {
-        return getBounds(this, tmp, j, k);
-    }
-
-    protected static Rectangle2D.Double getBounds(Statement c, Rectangle2D.Double tmp, double j, double k) {
-        Rectangle2D.Double t = null;
-        if (c instanceof GraphicResource) {
-            GraphicObject d = ((GraphicResource) c).getDrawableResource();
-
-            if (d != null) {
-                t = (Rectangle2D.Double) d.getObjectBouds();
+    public double[] getBounds(double x, double y, double i, double l) {
+        double[] bounds = super.getBounds(x, y, i, l);
+        x = bounds[0];
+        y = bounds[1];
+        double width = bounds[2];
+        double height = (bounds[3] == 0) ? 0 : bounds[3] + l;
+        Node it = getFirstChild();
+        while (it != null) {
+            bounds = ((Statement) it).getBounds(x, y, i, l);
+            if (bounds[0] < x) {
+                x = bounds[0];
             }
+            if (bounds[2] > width) {
+                width = bounds[2];
+            }
+            height += bounds[3] + l;
+            it = it.getNext();
         }
-
-        if (tmp == null) {
-            tmp = new Rectangle2D.Double();
-        }
-
-        tmp.setRect(Double.MAX_VALUE, Double.MAX_VALUE, 0, 0);
-
-        if (t != null) {
-            tmp.setRect(t);
-//            tmp.x = 0;
-//            tmp.y = 0;
-//            tmp.x = (t.x < tmp.x) ? t.x : tmp.x;
-//            tmp.y = (t.y < tmp.y) ? t.y : tmp.y;
-//
-//            tmp.width += t.width;
-//            tmp.height += t.height;
-
-            tmp.height += j;
-        }
-        return tmp;
+        return new double[]{x, y, width, height};
     }
-    
+
+    @Override
+    public void ident(double x, double y, double i, double l) {
+        GraphicObject go = getGraphicResource();
+        if (go != null) {
+            go.setLocation(x - super.getBounds(x, y, i, l)[2] / 2, y - super.getBounds(x, y, i, l)[3]);
+        }
+
+        Node it = getFirstChild();
+        Statement s;
+//        x += (this.getClass() == Block.class) ? 50 : 0;
+        while (it != null) {
+            s = (Statement) it;
+            go = s.getGraphicResource();
+            if (go != null) {
+                go.setLocation(x, y);
+                y += l;
+            }
+            s.ident(x, y, i, l);
+            y += s.getBounds(x, y, i, l)[3];
+            it = it.getNext();
+        }
+    }
 }

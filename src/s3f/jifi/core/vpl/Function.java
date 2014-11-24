@@ -12,7 +12,7 @@ import org.mozilla.javascript.ast.FunctionNode;
  *
  * @author anderson
  */
-public class Function extends Statement<org.mozilla.javascript.ast.FunctionNode>{
+public class Function extends Statement{
 
     public Function(FunctionNode subTree) {
         super(subTree);

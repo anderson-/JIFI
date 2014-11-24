@@ -12,7 +12,7 @@ import org.mozilla.javascript.ast.Loop;
  *
  * @author anderson
  */
-public class ForLoop extends Statement<org.mozilla.javascript.ast.Loop> {
+public class ForLoop extends Statement{
 
     public ForLoop(Loop subTree) {
         super(subTree);

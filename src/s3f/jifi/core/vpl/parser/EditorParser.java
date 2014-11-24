@@ -113,7 +113,7 @@ public class EditorParser {
     }
 
     public static JPanel parse(AstNode tree, FlowchartSymbol cgo) {
-        JPanel panel = cgo.getContainer();
+        JPanel panel = cgo.getPanel();
         panel.setLayout(new MigLayout("insets 25 10 0 10"));
         ASTCompositeParser<JPanel, JPanel> parser;
         parser = new ASTCompositeParser<>();

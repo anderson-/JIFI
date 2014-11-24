@@ -19,40 +19,31 @@ public interface ShapeCreator {
 
         @Override
         public Shape create(Rectangle2D.Double bounds) {
-            return new Rectangle2D.Double(bounds.x, bounds.y, bounds.width, bounds.height);
+            return new Rectangle2D.Double(0, 0, bounds.width, bounds.height);
         }
     };
 
     public static final ShapeCreator DIAMOND = new ShapeCreator() {
 
         public static final int EXTENDED_HEIGHT = 15;
-        public static final int SIMPLE_HEIGHT = 18;
         public static final int SIMPLE_WIDTH = 22;
 
         @Override
         public Shape create(Rectangle2D.Double bounds) {
             Polygon myShape = new Polygon();
 
-            int shapeStartX = 0;
-            int shapeStartY = 0;
-
             if (true) {
-                shapeStartX = 0;
-                shapeStartY = EXTENDED_HEIGHT;
-                myShape.addPoint((int) bounds.getCenterX(), 0);
-                myShape.addPoint((int) bounds.getMaxX(), EXTENDED_HEIGHT);
-                myShape.addPoint((int) bounds.getMaxX(), (int) bounds.getMaxY() + EXTENDED_HEIGHT);
-                myShape.addPoint((int) bounds.getCenterX(), (int) bounds.getMaxY() + 2 * EXTENDED_HEIGHT);
-                myShape.addPoint(0, (int) bounds.getMaxY() + EXTENDED_HEIGHT);
-                myShape.addPoint(0, EXTENDED_HEIGHT);
+                myShape.addPoint((int) bounds.width / 2, -EXTENDED_HEIGHT);
+                myShape.addPoint((int) bounds.width, 0);
+                myShape.addPoint((int) bounds.width, (int) bounds.height);
+                myShape.addPoint((int) bounds.width / 2, (int) bounds.height + EXTENDED_HEIGHT);
+                myShape.addPoint(0, (int) bounds.height);
+                myShape.addPoint(0, EXTENDED_HEIGHT - EXTENDED_HEIGHT);
             } else {
-                shapeStartX = SIMPLE_WIDTH;
-                shapeStartY = SIMPLE_HEIGHT;
-
-                myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, 0);
-                myShape.addPoint((int) bounds.getMaxX() + 2 * SIMPLE_WIDTH, (int) bounds.getCenterY());
-                myShape.addPoint((int) bounds.getCenterX() + SIMPLE_WIDTH, (int) bounds.getMaxY());
-                myShape.addPoint(0, (int) bounds.getCenterY() + SIMPLE_HEIGHT);
+                myShape.addPoint((int) bounds.width / 2 + SIMPLE_WIDTH, 0);
+                myShape.addPoint((int) bounds.width + 2 * SIMPLE_WIDTH, (int) bounds.height / 2);
+                myShape.addPoint((int) bounds.width / 2 + SIMPLE_WIDTH, (int) bounds.height);
+                myShape.addPoint(0, (int) bounds.height / 2);
             }
             return myShape;
         }

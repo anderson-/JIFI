@@ -5,11 +5,12 @@
  */
 package s3f.jifi.core.vpl.parser;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.mozilla.javascript.Node;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.Token;
@@ -17,10 +18,12 @@ import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.Block;
 import org.mozilla.javascript.ast.FunctionNode;
+import org.mozilla.javascript.ast.IfStatement;
 import org.mozilla.javascript.ast.Scope;
 import org.mozilla.javascript.ast.ScriptNode;
 import org.mozilla.javascript.ast.WhileLoop;
 import s3f.jifi.core.vpl.Function;
+import s3f.jifi.core.vpl.If;
 import s3f.jifi.core.vpl.Script;
 import s3f.jifi.core.vpl.Statement;
 import s3f.jifi.core.vpl.While;
@@ -50,8 +53,8 @@ public class VPLParser {
                 return parse((WhileLoop) node);
 //            case Token.FOR:
 //                return parse((Loop) node);
-//            case Token.IF:
-//                return parse((If) node);
+            case Token.IF:
+                return parse((IfStatement) node);
             default:
                 return new Statement(node);
         }
@@ -99,6 +102,11 @@ public class VPLParser {
         return block;
     }
 
+    private static If parse(IfStatement node) {
+        If ifStatement = new If(node);
+        return ifStatement;
+    }
+    
     static String readFile(String path, Charset encoding) {
         try {
             byte[] encoded = Files.readAllBytes(Paths.get(path));
@@ -110,23 +118,39 @@ public class VPLParser {
     }
 
     public static void main(String[] args) {
-        
+
         String script = readFile("/home/gnome3/testscript.js", Charset.defaultCharset());
         AstRoot tree = new Parser().parse(script, "", 1);
-        Script parse = parse(tree);
+        final Script parse = parse(tree);
 
+        //verifique a ordem 
+//        parse.
         DrawingPanel p = new DrawingPanel();
         QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
-        int x = 0;
+        int x = 0, y = 0;
         for (s3f.jifi.core.vpl.Node n : parse.getTree()) {
             System.out.println("> " + n);
             GraphicObject graphicResource = ((Statement) n).getGraphicResource();
             if (graphicResource != null) {
                 p.add(graphicResource);
-                graphicResource.setLocation(x += 20, 0);
+                graphicResource.setLocation(x += 20, y += 20);
             }
         }
-        parse.ident(0, 0, 100, 100);
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        parse.ident(0, 0, 50, 15);
+                        Thread.sleep(100);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        }.start();
+
+        parse.print();
 
     }
 }
