@@ -177,6 +177,13 @@ public class MyScriptable extends ScriptableObject {
                 System.out.println("Ret:" + o);
             } catch (ForceInterruptionException e) {
                 System.out.println("Stop!");
+            } catch (Exception e) {
+                if (debugger != null) {
+                    e.printStackTrace();
+                    ((JSDebugger)debugger).onExceptionThrown(context, e);
+                } else {
+                    throw e;
+                }
             }
         } catch (Exception e) {
             throw e;

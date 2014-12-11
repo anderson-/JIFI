@@ -5,11 +5,13 @@
  */
 package s3f.jifi;
 
+import s3f.core.code.CodeEditorTab;
 import s3f.core.plugin.ConfigurableObject;
 import s3f.core.plugin.PluginBuilder;
 import s3f.core.project.EditableProperty;
 import s3f.core.script.Script;
 import s3f.core.ui.GUIBuilder;
+import s3f.jifi.core.FlowScript;
 import s3f.jifi.core.commands.Print;
 import s3f.jifi.core.commands.Wait;
 import s3f.jifi.flowchart.FlowchartEditorTab;
@@ -61,13 +63,11 @@ public class Builder extends PluginBuilder {
         o = new ConfigurableObject("s3f.jifi.cmd");
         o.getData().setProperty("procedure", new Print());
         pm.registerFactory(o);
-
-//        Data allData = pm.createFactoryManager(null).getData("s3f.core.project.category.ScriptsCategory");
-//        if (allData != null) {
-//            EditableProperty.put(allData, FlowchartEditorTab.class);
-//        }
-//        //ou:
-        EditableProperty.put(Script.JS_SCRIPTS.getData(), FlowchartEditorTab.class);
+        
+        pm.registerFactory(FlowScript.JS_FLOWSCRIPTS);
+        
+        EditableProperty.put(FlowScript.JS_FLOWSCRIPTS.getData(), CodeEditorTab.class);
+        EditableProperty.put(FlowScript.JS_FLOWSCRIPTS.getData(), FlowchartEditorTab.class);
     }
 
 }

@@ -39,6 +39,7 @@ public class JSDebugger implements Debugger, DebugFrame {
     private boolean stepByStep = false;
     private boolean pause = false;
     private boolean running = false;
+    int line = 0;
 
     public JSDebugger() {
 
@@ -56,8 +57,8 @@ public class JSDebugger implements Debugger, DebugFrame {
     public void killProgram() {
         killProgram = true;
     }
-    
-    public boolean isRunning(){
+
+    public boolean isRunning() {
         return running;
     }
 
@@ -102,6 +103,7 @@ public class JSDebugger implements Debugger, DebugFrame {
 
     @Override
     public void onLineChange(Context cx, int lineNumber) {
+        line = lineNumber;
         running = true;
 //        System.out.println("onLineChange:" + source.split("\\n")[lineNumber - 1]);
 //
@@ -124,9 +126,9 @@ public class JSDebugger implements Debugger, DebugFrame {
                 killProgram = false;
                 throw new ForceInterruptionException();
             }
-            
+
             try {
-                Thread.sleep(pause ? 100 : 5);
+                Thread.sleep(pause ? 100 : 0);
             } catch (Exception e) {
 
             }
@@ -139,7 +141,15 @@ public class JSDebugger implements Debugger, DebugFrame {
 
     @Override
     public void onExceptionThrown(Context cx, Throwable ex) {
-        
+        if (textArea != null) {
+            try {
+                textArea.removeAllLineHighlights();
+                textArea.addLineHighlight(line, Color.red);
+                pause = true;
+            } catch (BadLocationException w) {
+
+            }
+        }
     }
 
     @Override

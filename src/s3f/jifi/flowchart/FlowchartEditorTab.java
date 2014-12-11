@@ -13,8 +13,8 @@ import s3f.core.plugin.Data;
 import s3f.core.plugin.Plugabble;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
-import s3f.core.script.Script;
 import s3f.core.ui.tab.TabProperty;
+import s3f.jifi.core.FlowScript;
 import s3f.jifi.flowchart.builder.parser.FlowchartBuilder;
 import s3f.jifi.flowchart.builder.parser.ParseException;
 import s3f.jifi.flowchart.blocks.ScriptBlock;
@@ -28,7 +28,7 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
 //    private static final ImageIcon ICON = new ImageIcon(FlowchartEditor.class.getResource("/resources/icons/fugue/block.png"));
     private final Data data;
     private final FlowchartPanel flowchartPanel;
-    private Script flowchart;
+    private FlowScript flowchart;
 
     public FlowchartEditorTab() {
         data = new Data("editorTab", "s3f.core.code", "Editor Tab");
@@ -38,13 +38,14 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
 
     @Override
     public void setContent(Element content) {
-        if (content instanceof Script) {
-            flowchart = (Script) content;
+        if (content instanceof FlowScript) {
+            flowchart = (FlowScript) content;
             FlowchartBuilder parser;
             ScriptBlock function = null;
             try {
                 parser = new FlowchartBuilder(new ByteArrayInputStream(flowchart.getText().getBytes("UTF-8")));
                 function = parser.decode();
+                System.out.println("Done");
             } catch (ParseException ex) {
                 ex.printStackTrace();
             } catch (UnsupportedEncodingException ex) {

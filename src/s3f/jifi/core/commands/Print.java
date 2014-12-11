@@ -5,10 +5,12 @@
  */
 package s3f.jifi.core.commands;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+import s3f.core.ui.MainUI;
 import s3f.jifi.core.interpreter.ExecutionException;
 
 /**
@@ -28,12 +30,13 @@ public class Print implements Command {
     }
 
     public static void perform(Context cx, Scriptable thisObj, Object[] args, Function funOb) throws ExecutionException {
+        PrintStream out = MainUI.getInstance().getConsole();
         if (args.length == 0) {
-            System.out.println();
+            out.println();
         } else if (args.length == 1) {
-            System.out.println(args[0]);
+            out.println(args[0]);
         } else {
-            System.out.printf(args[0] + "\n", Arrays.copyOfRange(args, 1, args.length));
+            out.printf(args[0] + "\n", Arrays.copyOfRange(args, 1, args.length));
         }
     }
 
