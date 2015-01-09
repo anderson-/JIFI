@@ -215,12 +215,12 @@ public class MyScriptable extends ScriptableObject {
         @Override
         public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
             Object[] argsEx = args;
-            if (!varargs) {
+//            if (!varargs) {
                 argsEx = new Object[args.length + 1];
                 System.arraycopy(args, 0, argsEx, 0, args.length);
                 argsEx[args.length] = rm;
 //                System.out.println(">>>ex " + this.getMethodOrConstructor());
-            }
+//            }
 //            System.out.println("*> " + Arrays.toString(argsEx));
             return super.call(cx, scope, getParentScope(), argsEx);
         }

@@ -7,25 +7,18 @@ package s3f.jifi.core;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
-import javax.script.Invocable;
-import javax.script.ScriptException;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
-import s3f.core.code.CodeEditorTab;
 import s3f.core.plugin.EntityManager;
 import s3f.core.plugin.Plugabble;
 import s3f.core.plugin.PluginManager;
-import s3f.core.plugin.SimulableElement;
 import s3f.core.project.ComplexElement;
 import s3f.core.project.Editor;
 import s3f.core.project.Element;
-import s3f.core.project.Project;
 import s3f.core.project.Resource;
-import s3f.core.project.SimpleElement;
 import s3f.core.project.editormanager.TextFile;
 import s3f.core.script.Script;
-import s3f.core.simulation.System;
 import s3f.core.ui.GUIBuilder;
 import s3f.core.ui.MainUI;
 import s3f.jifi.core.commands.Command;
@@ -43,10 +36,10 @@ public class FlowScript extends ComplexElement implements TextFile {
 
     public static final Element.CategoryData JS_FLOWSCRIPTS = new Element.CategoryData("FlowScripts", "js", new ImageIcon(FlowScript.class.getResource("/resources/icons/fugue/categories.png")), new FlowScript());
 
-    private String script;
+    private String script = "";
 
     public FlowScript() {
-        super("Empty FlowScript", "/resources/icons/fugue/block.png", JS_FLOWSCRIPTS, new Class[]{FlowchartEditorTab.class});
+        super("Empty FlowScript", "/resources/icons/fugue/script-block.png", JS_FLOWSCRIPTS, new Class[]{FlowchartEditorTab.class});
     }
 
     @Override
