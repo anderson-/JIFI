@@ -126,7 +126,7 @@ public class VPLParser {
         //verifique a ordem 
 //        parse.
         DrawingPanel p = new DrawingPanel();
-        QuickFrame.create(p, "Teste do painel de desenho").addComponentListener(p);
+        QuickFrame.create(p, "Teste do novo parser").addComponentListener(p);
         int x = 0, y = 0;
         for (s3f.jifi.core.vpl.Node n : parse.getTree()) {
             System.out.println("> " + n);
