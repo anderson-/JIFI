@@ -24,6 +24,7 @@ import s3f.core.plugin.PluginManager;
 import s3f.core.project.Editor;
 import s3f.core.project.Project;
 import s3f.core.script.Script;
+import s3f.jifi.core.FlowScript;
 import s3f.jifi.core.interpreter.ForceInterruptionException;
 
 /**
@@ -66,8 +67,8 @@ public class JSDebugger implements Debugger, DebugFrame {
         EntityManager em = PluginManager.getInstance().createFactoryManager(null);
         Project project = (Project) em.getProperty("s3f.core.project.tmp", "project");
         for (s3f.core.project.Element e : project.getElements()) {
-            if (e instanceof Script) {
-                Script script = (Script) e;
+            if (e instanceof FlowScript) {
+                FlowScript script = (FlowScript) e;
                 if (script.getText().equals(source)) {
                     Editor currentEditor = script.getCurrentEditor();
                     if (currentEditor instanceof CodeEditorTab) {

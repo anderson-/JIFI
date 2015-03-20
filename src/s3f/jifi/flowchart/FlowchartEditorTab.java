@@ -48,6 +48,7 @@ public class FlowchartEditorTab implements Editor, PropertyChangeListener {
                 System.out.println("Done");
             } catch (ParseException ex) {
                 ex.printStackTrace();
+                throw new RuntimeException(ex);
             } catch (UnsupportedEncodingException ex) {
             }
             if (function != null) {

@@ -124,7 +124,7 @@ public class FlowScript extends ComplexElement implements TextFile {
                 addMenuItem("Run>", "S", null, null, null, 4, null);
                 addMenuItem("Run>Run script", "R", "F6", null, null, 0, runScript);
 
-                addMenuItem("Run>Step by step", "E", "shift released S", null, null, 0, new AbstractAction() {
+                addMenuItem("Run>Step by step", "E", "released F7", null, null, 0, new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         SwingUtilities.invokeLater(new Runnable() {
