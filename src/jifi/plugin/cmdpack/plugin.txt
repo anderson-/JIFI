@@ -1,0 +1,12 @@
+# Lista de Plugins
+# "jifi/plugin/cmdpack/plugin.txt"
+#jifi.plugin.cmdpack.begginer.Read
+jifi.plugin.cmdpack.begginer.KeyboardInput
+jifi.plugin.cmdpack.begginer.ReadDevice
+jifi.plugin.cmdpack.begginer.Move
+jifi.plugin.cmdpack.begginer.Rotate
+jifi.plugin.cmdpack.begginer.Wait
+jifi.plugin.cmdpack.util.PrintString
+jifi.algorithm.procedure.Comment
+#jifi.plugin.cmdpack.util.StepMode
+jifi.plugin.cmdpack.low.SendBytes

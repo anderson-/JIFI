@@ -1,0 +1,6 @@
+# Lista de Plugins <Default>
+# "jifi/algorithm/plugin.txt"
+jifi.algorithm.procedure.Procedure
+jifi.algorithm.procedure.If
+jifi.algorithm.procedure.While
+jifi.algorithm.procedure.BreakLoop
