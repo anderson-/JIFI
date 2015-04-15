@@ -288,12 +288,12 @@ public class SidePanel extends WidgetContainer {
             }
         } else if (open) {
             bounds.width = panelWidth;
-            bounds.x = ga.getWidth() - panelWidth;
+            bounds.x = ga.getWidth() - panelWidth - 10;
             bounds.y = 0;
             bounds.height = ga.getHeight();
         } else {
             bounds.width = panelWidth;
-            bounds.x = ga.getWidth();
+            bounds.x = ga.getWidth() - 20;
             bounds.y = 0;
         }
     }
