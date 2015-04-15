@@ -47,7 +47,6 @@ import jifi.plugin.cmdpack.util.PrintString;
 import jifi.robot.Robot;
 import jifi.robot.device.Compass;
 import jifi.robot.device.HBridge;
-import jifi.robot.connection.Serial;
 import jifi.robot.device.Device;
 import jifi.util.trafficsimulator.Clock;
 
@@ -277,7 +276,7 @@ public class Interpreter extends Thread {
         Robot r = new Robot();
         r.add(new HBridge());
         r.add(new Compass());
-        r.add(new Serial(57600));
+//        r.add(new Serial(57600));
         Interpreter i = new Interpreter();
         i.setRobot(r);
 

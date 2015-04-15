@@ -1872,45 +1872,6 @@ public class GUI extends JFrame implements ComponentListener {
         final SplashScreen splashScreen = new SplashScreen("/resources/jifi5.png");
         splashScreen.splash();
 
-        String path = GUI.class
-                .getProtectionDomain().getCodeSource().getLocation().getPath();
-        path = path.substring(0, path.lastIndexOf('/') + 1);
-        path += "natives/" + JniNamer.os() + "/" + JniNamer.arch();
-
-        String defaultPath = System.getProperty("java.library.path");
-        System.out.println("Carregando algo do tipo: \"" + JniNamer.getJniName("librxtxSerial") + "\"");
-
-        try {
-            String newPath = path;
-            /*
-             * 
-             * Make sure the library is on the java lib path
-             * Make sure you're using System.loadLibrary() correctly. 
-             * If your library is called "libSample.so", 
-             * the call should be System.loadLibrary("Sample").
-             * Consider that there may be an issue with the library under OpenJDK, 
-             * and that's the Java VM you're using. 
-             * Run the command java -version and if part of the response is 
-             * something like OpenJDK Runtime Environment (build 1.6.0_0-b11), 
-             * try installing the official Sun JDK and see if that works.
-             */
-            setLibraryPath(newPath);
-            System.loadLibrary("rxtxSerial");
-            System.out.println("Biblioteca librxtxSerial." + JniNamer.extension(JniNamer.os()) + " carregada com sucesso em " + path);
-        } catch (Error | Exception e) {
-//            e.printStackTrace();
-            System.out.println("Falha ao caregar librxtxSerial." + JniNamer.extension(JniNamer.os()) + " em " + path);
-            try {
-                setLibraryPath(defaultPath);
-                System.loadLibrary("rxtxSerial");
-                System.out.println("Biblioteca librxtxSerial." + JniNamer.extension(JniNamer.os()) + " carregada com sucesso em " + defaultPath);
-            } catch (Error | Exception e2) {
-                e.printStackTrace();
-                System.out.println("Falha ao caregar librxtxSerial." + JniNamer.extension(JniNamer.os()) + " em " + defaultPath);
-                e2.printStackTrace();
-            }
-        }
-
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.

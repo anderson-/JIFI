@@ -12,7 +12,6 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import static jifi.robot.connection.Serial.printBytes;
 
 /**
  * 
