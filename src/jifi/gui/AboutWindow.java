@@ -54,7 +54,7 @@ public class AboutWindow extends javax.swing.JFrame {
             jLabel4.setText("");
         }
         setLocationRelativeTo(null);
-        goWebsite(jLabel5, "http://bit.ly/petrobo", "http://bit.ly/petrobo");
+        goWebsite(jLabel5, "http://petrobo.github.io", "http://petrobo.github.io");
         goWebsite(jLabel6, "https://github.com/anderson-/JIFI", "https://github.com/anderson-/JIFI");
 
         pack();
@@ -133,7 +133,7 @@ public class AboutWindow extends javax.swing.JFrame {
         jLabel4.setText("jLabel4");
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel5.setText("http://bit.ly/petrobo");
+        jLabel5.setText("http://petrobo.github.io");
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel6.setText("http://bit.ly/petrobo");
