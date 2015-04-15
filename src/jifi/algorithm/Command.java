@@ -28,8 +28,11 @@ package jifi.algorithm;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import jifi.algorithm.procedure.Block;
 import static jifi.algorithm.procedure.Function.getBounds;
@@ -303,8 +306,96 @@ public abstract class Command implements GraphicResource, GraphicFlowchart, Flow
                     Rectangle2D.Double bNext = d.getObjectBouds();
                     Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bNext.getCenterX(), bNext.getMinY());
                     g.draw(l);
+                    drawArrow(g, bNext.getCenterX() + .2, bNext.getMinY(), ARROW_DOWN);
                 }
             }
         }
     }
+    
+    public static final double ARROW_RIGHT = 0;
+    public static final double ARROW_DOWN = Math.PI / 2;
+
+    public static final int ARR_SIZE = 10;
+
+    //90/0.8/.9
+    public static Shape createArrow(float arrowLength, float arrowRatio, float waisting, float strokeWidth) {
+
+        float veeX = -strokeWidth * 0.5f / arrowRatio;
+
+        // vee
+        Path2D.Float path = new Path2D.Float();
+
+        float waistX = -arrowLength * 0.5f;
+        float waistY = arrowRatio * arrowLength * 0.5f * waisting;
+        float arrowWidth = arrowRatio * arrowLength;
+
+        path.moveTo(veeX - arrowLength, -arrowWidth);
+        path.quadTo(waistX, -waistY, 0, 0.0f);
+        path.quadTo(waistX, waistY, veeX - arrowLength, arrowWidth);
+
+        // end of arrow is pinched in
+        path.lineTo(veeX - arrowLength * 0.75f, 0.0f);
+        path.lineTo(veeX - arrowLength, -arrowWidth);
+
+        return path;
+    }
+
+    public static void drawArrow(Graphics2D g, double x, double y, double angle) {
+        if (angle == ARROW_DOWN) {
+            x += .2;
+            y -= 2;
+        } else {
+            x -= 3;
+        }
+        g.translate(x, y);
+        g.rotate(angle);
+        {//arrumar :/
+            Color o = g.getColor();
+            g.setColor(Color.WHITE);
+            g.fillRect(-5, -5, 10, 10);
+            g.setColor(o);
+        }
+        g.fill(createArrow(6, 1.3f, .5f, 10));
+        g.rotate(-angle);
+        g.translate(-x, -y);
+    }
+
+    public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
+//        g.setStroke(new BasicStroke(2));
+
+        double dx = x2 - x1, dy = y2 - y1;
+        double angle = Math.atan2(dy, dx);
+        int len = (int) Math.sqrt(dx * dx + dy * dy);
+        AffineTransform o = (AffineTransform) g.getTransform().clone();
+        AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
+        at.concatenate(AffineTransform.getRotateInstance(angle));
+        g.transform(at);
+
+        // Draw horizontal arrow starting in (0, 0)
+//        g.backDraw(0, 0, len - ARR_SIZE, 0);
+        g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
+                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
+        at.setToIdentity();
+        g.setTransform(o);
+    }
+
+    public static void drawArrow(Graphics2D g, Line2D l, boolean drawLine) {
+        double dx = l.getX2() - l.getX1();
+        double dy = l.getY2() - l.getY1();
+        double angle = Math.atan2(dy, dx);
+        int len = (int) Math.sqrt(dx * dx + dy * dy);
+        AffineTransform o = (AffineTransform) g.getTransform().clone();
+        AffineTransform at = AffineTransform.getTranslateInstance(l.getX1(), l.getY1());
+        at.concatenate(AffineTransform.getRotateInstance(angle));
+        g.transform(at);
+        // Draw horizontal arrow starting in (0, 0)
+        if (drawLine) {
+            g.drawLine(0, 0, len - ARR_SIZE, 0);
+        }
+        g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
+                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
+        at.setToIdentity();
+        g.setTransform(o);
+    }
 }
+

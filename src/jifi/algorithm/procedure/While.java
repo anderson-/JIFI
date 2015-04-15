@@ -160,8 +160,8 @@ public class While extends Block {
             bBlock.add(c.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K));
 
             //adicionando bordas
-            bBlock.x -= GF_J;
-            bBlock.width += 2 * GF_J;
+            bBlock.x -= GF_K;
+            bBlock.width += 2 * GF_K;
             bBlock.height += 2 * GF_J;
 
             if (c instanceof GraphicResource) {
@@ -191,6 +191,7 @@ public class While extends Block {
                 }
             }
 
+            Rectangle2D.Double bNext = null;
             if (c instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) c).getDrawableResource();
                 if (d != null) {
@@ -202,16 +203,22 @@ public class While extends Block {
                     path.lineTo(bBlock.getMaxX(), bThis.getCenterY());
                     path.lineTo(bBlock.getMaxX(), bBlock.getMaxY() - GF_J);
                     if (!end) {
-                        Rectangle2D.Double bNext = d.getObjectBouds();
+                        bNext = d.getObjectBouds();
                         path.lineTo(bNext.getCenterX(), bBlock.getMaxY() - GF_J);
                         path.lineTo(bNext.getCenterX(), bBlock.getMaxY());
                     } else {
                         path.lineTo(bThis.getCenterX(), bBlock.getMaxY() - GF_J);
-                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
+//                        path.lineTo(bThis.getCenterX(), bBlock.getMaxY());
                     }
                 }
             }
             g.draw(path);
+
+            drawArrow(g, bThis.getMinX(), bThis.getCenterY(), ARROW_RIGHT);
+            drawArrow(g, bThis.getCenterX(), bBlock.getMinY(), ARROW_DOWN);
+            if (bNext != null) {
+                drawArrow(g, bNext.getCenterX(), bBlock.getMaxY(), ARROW_DOWN);
+            }
         }
     }
 

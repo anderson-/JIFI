@@ -148,47 +148,6 @@ public class Function extends Block {
         //return super.addBegin(c);
     }
 
-    public static final int ARR_SIZE = 7;
-
-    public static void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
-//        g.setStroke(new BasicStroke(2));
-
-        double dx = x2 - x1, dy = y2 - y1;
-        double angle = Math.atan2(dy, dx);
-        int len = (int) Math.sqrt(dx * dx + dy * dy);
-        AffineTransform o = (AffineTransform) g.getTransform().clone();
-        AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
-        at.concatenate(AffineTransform.getRotateInstance(angle));
-        g.transform(at);
-
-        // Draw horizontal arrow starting in (0, 0)
-//        g.backDraw(0, 0, len - ARR_SIZE, 0);
-        g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
-                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
-        at.setToIdentity();
-        g.setTransform(o);
-    }
-
-    public static void drawArrow(Graphics2D g, Line2D l, boolean drawLine) {
-        double dx = l.getX2() - l.getX1();
-        double dy = l.getY2() - l.getY1();
-        double angle = Math.atan2(dy, dx);
-        int len = (int) Math.sqrt(dx * dx + dy * dy);
-        AffineTransform o = (AffineTransform) g.getTransform().clone();
-        AffineTransform at = AffineTransform.getTranslateInstance(l.getX1(), l.getY1());
-        at.concatenate(AffineTransform.getRotateInstance(angle));
-        g.transform(at);
-
-        // Draw horizontal arrow starting in (0, 0)
-        if (drawLine) {
-            g.drawLine(0, 0, len - ARR_SIZE, 0);
-        }
-        g.fillPolygon(new int[]{len, len - ARR_SIZE, len - ARR_SIZE, len},
-                new int[]{0, (int) (-ARR_SIZE * .5), (int) (ARR_SIZE * .5), 0}, 4);
-        at.setToIdentity();
-        g.setTransform(o);
-    }
-
     private static Command boundaryTest(Point2D p, Command it) {
         if (it.getBounds(null, GraphicFlowchart.GF_J, GraphicFlowchart.GF_K).contains(p)) {
             return it;
@@ -503,6 +462,7 @@ public class Function extends Block {
                     Rectangle2D.Double bStart = d.getObjectBouds();
                     Line2D.Double l = new Line2D.Double(bThis.getCenterX(), bThis.getMaxY(), bStart.getCenterX(), bStart.getMinY());
                     g.draw(l);
+                    drawArrow(g, bStart.getCenterX() + .2, bStart.getMinY(), ARROW_DOWN);
                 }
             }
         }
