@@ -75,7 +75,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
                     SerialPort.DATABITS_8,
                     SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);//Set params. Also you can set params by this string: serialPort.setParams(9600, 8, 1, 0);
-            serialPort.writeBytes("This is a test string".getBytes());//Write data to port
+            serialPort.addEventListener(this);
             return true;
         } catch (SerialPortException ex) {
             ex.printStackTrace();
@@ -135,7 +135,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
             newMessage = false;
             //System.out.println("\t1: " + System.currentTimeMillis());
         }
-        //System.out.println("Available: " + (bufferLast - bufferIndex));
+//        System.out.println("Available: " + (bufferLast - bufferIndex));
         if ((bufferLast - bufferIndex) >= bufferSize) {
             if (!observers.isEmpty()) {
                 ByteBuffer message = ByteBuffer.allocate(bufferSize + 1); // TODO: REMOVER +1
@@ -144,6 +144,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
                 message.flip();
                 for (Observer<ByteBuffer, Connection> o : observers) {
                     o.update(message.asReadOnlyBuffer(), this);
+//                    printBytes(message.array(), message.array().length);
                 }
             } else {
                 byte[] message = new byte[bufferSize];
@@ -246,7 +247,10 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
     @Override
     public void send(byte[] data) {
         try {
-            serialPort.writeBytes(data);
+            byte[] msg = new byte[data.length + 1];
+            msg[0] = (byte) data.length;
+            System.arraycopy(data, 0, msg, 1, data.length);
+            serialPort.writeBytes(msg);
         } catch (SerialPortException ex) {
             ex.printStackTrace();
         }
@@ -348,7 +352,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
     }
 
     public static void printBytes(byte[] array, int size) {
-        //System.out.print("Received: ");
+//        System.out.print("Received: ");
         System.out.print("[" + size + "]{");
         for (int i = 0; i < size; i++) {
             System.out.print("," + (int) (array[i] & 0xff));
