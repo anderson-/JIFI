@@ -18,6 +18,8 @@ import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+import jifi.gui.GUI;
+import jifi.interpreter.Interpreter;
 import jifi.robot.Robot;
 import jifi.robot.action.Action;
 import jifi.robot.action.RotateAction;
@@ -231,7 +233,7 @@ public class RobotControlPanel extends JPanel {
     private Connection connection = null;
     private RobotManager robotManager;
     private boolean connected = false;
-    private Robot robot;
+    private static Robot robot;
     private MouseListener ml;
     private JButton button = null;
     private boolean virtual = false;
@@ -352,7 +354,7 @@ public class RobotControlPanel extends JPanel {
         return devices;
     }
 
-    public Robot getRobot() {
+    public static Robot getRobot() {
         return robot;
     }
 
@@ -378,6 +380,7 @@ public class RobotControlPanel extends JPanel {
             connected = false;
 
             if (connection != null) {
+                GUI.getInstance().getInterpreter().setInterpreterState(Interpreter.STOP);
                 connection.closeConnection();
                 connection = null;
             }
