@@ -9,28 +9,20 @@ import java.awt.Font;
 import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Area;
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -42,36 +34,44 @@ import jifi.drawable.GraphicObject;
 import jifi.drawable.swing.DrawableProcedureBlock;
 import jifi.drawable.swing.MutableWidgetContainer;
 import jifi.drawable.swing.component.Component;
-import jifi.drawable.swing.component.Space;
 import jifi.drawable.swing.component.SubLineBreak;
 import jifi.drawable.swing.component.TextLabel;
 import jifi.drawable.swing.component.Widget;
 import jifi.drawable.swing.component.WidgetLine;
-import jifi.drawable.util.QuickFrame;
-import jifi.gui.panels.sidepanel.Classifiable;
+import jifi.gui.panels.robot.RobotControlPanel;
 import jifi.gui.panels.sidepanel.Item;
 import jifi.interpreter.ExecutionException;
 import jifi.interpreter.ResourceManager;
-import jifi.plugin.cmdpack.low.decoder.ParseException;
 import jifi.plugin.cmdpack.low.decoder.SendBytesArgumentDecoder;
 import jifi.robot.Robot;
-import jifi.util.trafficsimulator.Clock;
-import jifi.util.trafficsimulator.Timer;
+import jifi.robot.device.Device;
 
 /**
  *
  * @author antunes
  */
-public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
+public class WriteDevice extends Procedure implements FunctionToken<WriteDevice> {
 
-    private static Color myColor = Color.decode("#99222F");
+    private static Color myColor = Color.decode("#bd2f3f");
+    private Device device;
+    private byte id;
+    private Argument arg0;
 
-    public SendBytes() {
-
+    public WriteDevice() {
+        arg0 = new Argument("Distancia", Argument.SINGLE_VARIABLE);
     }
 
-    private SendBytes(Argument[] args) {
-        super(args);
+    private WriteDevice(Argument[] args) {
+        super(eat(args, 1));
+        arg0 = new Argument(args[0], Argument.SINGLE_VARIABLE);
+    }
+
+    public static Argument[] eat(Argument[] oargs, int n) {
+        Argument[] args = new Argument[oargs.length - n];
+        for (int i = n; i < oargs.length; i++) {
+            args[i - n] = oargs[i];
+        }
+        return args;
     }
 
     public static void main(String[] args) {
@@ -96,8 +96,11 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
     public void begin(ResourceManager rm) throws ExecutionException {
         JEP parser = rm.getResource(JEP.class);
         Robot robot = rm.getResource(Robot.class);
-        byte[] msg = new byte[getArgSize()];
-        int i = 0;
+        byte[] msg = new byte[getArgSize() + 3];
+        msg[0] = 5;
+        msg[1] = id;
+        msg[2] = (byte) getArgs().size();
+        int i = 3;
         for (Argument arg : getArgs()) {
             arg.parse(parser);
             msg[i] = (byte) arg.getDoubleValue();
@@ -114,51 +117,45 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
     @Override
     public Item getItem() {
         Area myShape = new Area();
+
         Polygon tmpShape = new Polygon();
-        tmpShape.addPoint(0, 0);
-        tmpShape.addPoint(7, 0);
-        tmpShape.addPoint(7, 18);
-        tmpShape.addPoint(0, 18);
+        tmpShape.addPoint(20, 20);
+        tmpShape.addPoint(0, 20);
+        tmpShape.addPoint(10, 2);
         myShape.add(new Area(tmpShape));
 
         tmpShape.reset();
-        tmpShape.addPoint(11, 0);
-        tmpShape.addPoint(18, 0);
-        tmpShape.addPoint(18, 18);
-        tmpShape.addPoint(11, 18);
-        myShape.add(new Area(tmpShape));
-        return new Item("Enviar Bytes", myShape, myColor, "");
+        tmpShape.addPoint(0, 0);
+        tmpShape.addPoint(20, 0);
+        tmpShape.addPoint(20, 10);
+        tmpShape.addPoint(0, 10);
+        myShape.exclusiveOr(new Area(tmpShape));
+        return new Item("Ativar Atuador", myShape, myColor, "Configura estado de um dispositivo do robo");
     }
 
     @Override
     public Object createInstance() {
-        return new SendBytes();
+        return new WriteDevice();
     }
 
     @Override
     public Completion getInfo(CompletionProvider provider) {
-        FunctionCompletion fc = new FunctionCompletion(provider, "sendBytes(...);", null);
+        FunctionCompletion fc = new FunctionCompletion(provider, "write(...);", null);
         fc.setShortDescription("");
         return fc;
     }
 
     @Override
     public String getToken() {
-        return "sendBytes";
+        return "write";
     }
 
     @Override
     public void toString(String ident, StringBuilder sb) {
         StringBuilder sb2 = new StringBuilder();
-        sb2.append("sendBytes(");
-        boolean one = true;
+        sb2.append("write(").append(arg0);
         for (Argument arg : getArgs()) {
-            if (one) {
-                sb2.append(arg);
-                one = false;
-            } else {
-                sb2.append(", ").append(arg);
-            }
+            sb2.append(", ").append(arg);
         }
         sb2.append(")");
         setProcedure(sb2.toString());
@@ -175,19 +172,31 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
         return resource;
     }
 
-    public static MutableWidgetContainer createDrawableSendBytes(final SendBytes W) {
+    public static MutableWidgetContainer createDrawableSendBytes(final WriteDevice W) {
 
         //HEADER LINE
         final WidgetLine headerLine = new WidgetLine() {
             private MyTableModel model = new MyTableModel();
             private Widget addButton;
             private Widget remButton;
+            final JComboBox comboboxDev = new JComboBox();
 
             @Override
             public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
-                components.add(new TextLabel("Enviar Bytes:", true));
+                components.add(new TextLabel("Ativar Atuador:", true));
                 components.add(new SubLineBreak());
+                components.add(new TextLabel("Sensor:"));
 
+                comboboxDev.removeAllItems();
+                for (Device d : RobotControlPanel.getRobot().getDevices()) {
+                    if (d.isActuator()) {
+                        comboboxDev.addItem(d.getName());
+                    }
+                }
+
+                Widget wcomboboxdev = new Widget(comboboxDev, 100, 25);
+                components.add(wcomboboxdev);
+                components.add(new SubLineBreak());
                 final JTable table = new JTable(model);
                 table.getTableHeader().setReorderingAllowed(false);
                 table.getColumnModel().getColumn(0).setMaxWidth(60);
@@ -234,6 +243,8 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
                     }
                 });
 
+                container.entangle(W.arg0, wcomboboxdev);
+
                 remButton = new Widget(bTmp, 25, 25);
                 components.add(new SubLineBreak(true));
                 components.add(addButton);
@@ -242,17 +253,19 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
 
             @Override
             public void toString(StringBuilder sb, ArrayList<Argument> arguments, MutableWidgetContainer container) {
-                sb.append("sendBytes(");
-                boolean one = true;
+                sb.append("write(").append(W.arg0);
                 for (Argument arg : W.getArgs()) {
-                    if (one) {
-                        sb.append(arg);
-                        one = false;
-                    } else {
-                        sb.append(", ").append(arg);
-                    }
+                    sb.append(", ").append(arg);
                 }
                 sb.append(")");
+
+                for (Device d : RobotControlPanel.getRobot().getDevices()) {
+                    if (d.isActuator()) {
+                        if (W.arg0.toString().equals(d.getName())) {
+                            W.id = d.getID();
+                        }
+                    }
+                }
             }
         };
 
@@ -268,22 +281,23 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
         return dcb;
     }
 
-//    @Override NAO PRECISA, POIS NAO POSSUI ARGUMENTOS ESPECIAIS
-//    public Procedure copy(Procedure copy) {
-//        super.copy(copy);
-//        if (copy instanceof SendBytes) {
-//            ((SendBytes) copy).arg0.set(arg0);
-//        }
-//        return copy;
-//    }
     @Override
-    public int getParameters() {
-        return 0;//??
+    public Procedure copy(Procedure copy) {
+        super.copy(copy);
+        if (copy instanceof WriteDevice) {
+            ((WriteDevice) copy).arg0.set(arg0);
+        }
+        return copy;
     }
 
     @Override
-    public SendBytes createInstance(Argument[] args) {
-        SendBytes w = new SendBytes(args);
+    public int getParameters() {
+        return -1;//??
+    }
+
+    @Override
+    public WriteDevice createInstance(Argument[] args) {
+        WriteDevice w = new WriteDevice(args);
         return w;
     }
 

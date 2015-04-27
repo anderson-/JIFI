@@ -32,6 +32,16 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
     private int dist = 0;
     private double x, y, theta;
     private boolean selected;
+    
+    @Override
+    public boolean isActuator() {
+        return false;
+    }
+
+    @Override
+    public boolean isSensor() {
+        return true;
+    }
 
     @Override
     public void setState(ByteBuffer data) {

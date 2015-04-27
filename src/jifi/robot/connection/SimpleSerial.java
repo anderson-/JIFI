@@ -13,6 +13,12 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jifi.robot.Robot;
+import jifi.robot.device.Compass;
+import jifi.robot.device.HBridge;
+import jifi.robot.device.IRProximitySensor;
+import jifi.robot.device.ReflectanceSensorArray;
+import jifi.robot.simulation.VirtualConnection;
 import jifi.util.observable.Observer;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -44,6 +50,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
 
     private boolean newMessage = true;
     private Queue<byte[]> messages;
+    private static boolean SERIAL_DEBUG_ROBO_F = false;
 
     public SimpleSerial(int dataRate) {
         observers = new ArrayList<>();
@@ -141,6 +148,9 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
                 ByteBuffer message = ByteBuffer.allocate(bufferSize + 1); // TODO: REMOVER +1
                 message.put((byte) bufferSize); // TODO: REMOVER
                 readBytes(message);
+                if (SERIAL_DEBUG_ROBO_F) {
+                    removeBytesFromStart(message, 1);
+                }
                 message.flip();
                 for (Observer<ByteBuffer, Connection> o : observers) {
                     o.update(message.asReadOnlyBuffer(), this);
@@ -160,6 +170,15 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
             //System.out.println("\t2: " + System.currentTimeMillis());
         }
         return false;
+    }
+
+    public void removeBytesFromStart(ByteBuffer bf, int n) {
+        int index = 0;
+        for (int i = n; i < bf.position(); i++) {
+            bf.put(index++, bf.get(i));
+            bf.put(i, (byte) 0);
+        }
+        bf.position(index);
     }
 
     public void buffer(int count) {
@@ -358,6 +377,117 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
             System.out.print("," + (int) (array[i] & 0xff));
         }
         System.out.println("}");
+    }
+
+    public static void main(String[] args) {
+        SimpleSerial s = new SimpleSerial(57600);
+        SERIAL_DEBUG_ROBO_F = true;
+
+        Robot r = new Robot();
+        r.add(new HBridge());
+        r.add(new Compass());
+        r.add(new IRProximitySensor());
+        r.add(new ReflectanceSensorArray());
+        s.attach(r);
+
+        ArrayList<byte[]> testMessages = new ArrayList<>();
+
+        /* PRIMEIROS TESTES */
+//        testMessages.add(new byte[]{2, 11, 3, 9, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '\n'});
+//        
+//        testMessages.add(new byte[]{3, 0, 10, 'a', 'n', 'd', 'e', 'r', 's', 'o', 'n', '2', '\n'});
+//        testMessages.add(new byte[]{4, 0, 0});//get clock
+//        testMessages.add(new byte[]{4, 1, 0});//get hbridge
+//        testMessages.add(new byte[]{4, 2, 0});//get compass
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{5, 1, 2, 0, 90, 5, 1, 2, 1, -90}); //rotaciona
+//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+//        testMessages.add(new byte[]{5, 1, 2, 0, -90, 5, 1, 2, 1, 90}); //rotaciona
+//        testMessages.add(new byte[]{5, 1, 2, 0, (byte) 0, 5, 1, 2, 1, (byte) 0}); //para
+        /* ROBO GENERICO */
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        for (byte b = 0; b < 5; b++) { //adiciona 5 leds nos pinos 9->13
+//            testMessages.add(new byte[]{6, 1, 1, (byte) (b + 9)}); //o array de led começa no pino 9
+//            testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//            for (int i = 0; i < 2; i++) {
+//                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+//                testMessages.add(new byte[]{5, (byte) (b + 1), 1, (byte) 255}); //set LED b+1 ON
+//                testMessages.add(new byte[]{4, (byte) (b + 1), 0}); //get status LED b+1 (0 = clock)
+//                testMessages.add(new byte[]{5, (byte) (b + 1), 1, 0}); //set LED b+1 OFF
+//            }
+//        }
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        /*
+         * Resultados (bytes):
+         *  Arduino MEGA (8k):
+         *   FreeRam: 6977 - apenas arduino+lib+serial
+         *   FreeRam: 6954 - +1 led
+         *   FreeRam: 6929 - +1 led
+         *  Arduino 2009 (2k):
+         *   FreeRam: 1299 - apenas arduino+lib+serial
+         *   FreeRam: 1272 - +1 led
+         *   FreeRam: 1243 - +1 led
+         */
+
+        /* NOVAS FUNÇÕES DE GIRAR */
+//        ByteBuffer bf = ByteBuffer.allocate(8);
+//        bf.putChar((char) 180);
+//        byte[] tmp = new byte[2];
+//        bf.flip();
+//        bf.order(ByteOrder.LITTLE_ENDIAN);
+//        bf.get(tmp);
+//
+//        testMessages.add(new byte[]{4, 0, 0});//get clock
+//
+//        testMessages.add(new byte[]{9, 0, 2, 1, 2, 3, tmp[1], tmp[0], 10});
+
+        /* RESETA AS FUNÇÕES E PONTE H */
+//        testMessages.add(new byte[]{7, (byte) 222});//reset all
+
+        /* RESETA O SISTEMA (funcionando) */
+//        testMessages.add(new byte[]{7, (byte) 224});//reset system
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{7, (byte) 224});//reset system
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        
+        
+        testMessages.add(new byte[]{6, 1, 1, 2});//add LED
+        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
+        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
+        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
+        
+        
+        
+        
+        if (s.establishConnection()) {
+            System.out.println("connected");
+
+            for (int i = 0; i < 1; i++) { //repetição
+                for (byte[] message : testMessages) {
+                    s.send(message);
+                    try {
+                        Thread.sleep(60);
+                    } catch (InterruptedException ex) {
+                    }
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                }
+            }
+        } else {
+            System.out.println("fail");
+        }
+
+        System.out.println("Fim");
+        System.exit(0);
     }
 
 }

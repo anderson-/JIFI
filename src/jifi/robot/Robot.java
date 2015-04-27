@@ -92,6 +92,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         }
 
         @Override
+        public boolean isActuator(){
+            return false;
+        }
+        
+        @Override
+        public boolean isSensor(){
+            return true;
+        }
+        
+        @Override
         public String stateToString() {
             return "" + stepTime;
         }

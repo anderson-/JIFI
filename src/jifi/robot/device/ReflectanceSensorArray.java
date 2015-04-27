@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Fernando Padilha Ferreira <fpf.padilhaf@gmail.com>
  * Anderson de Oliveira Antunes <anderson.utf@gmail.com>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -65,6 +64,16 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         for (int i = 0; i < 5; i++) {
             values[4 - i] = (b >> i) & 1;
         }
+    }
+
+    @Override
+    public boolean isActuator() {
+        return false;
+    }
+
+    @Override
+    public boolean isSensor() {
+        return true;
     }
 
     @Override

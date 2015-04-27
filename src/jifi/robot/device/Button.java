@@ -38,6 +38,16 @@ public class Button extends Device implements VirtualDevice, Drawable, Selectabl
     private boolean selected;
 
     @Override
+    public boolean isActuator() {
+        return false;
+    }
+
+    @Override
+    public boolean isSensor() {
+        return true;
+    }
+
+    @Override
     public byte[] defaultGetMessage() {
         return new byte[]{1, 0};
     }

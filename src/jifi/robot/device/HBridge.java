@@ -21,6 +21,16 @@ public class HBridge extends Device implements VirtualDevice {
     }
 
     @Override
+    public boolean isActuator() {
+        return true;
+    }
+
+    @Override
+    public boolean isSensor() {
+        return false;
+    }
+
+    @Override
     public void setState(ByteBuffer data) {
         if (data.remaining() == 2) {
             if (data.get() == 0) {

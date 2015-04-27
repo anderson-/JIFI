@@ -18,6 +18,16 @@ public class Compass extends Device implements VirtualDevice {
     private int alpha = 0;
 
     @Override
+    public boolean isActuator() {
+        return false;
+    }
+
+    @Override
+    public boolean isSensor() {
+        return true;
+    }
+
+    @Override
     public void setState(ByteBuffer data) {
         alpha = data.getChar();
 //        System.out.println("Angulo:" + alpha);

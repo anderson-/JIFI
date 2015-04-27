@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
  *                       *seu nome* <*seu email*>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -68,7 +67,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
     private static Color myColor = Color.decode("#ED4A6A");
     private Device device;
-    private Class<? extends Device> type;
+    private int id;
     private Argument arg0;
     private Argument arg1;
 
@@ -88,7 +87,7 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     @Override
     public void begin(ResourceManager rm) throws ExecutionException {
         Robot robot = rm.getResource(Robot.class);
-        device = robot.getDevice(type);
+        device = robot.getDevice(id);
         if (device != null) {
             //mensagem get padrão 
             byte[] msg = device.defaultGetMessage();
@@ -143,16 +142,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
 
         final JComboBox comboboxDev = new JComboBox();
         final JComboBox comboboxVar = new JComboBox();
-        final HashMap<String, Class<? extends Device>> deviceMap = new HashMap<>();
-        for (Class<? extends Device> c : RobotControlPanel.getAvailableDevices()) {
-            String str = c.getSimpleName();
-            try {
-                str = c.newInstance().getName();
-            } catch (Exception ex) {
-            }
-            deviceMap.put(str, c);
-            comboboxDev.addItem(str);
-        }
 
         final WidgetLine headerLine = new WidgetLine() {
             @Override
@@ -162,6 +151,13 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 components.add(new TextLabel("Sensor:"));
 
                 MutableWidgetContainer.setAutoFillComboBox(comboboxVar, rd, true);
+
+                comboboxDev.removeAllItems();
+                for (Device d : RobotControlPanel.getRobot().getDevices()) {
+                    if (d.isSensor()) {
+                        comboboxDev.addItem(d.getName());
+                    }
+                }
 
                 Widget wcomboboxdev = new Widget(comboboxDev, 100, 25);
                 Widget wcomboboxvar = new Widget(comboboxVar, 100, 25);
@@ -183,7 +179,14 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
                 } else {
                     sb.append("read(").append(rd.arg0).append(")");
                 }
-                rd.type = deviceMap.get(rd.arg0.toString());
+
+                for (Device d : RobotControlPanel.getRobot().getDevices()) {
+                    if (d.isSensor()) {
+                        if (rd.arg0.toString().equals(d.getName())) {
+                            rd.id = d.getID();
+                        }
+                    }
+                }
             }
         };
 
@@ -285,13 +288,6 @@ public class ReadDevice extends Procedure implements GraphicResource, Classifiab
     @Override
     public ReadDevice createInstance(Argument[] args) {
         return new ReadDevice(args);
-    }
-
-    public static void main(String[] args) {
-        ReadDevice p = new ReadDevice();
-        p.addBefore(new Procedure("var x, y;"));
-        QuickFrame.applyLookAndFeel();
-        QuickFrame.drawTest(p.getDrawableResource());
     }
 
     @Override

@@ -372,8 +372,8 @@ public class GUI extends JFrame implements ComponentListener {
                     //adicionando editor do robo
                     for (RobotControlPanel rp : robotManager) {
                         RobotEditorPanel ep = new RobotEditorPanel(rp.getRobot());
-                        //add(ep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
-                        //mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
+                        add(ep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
+                        mainTabbedPane.setTitleAt(mainTabbedPane.getTabCount() - 1, "Editor");
                     }
                 }
             }

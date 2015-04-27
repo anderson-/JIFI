@@ -9,28 +9,19 @@ import java.awt.Font;
 import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Area;
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.FunctionCompletion;
@@ -42,21 +33,15 @@ import jifi.drawable.GraphicObject;
 import jifi.drawable.swing.DrawableProcedureBlock;
 import jifi.drawable.swing.MutableWidgetContainer;
 import jifi.drawable.swing.component.Component;
-import jifi.drawable.swing.component.Space;
 import jifi.drawable.swing.component.SubLineBreak;
 import jifi.drawable.swing.component.TextLabel;
 import jifi.drawable.swing.component.Widget;
 import jifi.drawable.swing.component.WidgetLine;
-import jifi.drawable.util.QuickFrame;
-import jifi.gui.panels.sidepanel.Classifiable;
 import jifi.gui.panels.sidepanel.Item;
 import jifi.interpreter.ExecutionException;
 import jifi.interpreter.ResourceManager;
-import jifi.plugin.cmdpack.low.decoder.ParseException;
 import jifi.plugin.cmdpack.low.decoder.SendBytesArgumentDecoder;
 import jifi.robot.Robot;
-import jifi.util.trafficsimulator.Clock;
-import jifi.util.trafficsimulator.Timer;
 
 /**
  *
@@ -115,18 +100,17 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
     public Item getItem() {
         Area myShape = new Area();
         Polygon tmpShape = new Polygon();
-        tmpShape.addPoint(0, 0);
-        tmpShape.addPoint(7, 0);
-        tmpShape.addPoint(7, 18);
-        tmpShape.addPoint(0, 18);
+        tmpShape.addPoint(20, 20);
+        tmpShape.addPoint(0, 20);
+        tmpShape.addPoint(10, 2);
         myShape.add(new Area(tmpShape));
 
         tmpShape.reset();
-        tmpShape.addPoint(11, 0);
-        tmpShape.addPoint(18, 0);
-        tmpShape.addPoint(18, 18);
-        tmpShape.addPoint(11, 18);
-        myShape.add(new Area(tmpShape));
+        tmpShape.addPoint(0, 0);
+        tmpShape.addPoint(20, 0);
+        tmpShape.addPoint(20, 20);
+        tmpShape.addPoint(0, 20);
+        myShape.exclusiveOr(new Area(tmpShape));
         return new Item("Enviar Bytes", myShape, myColor, "");
     }
 
