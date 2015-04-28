@@ -55,20 +55,13 @@ public class Decoder implements DecoderConstants {
     {
       error = false;
     }
-    for (Class < ? extends Device > c : RobotControlPanel.getAvailableDevices())
+    for (Device d : RobotControlPanel.getRobot().getDevices())
     {
-      String str = c.getSimpleName();
-      try
-      {
-        str = c.newInstance().getName();
-      }
-      catch (Exception ex)
-      {}
-      if (str.equals(token.toString()))
-      {
-        error = false;
-        break;
-      }
+        if (d.getName().equals(token.toString()))
+        {
+          error = false;
+          break;
+        }
     }
     jep.initSymTab(); // clear the contents of the function table
     jep.addStandardConstants();

@@ -1005,6 +1005,10 @@ public class GUI extends JFrame implements ComponentListener {
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
 
+        if (cmp instanceof EditorPanel){
+            EditorPanel.updateFunctionTokens();
+        }
+        
         if (cmp == simulationPanel || (cmp instanceof JSplitPane)) {
             simulationPanel.play();
         } else {
