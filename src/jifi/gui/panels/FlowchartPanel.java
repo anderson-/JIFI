@@ -292,7 +292,7 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable, Obser
         } else {
             if (cmd instanceof GraphicResource) {
                 GraphicObject d = ((GraphicResource) cmd).getDrawableResource();
-                if (d != null && cmd != function) {
+                if (d != null) {
                     executionCommand = d;
                 }
             }

@@ -275,6 +275,20 @@ public class RobotControlPanel extends JPanel {
                             ((ConnectionStatusGraph) connectionStatusGraph).step();
                         }
                         connectionStatusGraph.repaint();
+                        int m = freememPB.getMaximum();
+                        int fr = robot.getFreeRam();
+                        if (fr == 0) {
+                            freememPB.setVisible(false);
+                        } else {
+                            if (m < fr) {
+                                freememPB.setMaximum(fr);
+                            }
+                            freememPB.setValue(fr);
+                            freememPB.setStringPainted(true);
+                            freememPB.setString("RAM: " + fr + "/" + m);
+                            freememPB.setVisible(true);
+                        }
+
                         Thread.sleep(500);
                     }
                 } catch (InterruptedException ex) {
@@ -473,6 +487,7 @@ public class RobotControlPanel extends JPanel {
         connectionStatusGraph = new ConnectionStatusGraph();
         statusLabel2 = new javax.swing.JLabel();
         statusLabel3 = new javax.swing.JLabel();
+        freememPB = new javax.swing.JProgressBar();
 
         jLabel3.setText("jLabel3");
 
@@ -502,7 +517,7 @@ public class RobotControlPanel extends JPanel {
         connectionStatusGraph.setLayout(connectionStatusGraphLayout);
         connectionStatusGraphLayout.setHorizontalGroup(
             connectionStatusGraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 126, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         connectionStatusGraphLayout.setVerticalGroup(
             connectionStatusGraphLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -530,10 +545,12 @@ public class RobotControlPanel extends JPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(statusLabel)
                             .addComponent(statusLabel2))))
-                .addGap(0, 13, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(statusLabel3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(statusLabel3)
+                    .addComponent(freememPB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -550,7 +567,9 @@ public class RobotControlPanel extends JPanel {
                 .addComponent(statusLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addComponent(freememPB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(connectionStatusGraph, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(connectButton)
@@ -602,6 +621,7 @@ public class RobotControlPanel extends JPanel {
     private javax.swing.JButton connectButton;
     private javax.swing.JComboBox connectionComboBox;
     private javax.swing.JPanel connectionStatusGraph;
+    private javax.swing.JProgressBar freememPB;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

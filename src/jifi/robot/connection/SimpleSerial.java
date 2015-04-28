@@ -14,6 +14,9 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jifi.robot.Robot;
+import jifi.robot.action.Action;
+import jifi.robot.action.system.GenericAction;
+import jifi.robot.connection.message.Message;
 import jifi.robot.device.Compass;
 import jifi.robot.device.HBridge;
 import jifi.robot.device.IRProximitySensor;
@@ -34,10 +37,10 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
 
     private ArrayList<Observer<ByteBuffer, Connection>> observers;
     private int dataRate = 9600;
-    private SerialPort serialPort;
+    private static SerialPort serialPort;
     private String defaultPort = null;
-    private int sentPackages = 0;
-    private int receivedPackages = 0;
+    private static int sentPackages = 0;
+    private static int receivedPackages = 0;
 
     /*
      * Read buffers
@@ -51,6 +54,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
     private boolean newMessage = true;
     private Queue<byte[]> messages;
     private static boolean SERIAL_DEBUG_ROBO_F = false;
+    private static boolean DEBUG = false;
 
     public SimpleSerial(int dataRate) {
         observers = new ArrayList<>();
@@ -153,14 +157,26 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
                 }
                 message.flip();
                 for (Observer<ByteBuffer, Connection> o : observers) {
-                    o.update(message.asReadOnlyBuffer(), this);
+                    try {
+                        o.update(message.asReadOnlyBuffer(), this);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 //                    printBytes(message.array(), message.array().length);
+                    if (DEBUG) {
+                        System.out.print("RECEBIDO.: ");
+                        printBytes(message.array(), message.array().length);
+                    }
                 }
             } else {
                 byte[] message = new byte[bufferSize];
                 readBytes(message);
                 synchronized (messages) {
                     messages.add(message);
+                    if (DEBUG) {
+                        System.out.print("RECEBIDO: ");
+                        printBytes(message, message.length);
+                    }
                 }
             }
             receivedPackages++;
@@ -269,7 +285,12 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
             byte[] msg = new byte[data.length + 1];
             msg[0] = (byte) data.length;
             System.arraycopy(data, 0, msg, 1, data.length);
+            if (DEBUG) {
+                System.out.print("ENVIADO: ");
+                printBytes(msg, msg.length);
+            }
             serialPort.writeBytes(msg);
+            sentPackages++;
         } catch (SerialPortException ex) {
             ex.printStackTrace();
         }
@@ -316,7 +337,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
                 if (isConnected) {
                     System.out.println(device);
                     try {
-                        Thread.sleep(1000); //espera 1s para a conexão funcionar
+                        Thread.sleep(2000); //espera 2s para a conexão funcionar
                     } catch (InterruptedException ex) {
                     }
 
@@ -328,7 +349,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
 
             if (isConnected) {
                 try {
-                    Thread.sleep(1000); //espera 1s para a conexão funcionar
+                    Thread.sleep(2000); //espera 2s para a conexão funcionar
                 } catch (InterruptedException ex) {
                 }
 
@@ -371,7 +392,6 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
     }
 
     public static void printBytes(byte[] array, int size) {
-//        System.out.print("Received: ");
         System.out.print("[" + size + "]{");
         for (int i = 0; i < size; i++) {
             System.out.print("," + (int) (array[i] & 0xff));
@@ -381,7 +401,8 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
 
     public static void main(String[] args) {
         SimpleSerial s = new SimpleSerial(57600);
-        SERIAL_DEBUG_ROBO_F = true;
+        //SERIAL_DEBUG_ROBO_F = true;
+        DEBUG = true;
 
         Robot r = new Robot();
         r.add(new HBridge());
@@ -389,6 +410,8 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
         r.add(new IRProximitySensor());
         r.add(new ReflectanceSensorArray());
         s.attach(r);
+
+        Message.setConnection(s);
 
         ArrayList<byte[]> testMessages = new ArrayList<>();
 
@@ -452,35 +475,130 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
 //        testMessages.add(new byte[]{7, (byte) 224});//reset system
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
 //        testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        
 //        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//
+//        for (int i = 0; i < 40; i++) {
+//            testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        }
+
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
         
+        testMessages.add(new byte[]{4, (byte) 222, 0});//get device list
+        
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+
+        testMessages.add(new byte[]{7, (byte) 222});//reset all
+
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        
+        testMessages.add(new byte[]{4, (byte) 222, 0});//get device list
         
         testMessages.add(new byte[]{6, 1, 1, 2});//add LED
+        
         testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+        
+        testMessages.add(new byte[]{4, (byte) 222, 0});//get device list
+        
+        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+        
         testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
-        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
-        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
-        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
-        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
-        
-        
-        
-        
+//
+//        for (int i = 0; i < 60; i++) {
+//            testMessages.add(new byte[]{6, 5, 1, 17});//add dist
+//        }
+//
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//
+//        for (int i = 0; i < 10; i++) {
+//            testMessages.add(new byte[]{6, (byte) 222, 1, 0});//remove device
+//        }
+//
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+//        testMessages.add(new byte[]{4, (byte) 223, 0});//get freeRam
+
+//        testMessages.add(new byte[]{6, 1, 1, 2});//add LED
+//        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+//        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
+//        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+//        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
+//        testMessages.add(new byte[]{5, 5, 1, 1});//LED ON
+//        testMessages.add(new byte[]{5, 5, 1, 0});//LED OFF
         if (s.establishConnection()) {
             System.out.println("connected");
+//            s.send(new byte[]{2, 1, 20});
+//            try {
+//                Thread.sleep(20);
+//            } catch (InterruptedException ex) {
+//            }
+//            s.send(new byte[]{2, 1, 30});
+//            try {
+//                Thread.sleep(20);
+//            } catch (InterruptedException ex) {
+//            }
+//
+//            for (int i = 0; i < 10; i++) {
+//                System.out.println("------------------------");
+//                int rp = receivedPackages;
+//                System.out.println(sentPackages + ":" + receivedPackages);
+//                s.send(new byte[]{2, 1, (byte) i});
+//                long t = System.currentTimeMillis();
+//                while (receivedPackages <= rp && (System.currentTimeMillis() - t) < 200) {
+//                    try {
+//                        int w = serialPort.getInputBufferBytesCount();
+////                            if (w > 0) {
+////                                System.out.println(w + " " + (System.currentTimeMillis() - t));
+////                            }
+//                    } catch (SerialPortException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+//                System.out.println(sentPackages + ":(" + rp + ")" + receivedPackages);
+//                System.out.println("received after: " + (System.currentTimeMillis() - t) + "ms");
+//
+//                try {
+//                    Thread.sleep(100);
+//                } catch (InterruptedException ex) {
+//                }
+//            }
+//
+//            System.exit(0);
 
             for (int i = 0; i < 1; i++) { //repetição
                 for (byte[] message : testMessages) {
+//                    GenericAction ga = new GenericAction(true, 0, message);
+//                    
+//                    ga.begin(r);
+//                    Action.run(ga, r);
+//
                     s.send(message);
-                    try {
-                        Thread.sleep(60);
-                    } catch (InterruptedException ex) {
+                    int rp = receivedPackages;
+//                    System.out.println(sentPackages + ":" + receivedPackages);
+                    long t = System.currentTimeMillis();
+                    while (receivedPackages <= rp && (System.currentTimeMillis() - t) < 200) {
+                        try {
+                            int w = serialPort.getInputBufferBytesCount();
+//                            if (w > 0) {
+//                                System.out.println(w + " " + (System.currentTimeMillis() - t));
+//                            }
+                        } catch (SerialPortException ex) {
+                            ex.printStackTrace();
+                        }
                     }
+//                    System.out.println(sentPackages + ":(" + rp + ")" + receivedPackages);
+//                    System.out.println("received after: " + (System.currentTimeMillis() - t) + "ms");
+
+//                    try {
+//                        Thread.sleep(500);
+//                    } catch (InterruptedException ex) {
+//                    }
                 }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                }
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException ex) {
+//                }
             }
         } else {
             System.out.println("fail");

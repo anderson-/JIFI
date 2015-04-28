@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
  *                       *seu nome* <*seu email*>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -60,6 +59,8 @@ import jifi.gui.GUI;
 import jifi.interpreter.ExecutionException;
 import jifi.interpreter.Interpreter;
 import jifi.interpreter.ResourceManager;
+import jifi.interpreter.ResourceNotFoundException;
+import jifi.robot.Robot;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -115,6 +116,26 @@ public class Function extends Block {
 //                f.getArgs().add(arg);
             }
         }
+    }
+
+    @Override
+    public Command step(ResourceManager rm) throws ResourceNotFoundException, ExecutionException {
+        Robot robot = rm.getResource(Robot.class);
+        robot.requestFreeRam();
+        robot.removeAllDevices();
+        robot.addDevice(new byte[]{1, 2, 4, 5, 6, 9, 10});
+        robot.addDevice(new byte[]{2, 3, 0});
+        robot.addDevice(new byte[]{3, 5, 1, 17});
+        robot.addDevice(new byte[]{4, 4, 6, 14, 4, 15, 16, (byte) 200, 0});
+        robot.addDevice(new byte[]{5, 1, 1, 2});
+        robot.addDevice(new byte[]{6, 1, 1, 3});
+        robot.requestFreeRam();
+        return super.step(rm);
+    }
+
+    @Override
+    public boolean perform(ResourceManager rm) throws ExecutionException {
+        return super.perform(rm);
     }
 
     public String getName() {

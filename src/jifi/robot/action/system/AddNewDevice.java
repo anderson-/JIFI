@@ -14,13 +14,8 @@ import jifi.robot.action.Action;
  */
 public class AddNewDevice extends Action {
 
-    private byte deviceId;
     private byte [] deviceData;
-
-    public void setDeviceId(byte deviceId) {
-        this.deviceId = deviceId;
-    }
-
+    
     public void setDeviceData(byte[] deviceData) {
         this.deviceData = deviceData;
     }
@@ -32,8 +27,6 @@ public class AddNewDevice extends Action {
     @Override
     public void putMessage(ByteBuffer data, Robot robot) {
         data.put(Robot.CMD_ADD);
-        data.put(deviceId);
-        data.put((byte)deviceData.length);
         data.put(deviceData);
     }
 }

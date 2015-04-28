@@ -29,6 +29,7 @@ import jifi.drawable.Rotable;
 import jifi.gui.panels.RobotEditorPanel;
 import jifi.robot.action.Action;
 import jifi.robot.action.system.AddNewDevice;
+import jifi.robot.action.system.GenericAction;
 import jifi.robot.action.system.ResetSystem;
 import jifi.robot.action.system.StopAll;
 import jifi.robot.action.system.UpdateAllDevices;
@@ -65,6 +66,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
     public static final byte XTRA_BEGIN = (byte) 225;
     public static final byte XTRA_END = (byte) 226;
     public boolean LOG = false;
+    public static final Action REQUEST_FREE_RAM = new GenericAction(true, 0, new byte[]{4, (byte) 223, 0});
+    public static final Action REMOVE_ALL_DEVICES = new GenericAction(true, 0, new byte[]{7, (byte) 222});
     public static final Action STOP_ALL = new StopAll();
     public static final Action RESET_SYSTEM = new ResetSystem();
     public static final Action UPDATE_ALL_DEVICES = new UpdateAllDevices();
@@ -92,15 +95,15 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         }
 
         @Override
-        public boolean isActuator(){
+        public boolean isActuator() {
             return false;
         }
-        
+
         @Override
-        public boolean isSensor(){
+        public boolean isSensor() {
             return true;
         }
-        
+
         @Override
         public String stateToString() {
             return "" + stepTime;
@@ -184,6 +187,19 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
 
     public final int getFreeRam() {
         return freeRam;
+    }
+
+    public final int requestFreeRam() {
+        Message.setConnection(getMainConnection());
+        REQUEST_FREE_RAM.begin(this);
+        Action.run(REQUEST_FREE_RAM, this);
+        return freeRam;
+    }
+
+    public final void removeAllDevices() {
+        Message.setConnection(getMainConnection());
+        REMOVE_ALL_DEVICES.begin(this);
+        Action.run(REMOVE_ALL_DEVICES, this);
     }
 
     public final void add(Device d) {
@@ -345,14 +361,11 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         Action.run(STOP_ALL, this);
     }
 
-    public void addAllDevices() {
-//        Message.setConnection(getMainConnection());
-//        for (Device d : devices){
-//            ADD_NEW_DEVICE.setDeviceId(d.getID());
-//            ADD_NEW_DEVICE.setDeviceData(d.defaultCreateMessage());
-//            ADD_NEW_DEVICE.begin(this);
-//            Action.run(ADD_NEW_DEVICE, this);
-//        }
+    public void addDevice(byte[] data) {
+        Message.setConnection(getMainConnection());
+        ADD_NEW_DEVICE.setDeviceData(data);
+        ADD_NEW_DEVICE.begin(this);
+        Action.run(ADD_NEW_DEVICE, this);
     }
 
     public final void virtualRobot(ByteBuffer message, Connection connection) {
@@ -409,30 +422,35 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                     case CMD_GET: {
                         byte id = message.get();
                         byte length = message.get();
-                        if (message.remaining() >= length) {
-                            byte[] args = new byte[length];
-                            message.get(args);
+                        if (id == XTRA_FREE_RAM) {
+                            freeRam = 0;
+                            REQUEST_FREE_RAM.markUnread();
+                        } else {
+                            if (message.remaining() >= length) {
+                                byte[] args = new byte[length];
+                                message.get(args);
 
-                            Device d = getDevice(id);
-                            if (d != null && d instanceof VirtualDevice) {
-                                if (DEBUG) {
-                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                Device d = getDevice(id);
+                                if (d != null && d instanceof VirtualDevice) {
+                                    if (DEBUG) {
+                                        System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                    }
+                                    buffer.put(CMD_SET);
+                                    if (DEBUG) {
+                                        System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                    }
+                                    buffer.put(id);
+                                    if (DEBUG) {
+                                        System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                    }
+                                    ((VirtualDevice) d).getState(buffer, this);
+                                    if (DEBUG) {
+                                        System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
+                                    }
                                 }
-                                buffer.put(CMD_SET);
-                                if (DEBUG) {
-                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
-                                }
-                                buffer.put(id);
-                                if (DEBUG) {
-                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
-                                }
-                                ((VirtualDevice) d).getState(buffer, this);
-                                if (DEBUG) {
-                                    System.out.println(".r:" + buffer.remaining() + ",p:" + buffer.position() + ",l:" + buffer.limit());
-                                }
+                            } else if (LOG) {
+                                System.err.println("1mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
                             }
-                        } else if (LOG) {
-                            System.err.println("1mesagem muito curta:" + id + "[" + length + "] de " + message.remaining());
                         }
                         break;
                     }
@@ -466,21 +484,24 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                         }
                         break;
                     }
+
+                    case CMD_ADD: {
+                        //skip bytes
+                        message.get();
+                        message.get();
+                        byte length = message.get();
+                        byte[] args = new byte[length];
+                        message.get(args);
+                        ADD_NEW_DEVICE.markUnread();
+                        break;
+                    }
 //
-//                    case CMD_ADD: {
-//                        //skip bytes
-//                        message.get();
-//                        byte length = message.get();
-//                        byte[] args = new byte[length];
-//                        message.get(args);
-//                        break;
-//                    }
-//
-//                    case CMD_RESET: {
-//                        //skip bytes
-//                        message.get();
-//                        break;
-//                    }
+                    case CMD_RESET: {
+                        //skip bytes
+                        REMOVE_ALL_DEVICES.markUnread();
+                        message.get();
+                        break;
+                    }
 //
 //                    case CMD_DONE: {
 //                        byte cmdDone = message.get();
@@ -630,6 +651,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                             if (id == XTRA_FREE_RAM) {
                                 freeRam = tmp.getChar();
                                 System.out.println("FreeRam: " + freeRam);
+                                REQUEST_FREE_RAM.markUnread();
                             } else {
                                 Device d = getDevice(id);
                                 if (d != null) {
@@ -696,7 +718,8 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                         } else if (cmdDone == CMD_RESET) {
                             switch (id) {
                                 case XTRA_ALL:
-                                    System.out.println("Dispositivos e funções resetados...");
+                                    System.out.println("Dispositivos removidos...");
+                                    REMOVE_ALL_DEVICES.markUnread();
                                     break;
                                 case XTRA_SYSTEM:
                                     System.out.println("Sistema resetado...");
@@ -711,6 +734,10 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                             message.get(); //tamanho da mensagem rebida pelo robô e não
                             //o tamanho da mensagem a ser lida agora.
                             switch (cmdDone) {
+                                case CMD_ADD: {
+                                    ADD_NEW_DEVICE.markUnread();
+                                    break;
+                                }
                                 case CMD_SET: {
                                     Device d = getDevice(id);
                                     if (d != null) {

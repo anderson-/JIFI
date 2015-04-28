@@ -44,6 +44,9 @@ import jifi.interpreter.ExecutionException;
 import jifi.interpreter.ResourceManager;
 import jifi.plugin.cmdpack.low.decoder.SendBytesArgumentDecoder;
 import jifi.robot.Robot;
+import jifi.robot.action.Action;
+import jifi.robot.action.system.GenericAction;
+import jifi.robot.connection.message.Message;
 import jifi.robot.device.Device;
 
 /**
@@ -96,22 +99,45 @@ public class WriteDevice extends Procedure implements FunctionToken<WriteDevice>
     public void begin(ResourceManager rm) throws ExecutionException {
         JEP parser = rm.getResource(JEP.class);
         Robot robot = rm.getResource(Robot.class);
-        byte[] msg = new byte[getArgSize() + 3];
-        msg[0] = 5;
-        msg[1] = id;
-        msg[2] = (byte) getArgs().size();
-        int i = 3;
-        for (Argument arg : getArgs()) {
-            arg.parse(parser);
-            msg[i] = (byte) arg.getDoubleValue();
-            i++;
+        device = robot.getDevice(id);
+        if (device != null) {
+            //mensagem get padrão 
+            byte[] msg = device.defaultGetMessage();
+            device.setWaiting();
+            if (msg.length > 0) {
+                //cria um buffer para a mensagem
+                ByteBuffer GETmessage = ByteBuffer.allocate(64);
+                //header do comando set
+                GETmessage.put(Robot.CMD_SET);
+                //id
+                GETmessage.put(device.getID());
+                //tamanho da mensagem
+                GETmessage.put((byte) getArgs().size());
+                //mensagem
+                for (Argument arg : getArgs()) {
+                    arg.parse(parser);
+                    GETmessage.put((byte) arg.getDoubleValue());
+                }
+                //flip antes de enviar
+                GETmessage.flip();
+                robot.getMainConnection().send(GETmessage);
+            } else {
+                msg = new byte[]{Robot.CMD_GET, device.getID(), 0};
+                robot.getMainConnection().send(msg);
+            }
         }
-        robot.getMainConnection().send(msg);
     }
 
     @Override
     public boolean perform(ResourceManager rm) throws ExecutionException {
-        return true;
+        try {
+            if (device != null && device.isValidRead()) {
+                return true;
+            }
+        } catch (Message.TimeoutException ex) {
+            begin(rm);
+        }
+        return false;
     }
 
     @Override
