@@ -61,6 +61,7 @@ import jifi.interpreter.Interpreter;
 import jifi.interpreter.ResourceManager;
 import jifi.interpreter.ResourceNotFoundException;
 import jifi.robot.Robot;
+import jifi.robot.device.Device;
 
 /**
  * Função com *futuro* suporte a argumentos. <### EM DESENVOLVIMENTO ###>
@@ -122,13 +123,8 @@ public class Function extends Block {
     public Command step(ResourceManager rm) throws ResourceNotFoundException, ExecutionException {
         Robot robot = rm.getResource(Robot.class);
         robot.requestFreeRam();
-        robot.removeAllDevices();
-        robot.addDevice(new byte[]{1, 2, 4, 5, 6, 9, 10});
-        robot.addDevice(new byte[]{2, 3, 0});
-        robot.addDevice(new byte[]{3, 5, 1, 17});
-        robot.addDevice(new byte[]{4, 4, 6, 14, 4, 15, 16, (byte) 200, 0});
-        robot.addDevice(new byte[]{5, 1, 1, 2});
-        robot.addDevice(new byte[]{6, 1, 1, 3});
+        robot.removeAllDevicesMessage();
+        robot.registerAllDevices();
         robot.requestFreeRam();
         return super.step(rm);
     }

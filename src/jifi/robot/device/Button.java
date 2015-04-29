@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package jifi.robot.device;
 
 import java.awt.Color;
@@ -14,9 +13,12 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import jifi.drawable.Drawable;
 import jifi.drawable.DrawingPanel;
 import jifi.drawable.GraphicObject;
+import jifi.drawable.Rotable;
 import jifi.gui.panels.RobotEditorPanel;
 import jifi.gui.panels.sidepanel.Classifiable;
 import jifi.gui.panels.sidepanel.Item;
@@ -28,7 +30,7 @@ import jifi.robot.simulation.VirtualDevice;
  *
  * @author anderson
  */
-public class Button extends Device implements VirtualDevice, Drawable, Selectable, Classifiable {
+public class Button extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable {
 
     private final AffineTransform transform = new AffineTransform();
     private final int values[] = new int[5];
@@ -195,28 +197,53 @@ public class Button extends Device implements VirtualDevice, Drawable, Selectabl
         tmpShape.addPoint(17, 14);
         tmpShape.addPoint(3, 14);
         myShape.add(new Area(tmpShape));
-        
+
         tmpShape.reset();
         tmpShape.addPoint(0, 3);
         tmpShape.addPoint(0, 5);
         tmpShape.addPoint(20, 5);
         tmpShape.addPoint(20, 3);
         myShape.add(new Area(tmpShape));
-        
+
         tmpShape.reset();
         tmpShape.addPoint(0, 10);
         tmpShape.addPoint(0, 12);
         tmpShape.addPoint(20, 12);
         tmpShape.addPoint(20, 10);
         myShape.add(new Area(tmpShape));
-        
-        myShape.subtract(new Area(new Ellipse2D.Double(5, 2, 10, 10)));
-        
-        myShape.add(new Area(new Ellipse2D.Double(7, 4, 6, 6)));
 
+        myShape.subtract(new Area(new Ellipse2D.Double(5, 2, 10, 10)));
+
+        myShape.add(new Area(new Ellipse2D.Double(7, 4, 6, 6)));
 
         Item item = new Item("Botão", myShape, Color.decode("#009C91"), "");
         item.setRef(this);
         return item;
+    }
+
+    @Override
+    public void setTheta(double t) {
+
+    }
+
+    @Override
+    public double getTheta() {
+        return 0;
+    }
+
+    @Override
+    public List<Object> getDescriptionData() {
+        ArrayList<Object> data = new ArrayList<>();
+        return data;
+    }
+
+    @Override
+    public Device createDevice(List<Object> descriptionData) {
+        return new Button();
+    }
+
+    @Override
+    public byte[] getBuilderMessageData() {
+        return new byte[]{};
     }
 }

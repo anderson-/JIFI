@@ -5,6 +5,7 @@
 package jifi.robot.device;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import jifi.robot.connection.message.Message;
 
 /**
@@ -12,8 +13,6 @@ import jifi.robot.connection.message.Message;
  * @author antunes
  */
 public abstract class Device extends Message {
-
-    
 
     public abstract String getName();
     /*
@@ -32,6 +31,12 @@ public abstract class Device extends Message {
     public abstract boolean isSensor();
     
     public abstract boolean isActuator();
+    
+    public abstract List<Object> getDescriptionData();
+    
+    public abstract Device createDevice(List<Object> descriptionData);
+    
+    public abstract byte[] getBuilderMessageData();
 
     /**
      * Define a mensagem padrão a ser enviada para o comando GET.

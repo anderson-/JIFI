@@ -37,7 +37,7 @@ public class StepMode extends Procedure {
     @Override
     public GraphicObject getDrawableResource() {
         if (resource == null) {
-            resource = createSimpleBlock(this, " (toggle step mode) ", Color.black, myColor, 0);
+            resource = createSimpleBlock(this, " (passo-a-passo) ", Color.black, myColor, 0);
         }
         return resource;
     }

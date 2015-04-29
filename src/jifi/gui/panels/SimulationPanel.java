@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
  *                       *seu nome* <*seu email*>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -148,6 +147,7 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
         return poly;
     }
+    private boolean tracking;
 
     public SimulationPanel() {
 
@@ -262,6 +262,19 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
             return;
         }
 
+        if (in.isKeyPressed(KeyEvent.VK_T)) {
+            tracking = true;
+            dragEnabled = false;
+        } else if (in.isKeyPressed(KeyEvent.VK_P)) {
+            tracking = false;
+            dragEnabled = true;
+        }
+
+        if (tracking) {
+            Robot r = robots.get(0);
+            this.center(-r.getPosX(), -r.getPosY());
+        }
+
         if (in.isKeyPressed(KeyEvent.VK_R) || in.isKeyPressed(KeyEvent.VK_M)) {
             Robot r = null;
             int d = Integer.MAX_VALUE;
@@ -301,11 +314,10 @@ public class SimulationPanel extends DrawingPanel implements Serializable {
 
                 g.setColor(Color.BLUE);
                 double w = Math.sqrt(Math.pow(r.getPosX() - in.getTransformedMouse().x, 2) + Math.pow(r.getPosY() - in.getTransformedMouse().y, 2));
-                g.fill(new Arc2D.Double(r.getPosX() - w / 2, r.getPosY() - w / 2, w, w, -Math.toDegrees(r.getTheta()), (r.getTheta() - theta)*(180/Math.PI), Arc2D.Double.PIE));
-                
+                g.fill(new Arc2D.Double(r.getPosX() - w / 2, r.getPosY() - w / 2, w, w, -Math.toDegrees(r.getTheta()), (r.getTheta() - theta) * (180 / Math.PI), Arc2D.Double.PIE));
+
 //                g.rotate(r.getTheta());
 //                g.fill(new Arc2D.Double(r.getPosX() - w / 2, r.getPosY() - w / 2, w, w, 0, -Math.toDegrees(theta - r.getTheta()), Arc2D.Double.PIE));
-
                 g.setTransform(o);
                 ga.done(t);
                 ga.done(o);

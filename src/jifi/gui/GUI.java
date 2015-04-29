@@ -101,7 +101,7 @@ import jifi.util.SplashScreen;
  * @author antunes
  */
 public class GUI extends JFrame implements ComponentListener {
-
+    
     private static Logger logger = null;
     private static GUI INSTANCE = null;
     private Project mainProject = new Project();
@@ -126,21 +126,22 @@ public class GUI extends JFrame implements ComponentListener {
     private final JToolBar helpPanel;
     private String helpTip = "";
     private AboutWindow aboutWindow;
-    private RobotControlPanel createRobot ;
-
+    private RobotControlPanel createRobot;
+    private RobotEditorPanel robotEditorPanel;
+    
     private JToolBar aushd() {
         return helpPanel;
     }
-
+    
     @Deprecated
     public FlowchartPanel getFlowcharPanel() {
         return mapFC.get(0);
     }
-
+    
     private static class ConsoleManagerThread extends Thread {
-
+        
         public ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<>();
-
+        
         @Override
         public void run() {
             int size;
@@ -161,29 +162,29 @@ public class GUI extends JFrame implements ComponentListener {
                 }
             }
         }
-
+        
         public void enqueue(String str) {
             queue.offer(str);
         }
-
+        
     }
-
+    
     public static void print(String str) {
         if (cmt == null || !cmt.isAlive()) {
             cmt = new ConsoleManagerThread();
             cmt.start();
         }
-
+        
         cmt.enqueue(str);
     }
-
+    
     private GUI() {
-
+        
         codeIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-generic.png"));
         flowchartIcon = new ImageIcon(getClass().getResource("/resources/tango/32x32/mimetypes/text-x-script.png"));
         splitIcon = new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/window-split-vertical.png"));
         unsplitIcon = new javax.swing.ImageIcon(getClass().getResource("/resources/tango/32x32/actions/window-unsplit.png"));
-
+        
         helpPanel = new JToolBar() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -192,7 +193,7 @@ public class GUI extends JFrame implements ComponentListener {
                 g.drawString(helpTip, 25, g.getFontMetrics().getAscent() + 2);
             }
         };
-
+        
         initComponents();
         setLocationRelativeTo(null);
         setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
@@ -204,7 +205,7 @@ public class GUI extends JFrame implements ComponentListener {
         //muito importante para fazer o KeyListener funcionar
         //o NetBeans mentiu quando disse que o JFrame era focusable! =(
         setFocusable(true);
-
+        
         console = new JTextArea();
         consolePanel.setLayout(new GridLayout());
         consolePanel.setName("Console");
@@ -228,22 +229,22 @@ public class GUI extends JFrame implements ComponentListener {
             @Override
             public void mouseClicked(MouseEvent e) {
             }
-
+            
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == e.BUTTON3) {
                     popupMenu.show(console, e.getX(), e.getY());
                 }
             }
-
+            
             @Override
             public void mouseReleased(MouseEvent e) {
             }
-
+            
             @Override
             public void mouseEntered(MouseEvent e) {
             }
-
+            
             @Override
             public void mouseExited(MouseEvent e) {
             }
@@ -282,26 +283,25 @@ public class GUI extends JFrame implements ComponentListener {
         createRobot = robotManager.createRobot();
         createRobot.setConnectButton(conectButton);
         
-        dynamicTabbedPane.add(new JScrollPane(createRobot),"Conexões");
-        
+        dynamicTabbedPane.add(new JScrollPane(createRobot), "Conexões");
+
 //        jScrollPane3.setViewportView(robotManager);
 //        jScrollPane3.getVerticalScrollBar().setUnitIncrement(10);
-
         FileFilter ff = new FileFilter() {
             @Override
             public boolean accept(File file) {
                 if (file.isDirectory()) {
                     return true;
                 }
-
+                
                 String extension = null;
                 String s = file.getName();
                 int i = s.lastIndexOf('.');
-
+                
                 if (i > 0 && i < s.length() - 1) {
                     extension = s.substring(i + 1).toLowerCase();
                 }
-
+                
                 if (extension != null) {
                     if (extension.equals(Project.FILE_EXTENSION)) {
                         return true;
@@ -309,10 +309,10 @@ public class GUI extends JFrame implements ComponentListener {
                         return false;
                     }
                 }
-
+                
                 return false;
             }
-
+            
             @Override
             public String getDescription() {
                 return "Projetos";
@@ -326,23 +326,23 @@ public class GUI extends JFrame implements ComponentListener {
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.addChoosableFileFilter(ff);
-
+        
         simulationSplitPanel = new JSplitPane();
 
 //        dynamicToolBar.setVisible(false);
         updateRobotList();
-
+        
         if (LOG) {
             saveSatateAndCompare();
         }
         allowMainTabbedPaneStateChanged = true;
         mainTabbedPaneStateChanged(null);
         super.addComponentListener(this);
-
+        
         console.setText("");
         addDebugMenu();
         super.setIconImage(new ImageIcon(getClass().getResource("/resources/jifi_icon.png")).getImage());
-
+        
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -357,7 +357,7 @@ public class GUI extends JFrame implements ComponentListener {
 
         //simplificando....
         addNewCodePanel.setVisible(false);
-
+        
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -371,16 +371,16 @@ public class GUI extends JFrame implements ComponentListener {
 
                     //adicionando editor do robo
                     for (RobotControlPanel rp : robotManager) {
-                        RobotEditorPanel ep = new RobotEditorPanel(rp.getRobot());
-                        add(ep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
+                        robotEditorPanel = new RobotEditorPanel(rp.getRobot());
+                        add(robotEditorPanel, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
                         mainTabbedPane.setTitleAt(mainTabbedPane.getTabCount() - 1, "Editor");
                     }
                 }
             }
         });
-
+        
     }
-
+    
     @Deprecated
     public final void addDebugMenu() {
         menuDev.add(newItem("Print lib dir", new ActionListener() {
@@ -390,7 +390,7 @@ public class GUI extends JFrame implements ComponentListener {
             }
         }));
     }
-
+    
     @Deprecated
     public final JMenuItem newItem(String name, ActionListener action) {
         JMenuItem item = new JMenuItem();
@@ -398,11 +398,15 @@ public class GUI extends JFrame implements ComponentListener {
         item.addActionListener(action);
         return item;
     }
-
+    
+    public RobotEditorPanel getRobotEditorPanel() {
+        return robotEditorPanel;
+    }
+    
     public SimulationPanel getSimulationPanel() {
         return simulationPanel;
     }
-
+    
     public void updateRobotList() {
         //combobox
         robotComboBox.removeAllItems();
@@ -416,7 +420,7 @@ public class GUI extends JFrame implements ComponentListener {
             }
         }
     }
-
+    
     public boolean setDefaultRobot(Interpreter interpreter, boolean ask) {
         Object o = robotComboBox.getSelectedItem();
         if (o instanceof RobotControlPanel) {
@@ -451,26 +455,26 @@ public class GUI extends JFrame implements ComponentListener {
         }
         return true;
     }
-
+    
     public static GUI getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new GUI();
         }
         return INSTANCE;
     }
-
+    
     public Collection<Function> getFunctions() {
         ArrayList<Function> funcs = new ArrayList<>();
-
+        
         for (Component cc : mainTabbedPane.getComponents()) {
             if (cc instanceof FlowchartPanel) {
                 funcs.add(((FlowchartPanel) cc).getFunction());
             }
         }
-
+        
         return funcs;
     }
-
+    
     public void updateTabNames() {
         for (int i = 0; i < mainTabbedPane.getTabCount(); i++) {
             Component c = mainTabbedPane.getComponentAt(i);
@@ -1000,13 +1004,17 @@ public class GUI extends JFrame implements ComponentListener {
         if (!allowMainTabbedPaneStateChanged) {
             return;
         }
-
+        
         System.gc();
         Component cmp = mainTabbedPane.getSelectedComponent();
         //dynamicTabbedPane.removeAll();
 
-        if (cmp instanceof EditorPanel){
+        if (cmp instanceof EditorPanel) {
             EditorPanel.updateFunctionTokens();
+        }
+        
+        if (cmp instanceof RobotEditorPanel) {
+            interpreter.setInterpreterState(Interpreter.STOP);
         }
         
         if (cmp == simulationPanel || (cmp instanceof JSplitPane)) {
@@ -1014,7 +1022,7 @@ public class GUI extends JFrame implements ComponentListener {
         } else {
             simulationPanel.pause();
         }
-
+        
         dynamicToolBar.removeAll();
 
 //        for (Component cc : dynamicTabbedPane.getComponents()) {
@@ -1035,13 +1043,13 @@ public class GUI extends JFrame implements ComponentListener {
                 for (JPanel p : ((TabController) cmp).getTabs()) {
                     dynamicTabbedPane.addTab(p.getName(), p);
                 }
-
+                
                 for (JComponent jc : ((TabController) cmp).getToolBarComponents()) {
                     dynamicToolBar.add(jc);
                 }
             }
         }
-
+        
         if (cmp instanceof Interpertable) {
             interpreter = ((Interpertable) cmp).getInterpreter();
         } else if (cmp == simulationPanel) {
@@ -1056,7 +1064,7 @@ public class GUI extends JFrame implements ComponentListener {
             }
         }
         updateControlBar(interpreter);
-
+        
         if (cmp instanceof FlowchartPanel || cmp instanceof EditorPanel) {
             switchCodeButton.setEnabled(true);
             deleteButton.setEnabled(true);
@@ -1070,7 +1078,7 @@ public class GUI extends JFrame implements ComponentListener {
                 splitViewButton.setEnabled(true);
             }
         }
-
+        
         if (cmp instanceof KeyListener) {
             boolean n = true;
             for (KeyListener l : getKeyListeners()) {
@@ -1084,7 +1092,7 @@ public class GUI extends JFrame implements ComponentListener {
                 addKeyListener((KeyListener) cmp);
             }
         }
-
+        
         if (cmp instanceof ComponentListener) {
             for (ComponentListener l : mainTabbedPane.getComponentListeners()) {
                 mainTabbedPane.removeComponentListener(l);
@@ -1092,7 +1100,7 @@ public class GUI extends JFrame implements ComponentListener {
             mainTabbedPane.addComponentListener((ComponentListener) cmp);
             ((ComponentListener) cmp).componentResized(new ComponentEvent(mainTabbedPane, ComponentEvent.COMPONENT_RESIZED));
         }
-
+        
         if (cmp instanceof FlowchartPanel) {
             switchCodeButton.setIcon(codeIcon);
         } else if (cmp instanceof EditorPanel) {
@@ -1100,7 +1108,7 @@ public class GUI extends JFrame implements ComponentListener {
             interpreter = null;
             updateControlBar(null);
         }
-
+        
         updateTabNames();
         dynamicToolBar.updateUI();
         if (LOG) {
@@ -1153,10 +1161,10 @@ public class GUI extends JFrame implements ComponentListener {
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openButtonActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
-
+        
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             returnVal = JOptionPane.showConfirmDialog(this, "O projeto atual será fechado, deseja prosseguir?", "Abrir", JOptionPane.YES_NO_OPTION);
-
+            
             if (returnVal != JOptionPane.YES_OPTION) {
                 return;
             }
@@ -1167,7 +1175,7 @@ public class GUI extends JFrame implements ComponentListener {
         } else {
             return;
         }
-
+        
         loadLoop:
         for (Function f : mainProject.getFunctions()) {
             for (Component c : mainTabbedPane.getComponents()) {
@@ -1194,7 +1202,7 @@ public class GUI extends JFrame implements ComponentListener {
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         int returnVal = fileChooser.showSaveDialog(this);
-
+        
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             String filename = file.toString();
@@ -1202,14 +1210,14 @@ public class GUI extends JFrame implements ComponentListener {
                 filename += "." + Project.FILE_EXTENSION;
             }
             file = new File(filename);
-
+            
             if (file.exists()) {
                 returnVal = JOptionPane.showConfirmDialog(this, "Deseja sobreescrever o arquivo?", "Salvar", JOptionPane.YES_NO_OPTION);
                 if (returnVal != JOptionPane.YES_OPTION) {
                     return;
                 }
             }
-
+            
             ArrayList<Function> functions = mainProject.getFunctions();
             boolean showNameRepeatDialog = true;
             int k;
@@ -1230,18 +1238,18 @@ public class GUI extends JFrame implements ComponentListener {
                     }
                 }
             }
-
+            
             mainProject.save(file.getAbsolutePath());
         }
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void switchCodeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_switchCodeButtonActionPerformed
         Component cmp = mainTabbedPane.getSelectedComponent();
-
+        
         if (cmp instanceof FlowchartPanel) {
             FlowchartPanel fcp = (FlowchartPanel) cmp;
             EditorPanel cep;
-
+            
             int i = mapFC.indexOf(cmp);
             if (i != -1 && i < mapCE.size()) {
                 cep = mapCE.get(i);
@@ -1249,18 +1257,18 @@ public class GUI extends JFrame implements ComponentListener {
                 cep = new EditorPanel(fcp.getFunction());
                 mapCE.add(cep);
             }
-
+            
             long t = System.currentTimeMillis();
             cep.getTextArea().setText(Parser.encode(fcp.getFunction()));
             long t2 = System.currentTimeMillis();
 //            System.out.println("conversão: " + ((t2 - t) / 1000.0) + "ms");
 
             cep.getTextArea().setCaretPosition(0);
-
+            
             add(cep, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);// - 2
             mainTabbedPane.remove(fcp);
-
+            
             fcp.getInterpreter().setInterpreterState(Interpreter.STOP);
 
 //            switchCodeButton.setIcon(codeIcon);
@@ -1275,7 +1283,7 @@ public class GUI extends JFrame implements ComponentListener {
                 int errorOnLine = -1;
                 int errorColumn = 0;
                 String errorDesc = "";
-
+                
                 try {
                     long t = System.currentTimeMillis();
                     f = Parser.decode(cep.getTextArea().getText());
@@ -1309,7 +1317,7 @@ public class GUI extends JFrame implements ComponentListener {
                     errorOnLine = -2;
                     e.printStackTrace();
                 }
-
+                
                 switch (errorOnLine) {
                     case -1:
                         break;
@@ -1324,7 +1332,7 @@ public class GUI extends JFrame implements ComponentListener {
 //                            textArea.addLineHighlight(errorOnLine - 1, Color.red.brighter().brighter());
 
                             RSyntaxTextAreaHighlighter highlighter = (RSyntaxTextAreaHighlighter) textArea.getHighlighter();
-
+                            
                             SquiggleUnderlineHighlightPainter parserErrorHighlightPainter = new SquiggleUnderlineHighlightPainter(Color.RED);
 //                            System.out.println(errorColumn);
                             int p0 = textArea.getLineStartOffset(errorOnLine - 1);
@@ -1346,7 +1354,7 @@ public class GUI extends JFrame implements ComponentListener {
                         }
                         return;
                 }
-
+                
                 if (i != -1 && i < mapFC.size()) {
                     fcp = mapFC.get(i);
                     mainProject.getFunctions().remove(fcp.getFunction());
@@ -1355,9 +1363,9 @@ public class GUI extends JFrame implements ComponentListener {
                     fcp = new FlowchartPanel(f, mainInterpreter);
                     mapFC.add(fcp);
                 }
-
+                
                 mainProject.getFunctions().add(f);
-
+                
                 add(fcp, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/applications-other.png")));
                 mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 1);//-2
                 mainTabbedPane.remove(cep);
@@ -1369,19 +1377,19 @@ public class GUI extends JFrame implements ComponentListener {
     }//GEN-LAST:event_switchCodeButtonActionPerformed
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-
+        
         Component cmp = mainTabbedPane.getSelectedComponent();
-
+        
         if (!(cmp instanceof FlowchartPanel) && !(cmp instanceof EditorPanel)) {
             return;
         }
-
+        
         int returnVal = JOptionPane.showConfirmDialog(this, "Deseja excluir esse programa?", "Excluir", JOptionPane.YES_NO_OPTION);
-
+        
         if (returnVal == JOptionPane.YES_OPTION) {
-
+            
             Function f = null;
-
+            
             if (cmp instanceof FlowchartPanel) {
                 f = ((FlowchartPanel) cmp).getFunction();
             } else if (cmp instanceof EditorPanel) {
@@ -1390,7 +1398,7 @@ public class GUI extends JFrame implements ComponentListener {
                     f = mapFC.get(i).getFunction();
                 }
             }
-
+            
             if (f != null && mainProject.getFunctions().remove(f)) {
                 mainTabbedPane.setSelectedIndex(0);
                 mainTabbedPane.remove(cmp);
@@ -1414,13 +1422,13 @@ public class GUI extends JFrame implements ComponentListener {
 
   private void clearSimulationButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSimulationButtonActionPerformed
       int returnVal = JOptionPane.showConfirmDialog(this, "Deseja limpar a simulação?", "Limpar", JOptionPane.YES_NO_OPTION);
-
+      
       if (returnVal == JOptionPane.YES_OPTION) {
           simulationPanel.resetSimulation();
           simulationPanel.repaint();
       }
   }//GEN-LAST:event_clearSimulationButtonActionPerformed
-
+    
     private static <T> void compare(List<T> a, List<T> b, Logger lg) {
         Level level = Level.OFF;
         lg.log(level, "\t{0}:", new Object[]{a.get(0)});
@@ -1437,20 +1445,20 @@ public class GUI extends JFrame implements ComponentListener {
                 change = true;
             }
         }
-
+        
         if (!change) {
             lg.log(level, "\t\t*sem alterações*");
         }
     }
-
+    
     private static HashMap<Component, ArrayList<ArrayList<Object>>> STATE = new HashMap<>();
-
+    
     private static void saveComponentStateAndCompare(Component c, Logger lg) {
         Level level = Level.OFF;
         lg.log(level, ">> {0} [{1}]", new Object[]{c.getClass().getSimpleName(), c.hashCode()});
         ArrayList<ArrayList<Object>> componentState = new ArrayList<>();
         ArrayList<Object> listeners;
-
+        
         Class listenerTypes[] = new Class[]{
             MouseListener.class,
             KeyListener.class,
@@ -1460,7 +1468,7 @@ public class GUI extends JFrame implements ComponentListener {
             ComponentListener.class,
             MouseMotionListener.class
         };
-
+        
         for (Class type : listenerTypes) {
             listeners = new ArrayList<>();
             listeners.add(type.getSimpleName());
@@ -1480,7 +1488,7 @@ public class GUI extends JFrame implements ComponentListener {
         }
         STATE.put(c, componentState);
     }
-
+    
     private void saveSatateAndCompare() {
         Date date = new Date();
         getLogger().log(Level.OFF, "< Inicio {0} >", date);
@@ -1491,7 +1499,7 @@ public class GUI extends JFrame implements ComponentListener {
         }
         logger.log(Level.OFF, "< Fim {0} >\n", date);
     }
-
+    
     private boolean askLog = true;
 
     private void newFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFileButtonActionPerformed
@@ -1499,23 +1507,23 @@ public class GUI extends JFrame implements ComponentListener {
             splitViewButtonActionPerformed(null);
         }
         int returnVal = JOptionPane.YES_OPTION;
-
+        
         if (evt != null) {
             returnVal = JOptionPane.showConfirmDialog(this, "Deseja fechar esse projeto e resetar a simulação?", "Fechar", JOptionPane.YES_NO_OPTION);
         }
-
+        
         if (returnVal == JOptionPane.YES_OPTION) {
-
+            
             for (FlowchartPanel fp : mapFC) {
                 Interpreter i = ((FlowchartPanel) fp).getInterpreter();
                 if (i != null) {
                     i.setInterpreterState(Interpreter.STOP);
                 }
             }
-
+            
             simulationPanel.resetSimulation();
             simulationPanel.repaint();
-
+            
             mainTabbedPane.setSelectedIndex(0);
             mainProject.getFunctions().clear();
             for (Component cmp : mainTabbedPane.getComponents()) {
@@ -1525,7 +1533,7 @@ public class GUI extends JFrame implements ComponentListener {
             }
             mapFC.clear();
             mapCE.clear();
-
+            
             if (evt != null) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
@@ -1541,18 +1549,21 @@ public class GUI extends JFrame implements ComponentListener {
                     }
                 });
             }
+            
+            RobotControlPanel.buildDefaultRobot();
+            getRobotEditorPanel().updateSidePanel();
         }
     }//GEN-LAST:event_newFileButtonActionPerformed
 
     private void splitViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_splitViewButtonActionPerformed
         Component cmp = mainTabbedPane.getSelectedComponent();
-
+        
         if (!splitView && cmp instanceof FlowchartPanel) {
             final FlowchartPanel fcp = (FlowchartPanel) cmp;
             mainTabbedPane.remove(addNewCodePanel);
             mainTabbedPane.remove(fcp);
             mainTabbedPane.remove(simulationPanel);
-
+            
             simulationSplitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
             simulationSplitPanel.setBottomComponent(fcp);
             simulationSplitPanel.setTopComponent(simulationPanel);
@@ -1625,7 +1636,7 @@ public class GUI extends JFrame implements ComponentListener {
         if (shortcutsWindow == null) {
             shortcutsWindow = new ShortcutsWindow();
         }
-
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 shortcutsWindow.setVisible(true);
@@ -1707,7 +1718,7 @@ public class GUI extends JFrame implements ComponentListener {
         if (aboutWindow == null) {
             aboutWindow = new AboutWindow();
         }
-
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 aboutWindow.setVisible(true);
@@ -1743,14 +1754,14 @@ public class GUI extends JFrame implements ComponentListener {
             }
         }
     }//GEN-LAST:event_dynamicTabbedPaneMouseMoved
-
+    
     public void printHelp(String str) {
         if (helpCheckBox.isSelected()) {
             helpTip = str;
             helpPanel.repaint();
         }
     }
-
+    
     public void add(JComponent panel, ImageIcon icon) {
         mainTabbedPane.remove(addNewCodePanel);
         mainTabbedPane.addTab(panel.getName(), icon, panel);
@@ -1759,7 +1770,7 @@ public class GUI extends JFrame implements ComponentListener {
         }
 //        mainTabbedPane.addTab(addNewCodePanel.getName(), new ImageIcon(getClass().getResource("/resources/tango/16x16/actions/list-add.png")), addNewCodePanel);
     }
-
+    
     public void updateControlBar(Interpreter interpreter) {
         if (interpreter == null) {
             runButton.setEnabled(false);
@@ -1769,7 +1780,7 @@ public class GUI extends JFrame implements ComponentListener {
             stopButton.setEnabled(false);
             return;
         }
-
+        
         if (interpreter.getInterpreterState() == Interpreter.PLAY) {
             //play
             runButton.setEnabled(false);
@@ -1795,9 +1806,9 @@ public class GUI extends JFrame implements ComponentListener {
         }
         jSpinner1.setEnabled(true);
     }
-
+    
     public static Logger getLogger() {
-
+        
         Formatter myFormatter = new Formatter() {
             @Override
             public String format(final LogRecord r) {
@@ -1825,12 +1836,12 @@ public class GUI extends JFrame implements ComponentListener {
                 return sb.toString();
             }
         };
-
+        
         if (logger == null) {
             logger = Logger.getLogger(GUI.class
                     .getName());
             FileHandler fh;
-
+            
             try {
 
                 // This block configure the logger with handler and formatter 
@@ -1900,7 +1911,7 @@ public class GUI extends JFrame implements ComponentListener {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             public void run() {
                 GUI RobofIDE = GUI.getInstance();
                 RobofIDE.setVisible(true);
@@ -1962,7 +1973,7 @@ public class GUI extends JFrame implements ComponentListener {
     public Interpreter getInterpreter() {
         return interpreter;
     }
-
+    
     @Override
     public void componentResized(final ComponentEvent e) {
         if (splitView) {
@@ -1971,29 +1982,29 @@ public class GUI extends JFrame implements ComponentListener {
                 public void run() {
                     //simulationSplitPanel.setDividerLocation(simulationSplitPanel.getDividerLocation() + 1);
                     simulationSplitPanel.setDividerLocation(mainTabbedPane.getWidth() / 2);
-
+                    
                     int width = e.getComponent().getWidth() - 50;
                     helpPanel.setPreferredSize(new Dimension(width, 25));
-
+                    
                     helpPanel.repaint();
                 }
             });
         }
     }
-
+    
     @Override
     public void componentMoved(ComponentEvent e) {
-
+        
     }
-
+    
     @Override
     public void componentShown(ComponentEvent e) {
-
+        
     }
-
+    
     @Override
     public void componentHidden(ComponentEvent e) {
-
+        
     }
-
+    
 }

@@ -5,6 +5,8 @@
 package jifi.robot.device;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import jifi.robot.Robot;
 import jifi.robot.simulation.VirtualDevice;
 
@@ -121,9 +123,25 @@ public class HBridge extends Device implements VirtualDevice {
         return "Motores";
     }
 
-	@Override
-	public void resetState() {
-		LeftWheelSpeed = 0;
-		RightWheelSpeed = 0;
-	}
+    @Override
+    public void resetState() {
+        LeftWheelSpeed = 0;
+        RightWheelSpeed = 0;
+    }
+    
+    @Override
+    public List<Object> getDescriptionData() {
+        ArrayList<Object> data = new ArrayList<>();
+        return data;
+    }
+
+    @Override
+    public Device createDevice(List<Object> descriptionData) {
+        return new HBridge();
+    }
+
+    @Override
+    public byte[] getBuilderMessageData() {
+        return new byte[]{5, 6, 9, 10};
+    }
 }

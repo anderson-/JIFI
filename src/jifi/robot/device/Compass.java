@@ -5,6 +5,8 @@
 package jifi.robot.device;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import jifi.robot.Robot;
 import jifi.robot.simulation.VirtualConnection;
 import jifi.robot.simulation.VirtualDevice;
@@ -81,5 +83,21 @@ public class Compass extends Device implements VirtualDevice {
     @Override
     public void resetState() {
         alpha = 0;
+    }
+    
+    @Override
+    public List<Object> getDescriptionData() {
+        ArrayList<Object> data = new ArrayList<>();
+        return data;
+    }
+
+    @Override
+    public Device createDevice(List<Object> descriptionData) {
+        return new Compass();
+    }
+
+    @Override
+    public byte[] getBuilderMessageData() {
+        return new byte[]{};
     }
 }

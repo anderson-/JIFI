@@ -143,7 +143,7 @@ public class Move extends Procedure implements FunctionToken<Move> {
                 JSpinner spinner = (JSpinner) widgets[0].widget;
                 spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), -128, 127, 5));
                 components.add(new SubLineBreak());
-                widgets = createGenericField(m, m.arg1, "V1:", 80, 25, components, container);
+                widgets = createGenericField(m, m.arg1, "V2:", 80, 25, components, container);
                 spinner = (JSpinner) widgets[0].widget;
                 spinner.setModel(new SpinnerNumberModel((int) spinner.getValue(), -128, 127, 5));
                 components.add(new SubLineBreak(true));

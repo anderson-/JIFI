@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
  *                       *seu nome* <*seu email*>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -85,7 +84,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private final ArrayList<Drawable> objectsTmp;
     private final ArrayList<Integer> keys;
     private final Point mouse;
-    private boolean dragEnabled = true;
+    protected boolean dragEnabled = true;
     private boolean keyMoveEnabled = true;
     private int keyMoveConst = 10;
     private boolean dragging = false;
@@ -96,7 +95,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     private boolean repaint = false;
     protected int width;
     protected int height;
-    private int globalX = 0, globalY = 0;
+    private double globalX = 0, globalY = 0;
     protected boolean zoomEnabled = true;
     protected boolean midMouseButtonResetView = true;
     protected double zoom = 1.0;
@@ -243,7 +242,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
             }
         }
     }
-    
+
     public final void add2(Drawable d) {
         if (d != null) {
             synchronized (objects) {
@@ -604,7 +603,7 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
     }
 
     public Point getPosition() {
-        return new Point(globalX, globalY);
+        return new Point((int) globalX, (int) globalY);
     }
 
     public void setPosition(int x, int y) {
@@ -612,9 +611,9 @@ public class DrawingPanel extends JPanel implements KeyListener, MouseListener, 
         globalY -= y;
     }
 
-    public void center(Rectangle clip) {
-        globalX = (int) (clip.width * zoom / 2.0 - width * zoom / 2.0);
-        globalY = (int) (clip.height * zoom / 2.0 - height * zoom / 2.0);
+    public void center(double x, double y) {
+        globalX = (x * zoom + width / 2.0);
+        globalY = (y * zoom + height / 2.0);
     }
 
     public Point getMouse(Point mouse) {

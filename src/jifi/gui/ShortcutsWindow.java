@@ -55,10 +55,14 @@ public final class ShortcutsWindow extends javax.swing.JFrame {
         addShortcut(simluationHotkeysPanel, "Zoom", icon_mouse_scrolling);
         addShortcut(simluationHotkeysPanel, "<html>Ir para<br>a origem", icon_key_ctrl, icon_plus1, icon_mouse_click_center);
         addShortcut(simluationHotkeysPanel, "<html>Mover o robô<br>para a origem", icon_mouse_click_center);
-        addShortcut(simluationHotkeysPanel, "<html>Mover o robô<br>para o mouse", icon_key_ctrl, icon_plus1, icon_mouse_click_left);
-        addShortcut(simluationHotkeysPanel, "<html>Girar o robô", icon_key_ctrl, icon_plus1, new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_R.png")), icon_plus1, icon_mouse_scrolling);
+//        addShortcut(simluationHotkeysPanel, "<html>Mover o robô<br>para o mouse", icon_key_ctrl, icon_plus1, icon_mouse_click_left);
+//        addShortcut(simluationHotkeysPanel, "<html>Girar o robô", icon_key_ctrl, icon_plus1, new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_R.png")), icon_plus1, icon_mouse_scrolling);
         //addShortcut(simluationHotkeysPanel, "<html>Girar o robô mais<br>próximo do mouse", icon_key_ctrl, icon_plus1, new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_R.png")), icon_plus1, icon_mouse_scrolling);
-        
+        addShortcut(simluationHotkeysPanel, "<html>Mover robô", icon_mouse_moving_left,icon_plus1,new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_M.png")));
+        addShortcut(simluationHotkeysPanel, "<html>Girar robô", icon_mouse_moving_left,icon_plus1,new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_R.png")));
+        addShortcut(simluationHotkeysPanel, "<html>Seguir robô", new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_T.png")));
+        addShortcut(simluationHotkeysPanel, "<html>Parar de seguir robô", new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_P.png")));
+
         addCategory(simluationHotkeysPanel, "Linhas");
         addShortcut(simluationHotkeysPanel, "<html>Iniciar<br>linha", icon_mouse_click_left);
         addShortcut(simluationHotkeysPanel, "<html>Finalizar<br>linha", icon_mouse_click_right);
@@ -73,7 +77,7 @@ public final class ShortcutsWindow extends javax.swing.JFrame {
         addShortcut(simluationHotkeysPanel, "<html>Mover para<br>baixo", new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_down.png")));
         addShortcut(simluationHotkeysPanel, "<html>Mover para<br>esquerda", new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_left.png")));
         addShortcut(simluationHotkeysPanel, "<html>Mover para<br>direita", new ImageIcon(ShortcutsWindow.class.getResource("/resources/keys/key_right.png")));
-
+        
         //Fluxograma
         addCategory(flowchartHotkeysPanel, "Principais");
         addShortcut(flowchartHotkeysPanel, "<html>Mover<br>ambiente", icon_mouse_moving_right);

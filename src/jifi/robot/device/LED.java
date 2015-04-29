@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -63,7 +64,8 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
         colorMap.put("Verde", Color.GREEN);
         colorMap.put("Amarelo", Color.YELLOW);
         name = new Argument("LED", Argument.STRING_LITERAL);
-        arg0 = new Argument("Vermelho", Argument.SINGLE_VARIABLE);
+        pin = new Argument(2, Argument.NUMBER_LITERAL);
+        colorArg = new Argument("Vermelho", Argument.SINGLE_VARIABLE);
     }
 
     @Override
@@ -114,7 +116,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
 
     @Override
     public int getClassID() {
-        return 4;
+        return 1;
     }
 
     @Override
@@ -144,12 +146,12 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
 
     @Override
     public void draw(Graphics2D g, DrawingPanel.GraphicAttributes ga, DrawingPanel.InputState in) {
-        if (state){
-            g.setColor(colorMap.get(arg0.toString()).brighter());
+        if (state) {
+            g.setColor(colorMap.get(colorArg.toString()));
         } else {
-            g.setColor(colorMap.get(arg0.toString()).darker());
+            g.setColor(colorMap.get(colorArg.toString()).darker().darker().darker().darker());
         }
-        
+
         g.fillOval((int) x - 3, (int) y - 3, 6, 6);
     }
 
@@ -214,7 +216,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
         tmpShape.addPoint(12, 15);
         myShape.exclusiveOr(new Area(tmpShape));
 
-        Item item = new Item("LED", myShape, Color.decode("#67E200"), "");
+        Item item = new Item(getName(), myShape, Color.decode("#67E200"), "");
         item.setRef(this);
         return item;
     }
@@ -227,7 +229,8 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
     }
 
     private Argument name;
-    private Argument arg0;
+    private Argument pin;
+    private Argument colorArg;
 
     public static MutableWidgetContainer createConfigurationPanel(final LED led) {
 
@@ -241,6 +244,12 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
                 Widget wtextfield = new Widget(new JTextField("led"), 100, 25);
                 components.add(wtextfield);
                 container.softEntangle(led.name, wtextfield);
+                components.add(new SubLineBreak());
+
+                components.add(new TextLabel("Pino:  "));
+                Widget wspinner = new Widget(new JSpinner(new SpinnerNumberModel(2, 0, 20, 1)), 100, 25);
+                components.add(wspinner);
+                container.softEntangle(led.pin, wspinner);
 
                 components.add(new SubLineBreak());
                 components.add(new TextLabel("Cor:  "));
@@ -252,7 +261,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
                 Widget wcombobox = new Widget(combobox, 100, 25);
                 components.add(wcombobox);
 
-                container.softEntangle(led.arg0, wcombobox);
+                container.softEntangle(led.colorArg, wcombobox);
                 components.add(new SubLineBreak(true));
             }
         };
@@ -269,5 +278,32 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
         c.updateStructure();
 
         return c;
+    }
+
+    @Override
+    public List<Object> getDescriptionData() {
+        ArrayList<Object> data = new ArrayList<>();
+        data.add(getName());
+        data.add(pin.getDoubleValue());
+        data.add(x);
+        data.add(y);
+        data.add(colorArg.toString());
+        return data;
+    }
+
+    @Override
+    public Device createDevice(List<Object> descriptionData) {
+        LED led = new LED();
+        led.name.set((String) descriptionData.get(0), Argument.STRING_LITERAL);
+        led.pin.set((Double) descriptionData.get(1), Argument.NUMBER_LITERAL);
+        led.x = (double) descriptionData.get(2);
+        led.y = (double) descriptionData.get(3);
+        led.colorArg.set((String) descriptionData.get(4), Argument.SINGLE_VARIABLE);
+        return led;
+    }
+
+    @Override
+    public byte[] getBuilderMessageData() {
+        return new byte[]{(byte) pin.getDoubleValue()};
     }
 }

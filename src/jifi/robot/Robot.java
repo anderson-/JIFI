@@ -14,6 +14,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.nio.BufferOverflowException;
@@ -44,7 +45,7 @@ import jifi.robot.simulation.VirtualDevice;
  *
  * @author antunes
  */
-public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, Rotable {
+public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, Rotable, Serializable {
 
     public static final double SIZE_CM = 20;
     public static final double size = 60;
@@ -82,6 +83,19 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public void registerAllDevices() {
+        addDevice(new byte[]{1, 2, 4, 5, 6, 9, 10});
+        addDevice(new byte[]{2, 3, 0});
+        addDevice(new byte[]{3, 5, 1, 17});
+        addDevice(new byte[]{4, 4, 6, 14, 4, 15, 16, (byte) 200, 0});
+        addDevice(new byte[]{5, 1, 1, 2});
+        addDevice(new byte[]{6, 1, 1, 3});
+        
+        for (Device d : getDevices()){
+            
+        }
     }
 
     public class InternalClock extends Device {
@@ -122,6 +136,22 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         @Override
         public void resetState() {
             stepTime = 0;
+        }
+
+        @Override
+        public List<Object> getDescriptionData() {
+            ArrayList<Object> data = new ArrayList<>();
+            return data;
+        }
+
+        @Override
+        public Device createDevice(List<Object> descriptionData) {
+            return new InternalClock();
+        }
+        
+        @Override
+        public byte[] getBuilderMessageData() {
+            return new byte[]{(byte) getClassID(), 0};
         }
     }
     private Environment environment;
@@ -196,7 +226,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         return freeRam;
     }
 
-    public final void removeAllDevices() {
+    public final void removeAllDevicesMessage() {
         Message.setConnection(getMainConnection());
         REMOVE_ALL_DEVICES.begin(this);
         Action.run(REMOVE_ALL_DEVICES, this);
@@ -211,6 +241,11 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         devices.remove(d);
         d.setID(-1);
     }
+    
+    public final void removeAllDevices() {
+        devices.clear();
+    }
+    
 
     public final <T> T getDevice(Class<? extends Device> c) {
         Message.setConnection(getMainConnection());

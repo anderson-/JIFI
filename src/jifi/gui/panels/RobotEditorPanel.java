@@ -9,15 +9,14 @@
  * Copyright (C) 2013 by Anderson Antunes <anderson.utf@gmail.com>
  *                       *seu nome* <*seu email*>
  *
- * JIFI is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * JIFI is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * JIFI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * JIFI is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
  * JIFI. If not, see <http://www.gnu.org/licenses/>.
@@ -183,7 +182,7 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
         gridSize = 30;
         zoom = 3.2;
         sidePanel = new SidePanel(this) {
-            
+
             void goBack() {
                 if (itemSelected != null && itemSelected.getRef() instanceof Selectable) {
                     itemSelected.setSelected(false);
@@ -194,7 +193,7 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
                 for (Device d : RobotEditorPanel.this.r.getDevices()) {
                     if (d instanceof Classifiable) {
                         Item newItem = ((Classifiable) d).getItem().copy();
-                        newItem.setName("[" + (d.getID()) + "] " + newItem.getName());
+                        newItem.setName(newItem.getName());
                         sidePanel.add(newItem);
                     }
                 }
@@ -236,7 +235,7 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
                             RobotEditorPanel.this.r.add((Device) (((Class) item.getRef()).newInstance()));
                         } catch (Exception ex) {
                         }
-                        
+
                         goBack();
                     } else {
                         sidePanel.clearTempPanel();
@@ -262,42 +261,26 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
         };
 
         sidePanel.itemSelected(ITEM_GO_BACK, null);
-        
 
         sidePanel.setColor(Color.decode("#4D4388"));//FF7070
 
         add(sidePanel);
-
-        //mapeia a posição a cada x ms
-        Timer timer = new Timer(300) {
-            ArrayList<Robot> tmpBots = new ArrayList<>();
-
-            @Override
-            public void run() {
-                tmpBots.clear();
-                synchronized (robots) {
-                    tmpBots.addAll(robots);
-                }
-
-                for (Robot robot : tmpBots) {
-                    if (!(robot.getLeftWheelSpeed() == 0 && robot.getRightWheelSpeed() == 0)) {
-                        robot.updateVirtualPerception();
-                    }
-
-//                    robot.setRightWheelSpeed(30);
-//                    robot.setLeftWheelSpeed(-30);
-                    if (this.getCount() % 20 == 0) {
-//                        robot.setRightWheelSpeed(Math.random() * 100);
-//                        robot.setLeftWheelSpeed(Math.random() * 100);
-                    }
-                }
-            }
-        };
-        timer.setDisposable(false);
-        clock.addTimer(timer);
-        clock.setPaused(false);
+        clock.setPaused(true);
     }
-    
+
+    public void updateSidePanel() {
+        sidePanel.clearPanel();
+        for (Device d : RobotEditorPanel.this.r.getDevices()) {
+            if (d instanceof Classifiable) {
+                Item newItem = ((Classifiable) d).getItem().copy();
+                newItem.setName(newItem.getName());
+                sidePanel.add(newItem);
+            }
+        }
+        sidePanel.add(ITEM_ADD_DEVICE);
+        sidePanel.switchAnimLeft();
+    }
+
     public void hideSidePanel(boolean b) {
         sidePanel.setOpen(!b);
     }
@@ -400,51 +383,11 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
     public void draw(Graphics2D g, GraphicAttributes ga, InputState in) {
         synchronized (robots) {
             for (Robot robot : robots) {
-
                 if (in.mouseClicked() && in.getMouseButton() == MouseEvent.BUTTON2) {
                     if (!in.isKeyPressed(KeyEvent.VK_CONTROL)) {
                         robot.setLocation(0, 0);
                         robot.setTheta(0);
                     }
-                }
-
-                double v1 = robot.getLeftWheelSpeed();
-                double v2 = robot.getRightWheelSpeed();
-
-                //desenha o caminho
-                if (v1 != v2) {
-                    //calcula o raio
-                    double r = Robot.size / 2 * ((v1 + v2) / (v1 - v2));
-                    //calcula o centro (ortogonal à direção atual do robô)
-                    double x, y;
-                    if (r < 0) {
-                        r *= -1;
-                        x = (cos(-robot.getTheta() + PI / 2) * r + robot.getObjectBouds().x);
-                        y = (-sin(-robot.getTheta() + PI / 2) * r + robot.getObjectBouds().y);
-                    } else {
-                        x = (cos(-robot.getTheta() - PI / 2) * r + robot.getObjectBouds().x);
-                        y = (-sin(-robot.getTheta() - PI / 2) * r + robot.getObjectBouds().y);
-                    }
-
-                    g.setStroke(dashedStroke); //linha pontilhada
-                    //desenha o circulo
-                    g.setColor(Color.gray);
-                    circle.setFrame(x - r, y - r, r * 2, r * 2);
-                    try {
-                        g.draw(circle);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.println(circle);
-                        System.exit(0);
-                    }
-                    //desenha o raio
-                    g.setColor(Color.magenta);
-                    radius.setLine(robot.getObjectBouds().x, robot.getObjectBouds().y, x, y);
-                    g.draw(radius);
-                    g.setStroke(defaultStroke); //fim da linha pontilhada
-                    //desenha o centro
-                    dot.setFrame(x - 3, y - 3, 6, 6);
-                    g.fill(dot);
                 }
             }
         }

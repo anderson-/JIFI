@@ -8,6 +8,6 @@ jifi.plugin.cmdpack.begginer.Rotate
 jifi.plugin.cmdpack.begginer.Wait
 jifi.plugin.cmdpack.util.PrintString
 jifi.algorithm.procedure.Comment
-#jifi.plugin.cmdpack.util.StepMode
 jifi.plugin.cmdpack.low.WriteDevice
 jifi.plugin.cmdpack.low.SendBytes
+#jifi.plugin.cmdpack.util.StepMode

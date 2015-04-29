@@ -33,6 +33,8 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import jifi.drawable.Drawable;
 import jifi.drawable.GraphicObject;
 import jifi.drawable.DrawingPanel;
@@ -239,5 +241,21 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     @Override
     public double getTheta() {
         return theta;
+    }
+
+    @Override
+    public List<Object> getDescriptionData() {
+        ArrayList<Object> data = new ArrayList<>();
+        return data;
+    }
+
+    @Override
+    public Device createDevice(List<Object> descriptionData) {
+        return new ReflectanceSensorArray();
+    }
+
+    @Override
+    public byte[] getBuilderMessageData() {
+        return new byte[]{14, 4, 15, 16, (byte) 200, 0};
     }
 }

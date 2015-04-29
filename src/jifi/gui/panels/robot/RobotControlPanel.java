@@ -238,16 +238,22 @@ public class RobotControlPanel extends JPanel {
     private JButton button = null;
     private boolean virtual = false;
 
+    public static void buildDefaultRobot() {
+        if (robot != null) {
+            robot.removeAllDevices();
+            robot.add(new HBridge());
+            robot.add(new Compass());
+            robot.add(new IRProximitySensor());
+            robot.add(new ReflectanceSensorArray());
+//            robot.add(new LED());
+        }
+    }
+
     public RobotControlPanel(RobotManager rm) {
         INSTANCE++;
         serial = new SimpleSerial(57600);
         robot = new Robot();
-        robot.add(new HBridge());
-        robot.add(new Compass());
-        robot.add(new IRProximitySensor());
-        robot.add(new ReflectanceSensorArray());
-        robot.add(new LED());
-        robot.add(new Button());
+        buildDefaultRobot();
         robot.add(new Action() { //ação 0
             @Override
             public void putMessage(ByteBuffer data, Robot robot) {
@@ -349,6 +355,10 @@ public class RobotControlPanel extends JPanel {
 
     }
 
+    public static void setRobot(Robot robot) {
+        RobotControlPanel.robot = robot;
+    }
+
     public void setConnectButton(JButton c) {
         c.addMouseListener(ml);
         button = c;
@@ -358,12 +368,12 @@ public class RobotControlPanel extends JPanel {
     public static Collection<Class> getAvailableDevices() {
         ArrayList<Class> devices = new ArrayList<>();
 
-//        devices.add(HBridge.class);
+        devices.add(HBridge.class);
         devices.add(Compass.class);
         devices.add(IRProximitySensor.class);
         devices.add(ReflectanceSensorArray.class);
         devices.add(LED.class);
-        devices.add(Button.class);
+//        devices.add(Button.class);
 
         return devices;
     }

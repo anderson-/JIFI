@@ -111,7 +111,7 @@ public class SendBytes extends Procedure implements FunctionToken<SendBytes> {
         tmpShape.addPoint(20, 20);
         tmpShape.addPoint(0, 20);
         myShape.exclusiveOr(new Area(tmpShape));
-        return new Item("Enviar Bytes", myShape, myColor, "");
+        return new Item("Enviar Bytes", myShape, myColor, "Envia uma mensagem para o robo, apenas para usuarios avançados.");
     }
 
     @Override

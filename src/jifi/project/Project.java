@@ -9,9 +9,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -19,6 +22,10 @@ import javax.swing.JTree;
 import jifi.algorithm.parser.Parser;
 import jifi.algorithm.procedure.Function;
 import jifi.gui.GUI;
+import jifi.gui.panels.RobotEditorPanel;
+import jifi.gui.panels.robot.RobotControlPanel;
+import jifi.robot.Robot;
+import jifi.robot.device.Device;
 
 /**
  *
@@ -32,6 +39,9 @@ public class Project {
     public static void main(String[] args) {
 //        Project a = new Project("teste");
 //        a.save("teste.zip");
+        Project a = new Project();
+        a.robotToFile(new Robot());
+
     }
     private ArrayList<Function> functions;
 
@@ -76,6 +86,10 @@ public class Project {
                 addFileToZip("functions", functionToFile(f), zip, false);
             }
 
+            addFolderToZip("", "robot", zip);
+
+            addFileToZip("robot", robotToFile(RobotControlPanel.getRobot()), zip, false);
+
             addFolderToZip("", "environment", zip);
 
             {
@@ -110,6 +124,27 @@ public class Project {
         }
 
         return result;
+    }
+
+    private File robotToFile(Robot r) {
+        try {
+            List<List<Object>> devices = new ArrayList<>();
+            for (Device d : r.getDevices()) {
+                System.out.println(d);
+                List<Object> descriptionData = d.getDescriptionData();
+                descriptionData.add(0, d.getClassID());
+                devices.add(descriptionData);
+            }
+            File file = new File(tmpdir, "robot.rob");
+            FileOutputStream fout = new FileOutputStream(file);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(devices);
+            oos.close();
+            return file;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private File functionToFile(Function f) {
@@ -212,23 +247,61 @@ public class Project {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
 //            System.out.println("open");
+            InputStream streamFunc = null;
+            InputStream streamRob = null;
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
 //                System.out.println("*" + entry);
                 InputStream stream = zipFile.getInputStream(entry);
 
+                if (entry.getName().startsWith("robot/") && entry.getName().endsWith(".rob")) {
+                    streamRob = stream;
+                }
+
                 if (entry.getName().startsWith("functions/") && entry.getName().endsWith(".func")) {
-//                    System.out.println("Convertendo: " + entry);
-                    Function function = Parser.decode(stream);
-                    if (function != null) {
-                        functions.add(function);
-                    }
+                    streamFunc = stream;
                 }
 
                 if (entry.getName().startsWith("environment/") && entry.getName().endsWith(".env")) {
 //                    System.out.println("Convertendo: " + entry);
                     GUI.getInstance().getSimulationPanel().getEnv().loadFile(stream);
+                }
+            }
+
+            if (streamRob != null) {
+                List<List<Object>> robotDescription = null;
+                ObjectInputStream objectInputStream = new ObjectInputStream(streamRob);
+                robotDescription = (List<List<Object>>) objectInputStream.readObject();
+                objectInputStream.close();
+                RobotControlPanel.getRobot().removeAllDevices();
+                for (List<Object> data : robotDescription) {
+                    int sid = (int) data.get(0);
+                    Device d = null;
+                    for (Class< ? extends Device> c : RobotControlPanel.getAvailableDevices()) {
+                        int csid = 0;
+                        try {
+                            d = c.newInstance();
+                            csid = d.getClassID();
+                        } catch (Exception ex) {
+                        }
+                        if (csid == sid && d != null) {
+                            data.remove(0);
+                            d = d.createDevice(data);
+                            RobotControlPanel.getRobot().add(d);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                RobotControlPanel.buildDefaultRobot();
+            }
+            GUI.getInstance().getRobotEditorPanel().updateSidePanel();
+
+            if (streamFunc != null) {
+                Function function = Parser.decode(streamFunc);
+                if (function != null) {
+                    functions.add(function);
                 }
             }
 
