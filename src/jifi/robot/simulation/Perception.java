@@ -7,10 +7,12 @@ package jifi.robot.simulation;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Stroke;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.util.ArrayList;
 import java.util.List;
+import jifi.drawable.Drawable;
 import jifi.robot.device.IRProximitySensor;
 
 /**
@@ -19,13 +21,27 @@ import jifi.robot.device.IRProximitySensor;
  */
 public class Perception {
 
-    private static final int MAX_ARRAY = 1000;
+    private static final int MAX_ARRAY = 2000;
     private final ArrayList<Point> path = new ArrayList<>();
     private final ArrayList<Point> distanceMap = new ArrayList<>();
 
     public static void paintPoints(Graphics2D g, List<Point> points, int size) {
-        for (Point p : points) {
-            g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
+        boolean lines = false;
+        if (lines) {
+            Stroke s = g.getStroke();
+            g.setStroke(Drawable.BOLD_STROKE);
+            Point p0 = null;
+            for (Point p : points) {
+                if (p0 != null) {
+                    g.drawLine(p.x, p.y, p0.x, p0.y);
+                }
+                p0 = p;
+            }
+            g.setStroke(s);
+        } else {
+            for (Point p : points) {
+                g.fillOval(p.x - size / 2, p.y - size / 2, size, size);
+            }
         }
     }
 
@@ -33,7 +49,7 @@ public class Perception {
         if (d >= IRProximitySensor.MAX_DISTANCE - 10) {
             return;
         }
-        
+
         x += d * cos(theta);
         y += d * sin(theta);
         synchronized (distanceMap) {

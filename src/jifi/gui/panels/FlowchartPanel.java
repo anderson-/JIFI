@@ -116,9 +116,6 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable, Obser
         add(sidePanel);
 
         this.interpreter = interpreter;
-        if (!interpreter.isAlive()) {
-            this.interpreter.start();
-        }
         setFunction(function);
         super.setName("Fluxograma");
         gridSize = -10;
@@ -760,16 +757,18 @@ public class FlowchartPanel extends DrawingPanel implements Interpertable, Obser
         if (o instanceof Variable && tmpGO != null) {
             Variable variable = (Variable) o;
             int i = v.indexOf(variable);
-            Object value = variable.getValue();
-            if (value == null) {
-                value = "0";
-            }
-            UpdateVar updateVar = new UpdateVar(tmpGO.getPosX(), tmpGO.getPosY(), ((variable.getName().isEmpty()) ? "" : variable.getName() + " = ") + value, c.get(i));
-            this.add2(updateVar);
-            Queue<UpdateVar> queue = q.get(i);
-            queue.add(updateVar);
-            while (queue.size() > 5) {
-                this.remove(queue.poll());
+            if (i >= 0) {
+                Object value = variable.getValue();
+                if (value == null) {
+                    value = "0";
+                }
+                UpdateVar updateVar = new UpdateVar(tmpGO.getPosX(), tmpGO.getPosY(), ((variable.getName().isEmpty()) ? "" : variable.getName() + " = ") + value, c.get(i));
+                this.add2(updateVar);
+                Queue<UpdateVar> queue = q.get(i);
+                queue.add(updateVar);
+                while (queue.size() > 5) {
+                    this.remove(queue.poll());
+                }
             }
         }
 

@@ -123,8 +123,11 @@ public class Function extends Block {
     public Command step(ResourceManager rm) throws ResourceNotFoundException, ExecutionException {
         Robot robot = rm.getResource(Robot.class);
         robot.requestFreeRam();
+        robot.getAllDev();
         robot.removeAllDevicesMessage();
+        robot.getAllDev();
         robot.registerAllDevices();
+        robot.getAllDev();
         robot.requestFreeRam();
         return super.step(rm);
     }

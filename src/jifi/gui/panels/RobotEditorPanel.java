@@ -265,7 +265,7 @@ public class RobotEditorPanel extends DrawingPanel implements Serializable {
         sidePanel.setColor(Color.decode("#4D4388"));//FF7070
 
         add(sidePanel);
-        clock.setPaused(true);
+        clock.setPaused(false);
     }
 
     public void updateSidePanel() {

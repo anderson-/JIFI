@@ -17,7 +17,7 @@ public abstract class Message {
 
     public class TimeoutException extends Exception {
     }
-    
+
     public static long TIMEOUT = 30;
     public static long MAX_TIMEOUT = 300;//Long.MAX_VALUE
     private static long time = 0;
@@ -28,7 +28,7 @@ public abstract class Message {
     protected static Connection connection = null;
     private byte id;
     private long tmpTimeout;
-    
+
     public void setID(int id) {
         this.id = (byte) id;
     }
@@ -47,35 +47,35 @@ public abstract class Message {
     }
 
     /**
-     * Define que esta mensagem está aguardando resposta.
-     * A mensagem será aguardada por <code>TIMEOUT</code> antes de ser considerada perdida.
+     * Define que esta mensagem está aguardando resposta. A mensagem será
+     * aguardada por <code>TIMEOUT</code> antes de ser considerada perdida.
      */
     public final void setWaiting() {
         startReadingTime = System.currentTimeMillis();
         received = false;
         tmpTimeout = TIMEOUT;
     }
-    
+
     /**
-     * Define que esta mensagem está aguardando resposta.
-     * O Parametro <code>tmpTimeout</code> define o tempo de espera antes que
-     * a mensagem seja considerada perdida.
+     * Define que esta mensagem está aguardando resposta. O Parametro
+     * <code>tmpTimeout</code> define o tempo de espera antes que a mensagem
+     * seja considerada perdida.
      */
     public final void setWaiting(long tmpTimeout) {
         setWaiting();
         this.tmpTimeout = tmpTimeout;
     }
-    
+
     public long getTimeout() {
         return tmpTimeout;
     }
 
     /**
      * Define se a mensagem está em um estado válido para a leitura.
-     * 
-     * 
+     *
+     *
      * @return
-     * @throws jifi.robot.connection.message.Message.TimeoutException 
+     * @throws jifi.robot.connection.message.Message.TimeoutException
      */
     public final boolean isValidRead() throws TimeoutException {
         if (received) {
@@ -97,15 +97,16 @@ public abstract class Message {
     public static float getPingEstimative() {
         return (float) time / receivedPackages;
     }
-    
-    
+
     /**
      * Envia uma mensagem pela interface de comunicação padrão do robô.
      *
      * @param msg Mensagem a ser enviada
      */
     protected final void send(ByteBuffer msg) {
-        connection.send(msg);
+        if (connection != null) {
+            connection.send(msg);
+        }
     }
 
     /**
@@ -116,7 +117,7 @@ public abstract class Message {
     protected final void send(byte[] msg) {
         connection.send(msg);
     }
-    
+
     public void updateRobot(Robot robot) {
     }
 }

@@ -8,11 +8,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import jifi.algorithm.parser.parameterparser.Argument;
 import jifi.drawable.Drawable;
 import jifi.drawable.GraphicObject;
 import jifi.drawable.DrawingPanel;
@@ -20,21 +23,34 @@ import jifi.drawable.Rotable;
 import jifi.gui.panels.sidepanel.Classifiable;
 import jifi.gui.panels.sidepanel.Item;
 import jifi.drawable.Selectable;
+import jifi.drawable.swing.MutableWidgetContainer;
+import jifi.drawable.swing.WidgetContainer;
+import jifi.drawable.swing.component.Component;
+import jifi.drawable.swing.component.SubLineBreak;
+import jifi.drawable.swing.component.TextLabel;
+import jifi.drawable.swing.component.Widget;
+import jifi.drawable.swing.component.WidgetLine;
+import jifi.gui.panels.sidepanel.Configurable;
 import jifi.robot.Robot;
-import jifi.robot.simulation.Environment;
 import jifi.robot.simulation.VirtualDevice;
 
 /**
  *
  * @author antunes
  */
-public class IRProximitySensor extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable {
+public class IRProximitySensor extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable, Configurable {
 
     public static final int MAX_DISTANCE = 500;
     private int dist = 0;
     private double x, y, theta;
     private boolean selected;
-    
+    private WidgetContainer resource;
+
+    public IRProximitySensor() {
+        name = new Argument("Distancia", Argument.STRING_LITERAL);
+        pin = new Argument(17, Argument.NUMBER_LITERAL);
+    }
+
     @Override
     public boolean isActuator() {
         return false;
@@ -90,7 +106,7 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 5;
     }
 
@@ -144,7 +160,7 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
 
     @Override
     public String getName() {
-        return "Distancia";
+        return name.getStringValue().replace(" ", "");
     }
 
     @Override
@@ -177,7 +193,7 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
 //        tmpShape.addPoint(3, 10);
 //        tmpShape.addPoint(2, 9);
 //        tmpShape.addPoint(8, 1);
-        
+
 //        tmpShape.addPoint(6, 0);
 //        tmpShape.addPoint(10, 0);
 //        tmpShape.addPoint(10, 4);
@@ -188,7 +204,6 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
 //        tmpShape.addPoint(4, 10);
 //        tmpShape.addPoint(3, 9);
 //        tmpShape.addPoint(7, 1);
-        
         tmpShape.addPoint(10, 0);
         tmpShape.addPoint(20, 0);
         tmpShape.addPoint(20, 10);
@@ -200,7 +215,7 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
         tmpShape.addPoint(6, 18);
         tmpShape.addPoint(14, 2);
 
-        Item item = new Item("Distancia", tmpShape, Color.decode("#FF9700"), "");
+        Item item = new Item(getName(), tmpShape, Color.decode("#FF9700"), "");
         item.setRef(this);
         return item;
     }
@@ -214,20 +229,79 @@ public class IRProximitySensor extends Device implements VirtualDevice, Drawable
     public double getTheta() {
         return theta;
     }
-    
+
     @Override
     public List<Object> getDescriptionData() {
         ArrayList<Object> data = new ArrayList<>();
+        data.add(getName());
+        data.add(pin.getDoubleValue());
+        data.add(x);
+        data.add(y);
+        data.add(getTheta());
         return data;
     }
 
     @Override
     public Device createDevice(List<Object> descriptionData) {
-        return new IRProximitySensor();
+        IRProximitySensor ir  = new IRProximitySensor();
+        ir.name.set((String) descriptionData.get(0), Argument.STRING_LITERAL);
+        ir.pin.set((Double) descriptionData.get(1), Argument.NUMBER_LITERAL);
+        ir.x = (double) descriptionData.get(2);
+        ir.y = (double) descriptionData.get(3);
+        ir.setTheta((double) descriptionData.get(4));
+        return ir;
     }
 
     @Override
     public byte[] getBuilderMessageData() {
-        return new byte[]{17};
+        return new byte[]{(byte) pin.getDoubleValue()};
+    }
+
+    @Override
+    public WidgetContainer getConfigurationPanel() {
+        if (resource == null) {
+            resource = createConfigurationPanel(this);
+        }
+        return resource;
+    }
+
+    private Argument name;
+    private Argument pin;
+
+    public static MutableWidgetContainer createConfigurationPanel(final IRProximitySensor ir) {
+
+        //HEADER LINE
+        final WidgetLine headerLine = new WidgetLine() {
+            @Override
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Configuração", true));
+                components.add(new SubLineBreak());
+                components.add(new TextLabel("Nome:  "));
+                Widget wtextfield = new Widget(new JTextField("Refletancia"), 100, 25);
+                components.add(wtextfield);
+                container.softEntangle(ir.name, wtextfield);
+
+                components.add(new SubLineBreak());
+                components.add(new TextLabel("Pino:  "));
+                Widget wspinner = new Widget(new JSpinner(new SpinnerNumberModel(2, 0, 20, 1)), 100, 25);
+                components.add(wspinner);
+                container.softEntangle(ir.pin, wspinner);
+
+                components.add(new SubLineBreak(true));
+            }
+        };
+
+        MutableWidgetContainer c = new MutableWidgetContainer(Color.BLACK) {
+            @Override
+            public void updateStructure() {
+                clear();
+                addLine(headerLine);
+                boxLabel = getBoxLabel();
+            }
+        };
+
+        c.updateStructure();
+
+        return c;
     }
 }

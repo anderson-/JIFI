@@ -276,7 +276,15 @@ public class Project {
                 objectInputStream.close();
                 RobotControlPanel.getRobot().removeAllDevices();
                 for (List<Object> data : robotDescription) {
-                    int sid = (int) data.get(0);
+                    Object o = data.get(0);
+                    int sid = -1;
+                    if (o instanceof Byte){
+                        sid = (byte) o;
+                    } else if (o instanceof Integer){
+                        sid = (int) o;
+                    } else {
+                        throw new RuntimeException("Arquivo com problema!");
+                    }
                     Device d = null;
                     for (Class< ? extends Device> c : RobotControlPanel.getAvailableDevices()) {
                         int csid = 0;

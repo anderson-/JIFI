@@ -93,6 +93,7 @@ import jifi.interpreter.Interpreter;
 import jifi.project.Project;
 import jifi.robot.Robot;
 import jifi.robot.connection.Connection;
+import jifi.robot.connection.SimpleSerial;
 import jifi.util.fommil.jni.JniNamer;
 import jifi.util.SplashScreen;
 
@@ -372,8 +373,7 @@ public class GUI extends JFrame implements ComponentListener {
                     //adicionando editor do robo
                     for (RobotControlPanel rp : robotManager) {
                         robotEditorPanel = new RobotEditorPanel(rp.getRobot());
-                        add(robotEditorPanel, new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")));
-                        mainTabbedPane.setTitleAt(mainTabbedPane.getTabCount() - 1, "Editor");
+                        mainTabbedPane.insertTab("Editor", new ImageIcon(getClass().getResource("/resources/tango/16x16/categories/preferences-system.png")), robotEditorPanel, "", 0);
                     }
                 }
             }
@@ -384,9 +384,16 @@ public class GUI extends JFrame implements ComponentListener {
     @Deprecated
     public final void addDebugMenu() {
         menuDev.add(newItem("Print lib dir", new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 String str = "natives/" + JniNamer.os() + "/" + JniNamer.arch();
                 JOptionPane.showMessageDialog(null, str, "Print lib dir", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }));
+        menuDev.add(newItem("Debug serial", new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SimpleSerial.DEBUG = !SimpleSerial.DEBUG;
             }
         }));
     }
@@ -1118,6 +1125,9 @@ public class GUI extends JFrame implements ComponentListener {
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
         if (interpreter != null) {
+            if (!interpreter.isAlive()) {
+                this.interpreter.start();
+            }
             if (setDefaultRobot(interpreter, true)) {
                 interpreter.setInterpreterState(Interpreter.PLAY);
                 if (console != null) {

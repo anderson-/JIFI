@@ -34,7 +34,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import jifi.algorithm.parser.parameterparser.Argument;
 import jifi.drawable.Drawable;
 import jifi.drawable.GraphicObject;
 import jifi.drawable.DrawingPanel;
@@ -43,10 +48,18 @@ import jifi.gui.panels.RobotEditorPanel;
 import jifi.gui.panels.sidepanel.Classifiable;
 import jifi.gui.panels.sidepanel.Item;
 import jifi.drawable.Selectable;
+import jifi.drawable.swing.MutableWidgetContainer;
+import jifi.drawable.swing.WidgetContainer;
+import jifi.drawable.swing.component.Component;
+import jifi.drawable.swing.component.SubLineBreak;
+import jifi.drawable.swing.component.TextLabel;
+import jifi.drawable.swing.component.Widget;
+import jifi.drawable.swing.component.WidgetLine;
+import jifi.gui.panels.sidepanel.Configurable;
 import jifi.robot.Robot;
 import jifi.robot.simulation.VirtualDevice;
 
-public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable {
+public class ReflectanceSensorArray extends Device implements VirtualDevice, Drawable, Selectable, Classifiable, Rotable, Configurable {
 
     private final AffineTransform transform = new AffineTransform();
     private final int values[] = new int[5];
@@ -54,6 +67,12 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     private final Point2D.Double src = new Point2D.Double();
     private final Point2D.Double dst = new Point2D.Double();
     private boolean selected;
+    private WidgetContainer resource;
+
+    public ReflectanceSensorArray() {
+        name = new Argument("Refletancia", Argument.STRING_LITERAL);
+        threshold = new Argument(200, Argument.NUMBER_LITERAL);
+    }
 
     @Override
     public byte[] defaultGetMessage() {
@@ -120,7 +139,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 4;
     }
 
@@ -180,7 +199,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
 
     @Override
     public String getName() {
-        return "Refletancia";
+        return name.getStringValue().replace(" ", "");
     }
 
     @Override
@@ -228,7 +247,7 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
         tmpShape.addPoint(10, 15);
         myShape.exclusiveOr(new Area(tmpShape));
 
-        Item item = new Item("Sensor Refletivo", myShape, Color.decode("#C00086"), "");
+        Item item = new Item(getName(), myShape, Color.decode("#C00086"), "");
         item.setRef(this);
         return item;
     }
@@ -246,16 +265,76 @@ public class ReflectanceSensorArray extends Device implements VirtualDevice, Dra
     @Override
     public List<Object> getDescriptionData() {
         ArrayList<Object> data = new ArrayList<>();
+        data.add(getName());
+        data.add(threshold.getDoubleValue());
+        data.add(x);
+        data.add(y);
+        data.add(getTheta());
         return data;
     }
 
     @Override
     public Device createDevice(List<Object> descriptionData) {
-        return new ReflectanceSensorArray();
+        ReflectanceSensorArray ir = new ReflectanceSensorArray();
+        ir.name.set((String) descriptionData.get(0), Argument.STRING_LITERAL);
+        ir.threshold.set((Double) descriptionData.get(1), Argument.NUMBER_LITERAL);
+        ir.x = (double) descriptionData.get(2);
+        ir.y = (double) descriptionData.get(3);
+        ir.setTheta((double) descriptionData.get(4));
+        return ir;
     }
 
     @Override
     public byte[] getBuilderMessageData() {
-        return new byte[]{14, 4, 15, 16, (byte) 200, 0};
+        int t = (int) threshold.getDoubleValue();
+        return new byte[]{14, 4, 15, 16, (byte) (t & 0xFF), (byte) ((t >> 8) & 0xFF)};
+    }
+
+    @Override
+    public WidgetContainer getConfigurationPanel() {
+        if (resource == null) {
+            resource = createConfigurationPanel(this);
+        }
+        return resource;
+    }
+
+    private Argument name;
+    private Argument threshold;
+
+    public static MutableWidgetContainer createConfigurationPanel(final ReflectanceSensorArray r) {
+
+        //HEADER LINE
+        final WidgetLine headerLine = new WidgetLine() {
+            @Override
+            public void createRow(Collection<Component> components, final MutableWidgetContainer container, int index) {
+                components.add(new TextLabel("Configuração", true));
+                components.add(new SubLineBreak());
+                components.add(new TextLabel("Nome:  "));
+                Widget wtextfield = new Widget(new JTextField("led"), 100, 25);
+                components.add(wtextfield);
+                container.softEntangle(r.name, wtextfield);
+
+                components.add(new SubLineBreak());
+                components.add(new TextLabel("Limite:  "));
+                Widget wspinner = new Widget(new JSpinner(new SpinnerNumberModel(200, 0, 1023, 50)), 100, 25);
+                components.add(wspinner);
+                container.softEntangle(r.threshold, wspinner);
+
+                components.add(new SubLineBreak(true));
+            }
+        };
+
+        MutableWidgetContainer c = new MutableWidgetContainer(Color.BLACK) {
+            @Override
+            public void updateStructure() {
+                clear();
+                addLine(headerLine);
+                boxLabel = getBoxLabel();
+            }
+        };
+
+        c.updateStructure();
+
+        return c;
     }
 }

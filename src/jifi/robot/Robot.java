@@ -22,6 +22,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,6 +70,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
     public boolean LOG = false;
     public static final Action REQUEST_FREE_RAM = new GenericAction(true, 0, new byte[]{4, (byte) 223, 0});
     public static final Action REMOVE_ALL_DEVICES = new GenericAction(true, 0, new byte[]{7, (byte) 222});
+    public static final Action GET_ALOC_DEVICES = new GenericAction(true, 0, new byte[]{4, (byte) 222});
     public static final Action STOP_ALL = new StopAll();
     public static final Action RESET_SYSTEM = new ResetSystem();
     public static final Action UPDATE_ALL_DEVICES = new UpdateAllDevices();
@@ -86,15 +88,15 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
     }
 
     public void registerAllDevices() {
-        addDevice(new byte[]{1, 2, 4, 5, 6, 9, 10});
-        addDevice(new byte[]{2, 3, 0});
-        addDevice(new byte[]{3, 5, 1, 17});
-        addDevice(new byte[]{4, 4, 6, 14, 4, 15, 16, (byte) 200, 0});
-        addDevice(new byte[]{5, 1, 1, 2});
-        addDevice(new byte[]{6, 1, 1, 3});
-        
-        for (Device d : getDevices()){
-            
+        for (Device d : getDevices()) {
+            System.out.println("adding:" + d);
+            byte[] data = d.getBuilderMessageData();
+            byte[] msg = new byte[data.length + 3];
+            System.arraycopy(data, 0, msg, 3, data.length);
+            msg[0] = d.getID();
+            msg[1] = d.getClassID();
+            msg[2] = (byte) data.length;
+            addDevice(msg);
         }
     }
 
@@ -124,7 +126,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         }
 
         @Override
-        public int getClassID() {
+        public byte getClassID() {
             return 0;
         }
 
@@ -148,7 +150,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         public Device createDevice(List<Object> descriptionData) {
             return new InternalClock();
         }
-        
+
         @Override
         public byte[] getBuilderMessageData() {
             return new byte[]{(byte) getClassID(), 0};
@@ -241,11 +243,12 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         devices.remove(d);
         d.setID(-1);
     }
-    
+
     public final void removeAllDevices() {
+        Device clock = devices.get(0);
         devices.clear();
+        devices.add(clock);
     }
-    
 
     public final <T> T getDevice(Class<? extends Device> c) {
         Message.setConnection(getMainConnection());
@@ -376,6 +379,7 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         perception.addPathPoint(x, y);
     }
 
+    @Deprecated
     public void updatePerception() {
         Message.setConnection(getMainConnection());
         UPDATE_ALL_DEVICES.setInfiniteSend(false);
@@ -403,8 +407,16 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
         Action.run(ADD_NEW_DEVICE, this);
     }
 
+    public void getAllDev() {
+        Message.setConnection(getMainConnection());
+        GET_ALOC_DEVICES.begin(this);
+        Action.run(GET_ALOC_DEVICES, this);
+    }
+
     public final void virtualRobot(ByteBuffer message, Connection connection) {
+        System.out.println(Arrays.toString(message.array()));
         try {
+
             Thread.sleep(1);
         } catch (InterruptedException ex) {
         }
@@ -456,11 +468,13 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
 
                     case CMD_GET: {
                         byte id = message.get();
-                        byte length = message.get();
                         if (id == XTRA_FREE_RAM) {
                             freeRam = 0;
                             REQUEST_FREE_RAM.markUnread();
+                        } else if (id == XTRA_ALL) {
+                            GET_ALOC_DEVICES.markUnread();
                         } else {
+                            byte length = message.get();
                             if (message.remaining() >= length) {
                                 byte[] args = new byte[length];
                                 message.get(args);
@@ -687,6 +701,9 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                                 freeRam = tmp.getChar();
                                 System.out.println("FreeRam: " + freeRam);
                                 REQUEST_FREE_RAM.markUnread();
+                            } else if (id == XTRA_ALL) {
+                                System.out.println("ALOCDEV: " + Arrays.toString(args));
+                                GET_ALOC_DEVICES.markUnread();
                             } else {
                                 Device d = getDevice(id);
                                 if (d != null) {
@@ -766,11 +783,13 @@ public class Robot implements Observer<ByteBuffer, Connection>, GraphicObject, R
                             }
 
                         } else {
-                            message.get(); //tamanho da mensagem rebida pelo robô e não
+//                            message.get(); //tamanho da mensagem rebida pelo robô e não
                             //o tamanho da mensagem a ser lida agora.
                             switch (cmdDone) {
                                 case CMD_ADD: {
-                                    ADD_NEW_DEVICE.markUnread();
+                                    int cid = message.get();
+                                    int len = message.get();
+                                    ADD_NEW_DEVICE.markUnread(id, cid, len);
                                     break;
                                 }
                                 case CMD_SET: {

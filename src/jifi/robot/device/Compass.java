@@ -67,7 +67,7 @@ public class Compass extends Device implements VirtualDevice {
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 3;
     }
 

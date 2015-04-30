@@ -115,7 +115,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 1;
     }
 
@@ -162,7 +162,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
 
     @Override
     public String getName() {
-        return name.getStringValue();
+        return name.getStringValue().replace(" ", "");
     }
 
     @Override
@@ -221,6 +221,7 @@ public class LED extends Device implements VirtualDevice, Drawable, Selectable, 
         return item;
     }
 
+    @Override
     public WidgetContainer getConfigurationPanel() {
         if (resource == null) {
             resource = createConfigurationPanel(this);

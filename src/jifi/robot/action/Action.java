@@ -123,6 +123,10 @@ public abstract class Action extends Message {
                 return true; //termina de forma inválida
             }
         }
+        if (!connection.isConnected()){
+            System.out.println("problema serial");
+            return true; //problema na conexao serial
+        }
         return false; //ainda não terminou
     }
 

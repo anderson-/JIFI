@@ -54,7 +54,7 @@ public class SimpleSerial implements Connection, SerialPortEventListener {
     private boolean newMessage = true;
     private Queue<byte[]> messages;
     private static boolean SERIAL_DEBUG_ROBO_F = false;
-    private static boolean DEBUG = false;
+    public static boolean DEBUG = false;
 
     public SimpleSerial(int dataRate) {
         observers = new ArrayList<>();

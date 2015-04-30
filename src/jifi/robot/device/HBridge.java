@@ -101,7 +101,7 @@ public class HBridge extends Device implements VirtualDevice {
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 2;
     }
 

@@ -105,7 +105,7 @@ public class Button extends Device implements VirtualDevice, Drawable, Selectabl
     }
 
     @Override
-    public int getClassID() {
+    public byte getClassID() {
         return 4;
     }
 

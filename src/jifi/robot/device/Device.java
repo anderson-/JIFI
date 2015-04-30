@@ -20,7 +20,7 @@ public abstract class Device extends Message {
      * enviar comandos para o robô. Veja as funções implementadas em 
      * HBridge.
      */
-    public abstract int getClassID();
+    public abstract byte getClassID();
 
     public abstract void setState(ByteBuffer data);
 
